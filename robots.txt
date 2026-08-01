@@ -5,6 +5,7 @@ Disallow: /admin.html
 Disallow: /profile.html
 Disallow: /settings.html
 Disallow: /path-choice.html
+Disallow: /certificate.html
 Disallow: /data/
 
-Sitemap: /sitemap.xml
+Sitemap: https://hci-72ms.onrender.com/sitemap.xml

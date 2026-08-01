@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HCI — ترميز HTML و CSS لتخصص التفاعل</title>
+<meta name="description" content="دروس HTML و CSS مرتبة لطلاب HCI على منصة HCI لتحويل أفكار التصميم لواجهات حقيقية.">
+<meta name="keywords" content="HCI, تفاعل الإنسان والحاسوب, تفاعل الانسان مع الحاسوب, Human Computer Interaction, UX, UI, تجربة المستخدم">
+<meta name="robots" content="index, follow">
+<meta name="application-name" content="HCI">
+<meta name="apple-mobile-web-app-title" content="HCI">
+<meta property="og:site_name" content="HCI">
+<meta property="og:title" content="HCI — ترميز HTML و CSS لتخصص التفاعل">
+<meta property="og:description" content="دروس HTML و CSS مرتبة لطلاب HCI على منصة HCI لتحويل أفكار التصميم لواجهات حقيقية.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_SA">
+<link rel="canonical" href="/coding.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body data-page-stage="coding">
+  <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="logo">HCI</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html#paths">المسارات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+      </nav>
+      <span id="navCtaSlot" class="nav-auth">
+        <a href="auth.html" class="nav-login">تسجيل الدخول</a>
+        <a href="auth.html?tab=signup" class="nav-cta">إنشاء حساب</a>
+      </span>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="القائمة">☰</button>
+    </div>
+  </header>
+
+  <div class="lock-gate" id="lockGate" hidden>
+    <div class="lock-icon" aria-hidden="true">🔒</div>
+    <h1>مسار الترميز لسا غير متاح</h1>
+    <p>لفتح الدروس المتسلسلة هنا: اجتز اختبار أساسيات HCI بنتيجة 3 من 4 على الأقل.</p>
+    <a href="fundamentals.html" class="btn-primary">ارجع للأساسيات</a>
+  </div>
+
+  <main class="lesson" id="main">
+    <div class="wrap">
+      <a href="index.html" class="page-back">← رجوع للرئيسية</a>
+
+      <div class="lesson-head reveal">
+        <span class="eyebrow">/// خط 02 — ترميز HTML &amp; CSS</span>
+        <h1>دروس متسلسلة… كل درس يفتح اللي بعده</h1>
+        <p>افتح الدرس على W3Schools، طبّق، وارجع واضغط «أكملت». ما تقدر تقفز لدرس قبل اللي قبله — عشان البناء يكون حقيقي.</p>
+      </div>
+
+      <div class="profile-card reveal" style="margin-bottom:44px;">
+        <p class="progress-title" style="margin-bottom:14px;">تقدمك بمسار الترميز</p>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="codingProgressFill"></div>
+        </div>
+        <p class="progress-note" id="codingProgressNote">ما بدأت بعد — افتح أول درس وابدأ</p>
+      </div>
+
+      <div class="lesson-list" id="lessonList">
+
+        <div class="lesson-card" data-lesson="html-intro">
+          <span class="lesson-num">01</span>
+          <div class="lesson-info">
+            <h3>مقدمة إلى HTML</h3>
+            <p>وش هو HTML ووش وظيفته بأي صفحة ويب</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/html/html_intro.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="html-elements">
+          <span class="lesson-num">02</span>
+          <div class="lesson-info">
+            <h3>العناصر والوسوم الأساسية</h3>
+            <p>كيف تبني هيكل الصفحة بالعناصر (Elements)</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/html/html_elements.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="html-links">
+          <span class="lesson-num">03</span>
+          <div class="lesson-info">
+            <h3>الروابط</h3>
+            <p>كيف تربط صفحاتك ببعض أو بمواقع خارجية</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/html/html_links.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="html-images">
+          <span class="lesson-num">04</span>
+          <div class="lesson-info">
+            <h3>الصور</h3>
+            <p>إضافة وتنسيق الصور بالصفحة</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/html/html_images.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="html-lists">
+          <span class="lesson-num">05</span>
+          <div class="lesson-info">
+            <h3>القوائم</h3>
+            <p>قوائم مرقّمة وغير مرقّمة</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/html/html_lists.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="html-forms">
+          <span class="lesson-num">06</span>
+          <div class="lesson-info">
+            <h3>الفورمات</h3>
+            <p>بناء نماذج إدخال بيانات (زي فورم التسجيل)</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/html/html_forms.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="css-intro">
+          <span class="lesson-num">07</span>
+          <div class="lesson-info">
+            <h3>مقدمة إلى CSS</h3>
+            <p>كيف تنسّق شكل عناصر HTML اللي بنيتها</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/css/css_intro.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+        <div class="lesson-card" data-lesson="css-box-model">
+          <span class="lesson-num">08</span>
+          <div class="lesson-info">
+            <h3>صندوق العناصر (Box Model)</h3>
+            <p>أساس أي تخطيط CSS — الحواف، الهوامش، والمسافات</p>
+          </div>
+          <div class="lesson-actions">
+            <a href="https://www.w3schools.com/css/css_boxmodel.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="lesson-nav-footer">
+        <a href="fundamentals.html" class="btn-ghost">← الأساسيات</a>
+        <a href="courses.html" class="btn-primary" data-next-stage="courses">التالي: الدورات →</a>
+      </div>
+      <p style="color:var(--text-mid); font-size:0.82rem; margin-top:12px;">عند 50% من الدروس تنفتح صفحة الدورات. عند 100% تُحتسب المرحلة مكتملة.</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="title-list">
+        <div class="title-row"><span class="k">الدرس</span><span class="v">خط 02 — ترميز HTML &amp; CSS</span></div>
+        <div class="title-row"><span class="k">إعداد</span><span class="v">مازن عطية</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <button id="backToTop" class="back-to-top" aria-label="رجوع للأعلى">↑</button>
+  <script src="api.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

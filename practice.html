@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HCI — تمارين تفاعل الإنسان والحاسوب</title>
+<meta name="description" content="تمارين ممتعة تثبّت مبادئ HCI وتجربة المستخدم على منصة HCI.">
+<meta name="keywords" content="HCI, تفاعل الإنسان والحاسوب, تفاعل الانسان مع الحاسوب, Human Computer Interaction, UX, UI, تجربة المستخدم">
+<meta name="robots" content="index, follow">
+<meta name="application-name" content="HCI">
+<meta name="apple-mobile-web-app-title" content="HCI">
+<meta property="og:site_name" content="HCI">
+<meta property="og:title" content="HCI — تمارين تفاعل الإنسان والحاسوب">
+<meta property="og:description" content="تمارين ممتعة تثبّت مبادئ HCI وتجربة المستخدم على منصة HCI.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_SA">
+<link rel="canonical" href="/practice.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body data-page-stage="practice">
+  <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="logo">HCI</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html#paths">المسارات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+      </nav>
+      <span id="navCtaSlot" class="nav-auth">
+        <a href="auth.html" class="nav-login">تسجيل الدخول</a>
+        <a href="auth.html?tab=signup" class="nav-cta">إنشاء حساب</a>
+      </span>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="القائمة">☰</button>
+    </div>
+  </header>
+
+  <div class="lock-gate" id="lockGate" hidden>
+    <div class="lock-icon" aria-hidden="true">🔒</div>
+    <h1>التمارين تفتح بعد الاكتشاف</h1>
+    <p>لفتح التمارين: أكمل أولاً صفحة «اكتشف التخصص».</p>
+    <a href="discover.html" class="btn-primary">اكتشف التخصص</a>
+  </div>
+
+  <main class="lesson" id="main">
+    <div class="wrap">
+      <a href="index.html#paths" class="page-back">← رجوع للمسارات</a>
+
+      <div class="lesson-head reveal">
+        <span class="eyebrow">/// محطة 05 — تعلّم بالمرح</span>
+        <h1>اختَر الأفضل… وخلّ المبدأ يلصق بذهنك</h1>
+        <p>كل تمرين سيناريو واقعي. ما فيه درجات مرعبة — فيه فهم. أكمل 3 تمارين عشان تُحتسب المرحلة مكتملة.</p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="1">
+        <h3>01 — رسالة خطأ في نموذج تسجيل</h3>
+        <p class="ps-hint">أي صياغة تحترم مبدأ «ساعد المستخدم يتعرف على الخطأ ويتعافى منه»؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false">Error 422: Validation failed</button>
+          <button type="button" class="spot-option" data-correct="true">رقم الجوال ناقص خانة — كمّله لـ 10 أرقام</button>
+          <button type="button" class="spot-option" data-correct="false">حدث خطأ. حاول لاحقاً.</button>
+          <button type="button" class="spot-option" data-correct="false">Invalid phone</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="2">
+        <h3>02 — زر الإرسال بعد الضغط</h3>
+        <p class="ps-hint">المستخدم ضغط «إرسال الطلب». أي سلوك يحترم «رؤية حالة النظام»؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false">الزر يختفي فجأة بدون أي رسالة</button>
+          <button type="button" class="spot-option" data-correct="true">الزر يصير «جاري الإرسال…» مع تعطيل الضغط المتكرر</button>
+          <button type="button" class="spot-option" data-correct="false">الصفحة تعيد التحميل بصمت</button>
+          <button type="button" class="spot-option" data-correct="false">يطلع صوت فقط بدون تغيير بصري</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="3">
+        <h3>03 — كثافة الخيارات</h3>
+        <p class="ps-hint">شاشة إعدادات فيها 40 خيار بنفس الوزن البصري. وش أسوأ أثر على المستخدم؟ (قانون هيك / حمل معرفي)</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="true">يزيد وقت القرار ويُرهق الانتباه — المستخدم يؤجل أو يغلط</button>
+          <button type="button" class="spot-option" data-correct="false">يحسّن الإحساس بالسيطرة دائماً</button>
+          <button type="button" class="spot-option" data-correct="false">ما له أثر طالما الألوان حلوة</button>
+          <button type="button" class="spot-option" data-correct="false">يقلل الحاجة لأي بحث</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="4">
+        <h3>04 — مقارنة سريعة: تنقل</h3>
+        <p class="ps-hint">شوف الفرق — أي نمط أوضح لمستخدم جديد؟</p>
+        <div class="compare-block">
+          <div class="compare-card bad">
+            <span class="tag-label">✕ مربك</span>
+            <p>أيقونات فقط بدون تسميات، وترتيب يختلف بين الصفحات.</p>
+          </div>
+          <div class="compare-card good">
+            <span class="tag-label">✓ أوضح</span>
+            <p>أيقونة + نص، ونفس ترتيب العناصر في كل صفحة (اتساق).</p>
+          </div>
+        </div>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false">الأيقونات وحدها دائماً أذكى وأحدث</button>
+          <button type="button" class="spot-option" data-correct="true">الاتساق + التسميات يقللان الاعتماد على الذاكرة</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="lesson-nav-footer">
+        <a href="fundamentals.html" class="btn-ghost">← الأساسيات</a>
+        <a href="contribute.html" class="btn-primary" data-next-stage="contribute">التالي: أفد غيرك →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="title-list">
+        <div class="title-row"><span class="k">الصفحة</span><span class="v">تعلّم بالمرح</span></div>
+        <div class="title-row"><span class="k">إعداد</span><span class="v">مازن عطية</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <button id="backToTop" class="back-to-top" aria-label="رجوع للأعلى">↑</button>
+  <script src="api.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

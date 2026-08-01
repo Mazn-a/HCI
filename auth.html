@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HCI — تسجيل الدخول وإنشاء حساب</title>
+<meta name="description" content="سجّل دخولك أو أنشئ حساباً في منصة HCI لتخصص تفاعل الإنسان والحاسوب.">
+<meta name="keywords" content="HCI, تفاعل الإنسان والحاسوب, تفاعل الانسان مع الحاسوب, Human Computer Interaction, UX, UI, تجربة المستخدم">
+<meta name="robots" content="index, follow">
+<meta name="application-name" content="HCI">
+<meta name="apple-mobile-web-app-title" content="HCI">
+<meta property="og:site_name" content="HCI">
+<meta property="og:title" content="HCI — تسجيل الدخول وإنشاء حساب">
+<meta property="og:description" content="سجّل دخولك أو أنشئ حساباً في منصة HCI لتخصص تفاعل الإنسان والحاسوب.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_SA">
+<link rel="canonical" href="/auth.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body class="auth-page">
+  <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+  <div class="auth-card" id="main">
+    <span class="brand" style="display:block;">HCI</span>
+    <p class="brand-sub">منصة تعلم تفاعل الإنسان والحاسوب</p>
+    <p class="brand-tagline"><span class="dot"></span> سجّل دخولك أو أنشئ حساباً عشان تفتح المسارات</p>
+
+    <div class="tabs">
+      <button type="button" class="tab-btn active" id="tabLogin">تسجيل الدخول</button>
+      <button type="button" class="tab-btn" id="tabSignup">إنشاء حساب</button>
+    </div>
+
+    <form id="formLogin" class="active" novalidate>
+      <div>
+        <label for="loginIdentifier">البريد الإلكتروني أو رقم الجوال</label>
+        <input type="text" id="loginIdentifier" dir="ltr" placeholder="you@email.com أو 05xxxxxxxx" required autocomplete="username">
+        <p class="field-error" id="loginIdentifierError">أدخل بريد أو رقم جوال</p>
+      </div>
+      <div>
+        <label for="loginPass">كلمة المرور</label>
+        <input type="password" id="loginPass" dir="ltr" placeholder="كلمة المرور" required autocomplete="current-password">
+        <p class="field-error" id="loginPassError">كلمة المرور مطلوبة</p>
+        <p style="color:var(--text-mid);font-size:0.75rem;margin-top:6px;">للطلاب: 8 أحرف فأكثر · للمشرف يُقبل رمزه الخاص حتى لو أقصر</p>
+      </div>
+      <button type="submit" class="submit-btn" id="loginSubmit">تسجيل الدخول</button>
+      <button type="button" class="auth-link-btn" id="forgotOpenBtn">نسيت كلمة المرور؟</button>
+    </form>
+
+    <form id="formReset" novalidate>
+      <p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:4px;line-height:1.55;">
+        أدخل بريدك أو جوالك، ثم رمز التحقق، ثم كلمة المرور الجديدة.
+      </p>
+      <div>
+        <label for="resetIdentifier">البريد أو رقم الجوال</label>
+        <input type="text" id="resetIdentifier" dir="ltr" placeholder="you@email.com أو 05xxxxxxxx" autocomplete="username">
+      </div>
+      <button type="button" class="btn-ghost" id="resetSendCode" style="width:100%;">إرسال رمز التحقق</button>
+      <p class="otp-demo" id="resetDemoCode" hidden></p>
+      <div>
+        <label for="resetCode">رمز التحقق</label>
+        <input type="text" id="resetCode" dir="ltr" inputmode="numeric" placeholder="6 أرقام" autocomplete="one-time-code">
+      </div>
+      <div>
+        <label for="resetNewPass">كلمة المرور الجديدة</label>
+        <input type="password" id="resetNewPass" dir="ltr" placeholder="8 أحرف على الأقل" autocomplete="new-password">
+      </div>
+      <button type="submit" class="submit-btn" id="resetSubmit">تحديث كلمة المرور</button>
+      <button type="button" class="auth-link-btn" id="resetBackBtn">← رجوع لتسجيل الدخول</button>
+    </form>
+
+    <form id="formVerify" novalidate>
+      <p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:4px;line-height:1.55;">
+        عشان نتأكد إن البريد أو الجوال لك: اطلب رمز التحقق وأدخله.
+      </p>
+      <div>
+        <label for="verifyIdentifier">البريد أو رقم الجوال</label>
+        <input type="text" id="verifyIdentifier" dir="ltr" placeholder="نفس اللي سجّلت فيه">
+      </div>
+      <button type="button" class="btn-ghost" id="verifySendCode" style="width:100%;">إرسال رمز التحقق</button>
+      <p class="otp-demo" id="verifyDemoCode" hidden></p>
+      <div>
+        <label for="verifyCode">رمز التحقق</label>
+        <input type="text" id="verifyCode" dir="ltr" inputmode="numeric" placeholder="6 أرقام" autocomplete="one-time-code">
+      </div>
+      <button type="submit" class="submit-btn" id="verifySubmit">تأكيد الملكيّة</button>
+      <button type="button" class="auth-link-btn" id="verifySkipBtn">تخطي والمتابعة للمسار ←</button>
+    </form>
+
+    <form id="formSignup" novalidate>
+      <div class="name-row">
+        <div>
+          <label for="signupFirst">الاسم الأول</label>
+          <input type="text" id="signupFirst" placeholder="مثال: أحمد" required autocomplete="given-name">
+          <p class="field-error" id="signupFirstError">الاسم الأول مطلوب</p>
+        </div>
+        <div>
+          <label for="signupLast">الاسم الثاني</label>
+          <input type="text" id="signupLast" placeholder="مثال: العتيبي" required autocomplete="family-name">
+          <p class="field-error" id="signupLastError">الاسم الثاني مطلوب</p>
+        </div>
+      </div>
+
+      <div class="contact-toggle" role="group" aria-label="طريقة التواصل">
+        <button type="button" class="size-btn active" id="useEmailBtn" data-mode="email">بريد إلكتروني</button>
+        <button type="button" class="size-btn" id="usePhoneBtn" data-mode="phone">رقم جوال</button>
+      </div>
+
+      <div id="emailFieldWrap">
+        <label for="signupEmail">البريد الإلكتروني</label>
+        <input type="email" id="signupEmail" dir="ltr" placeholder="you@example.com" autocomplete="email">
+        <p class="field-error" id="signupEmailError">تأكد إن البريد صحيح</p>
+      </div>
+
+      <div id="phoneFieldWrap" hidden>
+        <label for="signupPhone">رقم الجوال</label>
+        <input type="tel" id="signupPhone" dir="ltr" placeholder="05xxxxxxxx" autocomplete="tel">
+        <p class="field-error" id="signupPhoneError">أدخل رقم جوال صحيح (9 أرقام فأكثر)</p>
+      </div>
+
+      <div>
+        <label for="signupPass">كلمة المرور</label>
+        <input type="password" id="signupPass" dir="ltr" placeholder="8 أحرف على الأقل" required minlength="8" autocomplete="new-password">
+        <p class="field-error" id="signupPassError">لازم 8 أحرف على الأقل</p>
+      </div>
+      <button type="submit" class="submit-btn" id="signupSubmit">إنشاء الحساب</button>
+    </form>
+
+    <p class="status-msg" id="statusMsg"></p>
+    <p class="server-hint" id="serverHint"></p>
+  </div>
+
+<script src="api.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اختر مسارك — HCI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body class="auth-page path-choice-page">
+  <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+  <div class="path-choice-wrap" id="main">
+    <a href="index.html" class="brand" style="display:block; text-align:center;">HCI</a>
+    <p class="brand-sub" style="margin-bottom:8px;">تفاعل الإنسان والحاسوب</p>
+    <p class="brand-tagline" style="margin-bottom:36px;"><span class="dot"></span> خطوة واحدة تضبط مسارك كامل</p>
+
+    <h1 class="path-choice-title">وين وضعك مع التخصص؟</h1>
+    <p class="path-choice-lead">اختر اللي يصفك الحين — الترتيب والمحتوى بيختلف حسب إجابتك.</p>
+
+    <div class="path-choice-grid">
+      <button type="button" class="path-option" id="chooseCurious">
+        <span class="po-num">01</span>
+        <h2>مهتم بالتخصص</h2>
+        <p>لسا جديد أو تفكّر تدخل <strong>تفاعل الإنسان والحاسوب (HCI)</strong>. بنوضح لك الفكرة كاملة من وين لوين، وبعدها تبدأ المهام.</p>
+        <span class="po-cta">هذا أنا ←</span>
+      </button>
+
+      <button type="button" class="path-option specialist" id="chooseSpecialist">
+        <span class="po-num">02</span>
+        <h2>متخصص في HCI</h2>
+        <p>أنت طالب أو ممارس في <strong>تفاعل الإنسان والحاسوب</strong> وتعرف الأساسيات. ندخلك مباشرة على المسارات والأدوات زي ما هي.</p>
+        <span class="po-cta">ابدأ مباشرة ←</span>
+      </button>
+    </div>
+
+    <p class="status-msg" id="statusMsg"></p>
+  </div>
+
+<script src="api.js"></script>
+<script src="main.js"></script>
+<script>
+(async function () {
+  if (!window.HCIApi || !HCIApi.isLoggedIn()) {
+    location.href = 'auth.html?tab=signup';
+    return;
+  }
+
+  // لو اختار مسبقاً، لا نعيد السؤال
+  var user = HCIApi.currentUser();
+  if (user && user.pathType) {
+    location.href = HCIApi.resolvePostAuthDestination(user, false);
+    return;
+  }
+
+  var statusMsg = document.getElementById('statusMsg');
+  var busy = false;
+
+  async function pick(pathType) {
+    if (busy) return;
+    busy = true;
+    statusMsg.textContent = 'جاري ضبط مسارك…';
+    statusMsg.classList.add('show');
+
+    try {
+      var updated = await HCIApi.setPathType(pathType);
+
+      if (pathType === 'specialist') {
+        HCIApi.applySpecialistUnlocks();
+        await HCIApi.syncProgress();
+        location.href = 'index.html#paths';
+        return;
+      }
+
+      // مهتم / جديد → صفحة التعريف الكاملة
+      location.href = 'intro.html';
+    } catch (err) {
+      statusMsg.textContent = err.message;
+      busy = false;
+    }
+  }
+
+  document.getElementById('chooseCurious').addEventListener('click', function () {
+    pick('curious');
+  });
+  document.getElementById('chooseSpecialist').addEventListener('click', function () {
+    pick('specialist');
+  });
+})();
+</script>
+</body>
+</html>

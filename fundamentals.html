@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HCI — أساسيات تفاعل الإنسان والحاسوب</title>
+<meta name="description" content="تعلّم أساسيات HCI ومبادئ نيلسن ونظريات الإدراك وأسس التفاعل على منصة HCI العربية.">
+<meta name="keywords" content="HCI, تفاعل الإنسان والحاسوب, تفاعل الانسان مع الحاسوب, Human Computer Interaction, UX, UI, تجربة المستخدم">
+<meta name="robots" content="index, follow">
+<meta name="application-name" content="HCI">
+<meta name="apple-mobile-web-app-title" content="HCI">
+<meta property="og:site_name" content="HCI">
+<meta property="og:title" content="HCI — أساسيات تفاعل الإنسان والحاسوب">
+<meta property="og:description" content="تعلّم أساسيات HCI ومبادئ نيلسن ونظريات الإدراك وأسس التفاعل على منصة HCI العربية.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_SA">
+<link rel="canonical" href="/fundamentals.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body data-page-stage="fundamentals">
+  <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="logo">HCI</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html#paths">المسارات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+      </nav>
+      <span id="navCtaSlot" class="nav-auth">
+        <a href="auth.html" class="nav-login">تسجيل الدخول</a>
+        <a href="auth.html?tab=signup" class="nav-cta">إنشاء حساب</a>
+      </span>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="القائمة">☰</button>
+    </div>
+    <div class="reading-progress"><div class="reading-progress-fill" id="readingProgressFill"></div></div>
+  </header>
+
+  <main class="lesson" id="main">
+    <div class="wrap">
+
+      <a href="index.html" class="page-back">← رجوع للرئيسية</a>
+
+      <div class="lesson-head">
+        <span class="eyebrow">/// خط 01 — أساسيات HCI</span>
+        <h1>المفاهيم الجذرية اللي أي طالب لازم يفهمها قبل أي شي</h1>
+        <p>قبل ما تصمم أي واجهة أو توظف أي أداة، لازم تفهم ثلاث ركائز: كيف تُقيَّم الواجهات (مبادئ نيلسن)، كيف يفكر الدماغ ويعالج المعلومات (نظريات الإدراك)، وأسس التصميم اللي تبني عليها أي قرار تفاعل. كل مبدأ فيه مثال واقعي تشوفه وتطبقه.</p>
+      </div>
+
+      <section class="lesson-section" style="--example-color: var(--line-cyan);">
+        <h2><span class="sec-num">01</span> مبادئ نيلسن العشرة (Nielsen's 10 Usability Heuristics)</h2>
+
+        <p style="color:var(--text-mid); font-size:0.9rem; margin-bottom:6px;">شاهد الفرق: نفس الخطأ، بس بطريقتين مختلفتين تماماً بالتعامل معه.</p>
+        <div class="compare-block">
+          <div class="compare-card bad">
+            <span class="tag-label">✕ سيئ</span>
+            <p><strong>رسالة الخطأ:</strong> "Error 400: invalid input"<br>ما يفهم المستخدم العادي وش المشكلة أو كيف يصلحها — يحس إنه أخطأ بشي تقني غامض.</p>
+          </div>
+          <div class="compare-card good">
+            <span class="tag-label">✓ جيد</span>
+            <p><strong>رسالة الخطأ:</strong> "البريد الإلكتروني غير صحيح، تأكد من وجود علامة @"<br>واضحة، بلغة بشرية بسيطة، وتقول له بالضبط وش يصلح.</p>
+          </div>
+        </div>
+
+        <div class="principle-grid">
+
+          <div class="principle-card">
+            <span class="principle-num">01</span>
+            <h3>رؤية حالة النظام <span class="en">Visibility of System Status</span></h3>
+            <span class="tagline">لا تترك المستخدم في الظلام!</span>
+            <p>خلّي المستخدم يعرف وش يصير دايماً — إشارة توضح إن النظام يستجيب لفعله.</p>
+            <div class="example-box"><b>مثال:</b> شريط تحميل واتساب لما ترفع صورة، يبين لك النسبة عشان تعرف الإرسال قاعد يصير.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">02</span>
+            <h3>التطابق مع الواقع <span class="en">Match Between System and the Real World</span></h3>
+            <span class="tagline">تحدث بلغة البشر، لا بلغة المبرمجين</span>
+            <p>استخدم لغة ومفاهيم يفهمها المستخدم من حياته اليومية، مو مصطلحات تقنية غريبة عليه.</p>
+            <div class="example-box"><b>مثال:</b> أيقونة سلة المهملات للحذف — نفس الشي اللي يعرفه من الحياة الواقعية.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">03</span>
+            <h3>حرية وتحكم المستخدم <span class="en">User Control and Freedom</span></h3>
+            <span class="tagline">وفّر دايماً باب خروج آمن</span>
+            <p>يخطئ المستخدمون دائماً — إذا ما لقوا "تراجع" أو "إلغاء"، بيحسون بالحصر والخوف من استخدام النظام.</p>
+            <div class="example-box"><b>مثال:</b> زر "تراجع" عن إرسال الإيميل بجيميل خلال 5 ثوانٍ.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">04</span>
+            <h3>الاتساق والمعايير <span class="en">Consistency and Standards</span></h3>
+            <span class="tagline">لا تفاجئ المستخدم بقاعدة جديدة كل صفحة</span>
+            <p>نفس العنصر لازم يشتغل ويبين بنفس الطريقة بكل مكان، عشان المستخدم ما يتعلم من جديد كل مرة.</p>
+            <div class="example-box"><b>مثال:</b> زر "حفظ" نفس اللون والمكان بكل صفحات التطبيق، مو يتغير كل مرة.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">05</span>
+            <h3>منع الأخطاء <span class="en">Error Prevention</span></h3>
+            <span class="tagline">امنع الغلط قبل ما يصير، مو بعده</span>
+            <p>تصميم جيد يمنع المشكلة قبل ما تصير، أفضل من رسالة خطأ ممتازة بعدها.</p>
+            <div class="example-box"><b>مثال:</b> نموذج التسجيل يمنعك ترسل قبل ما تعبي البريد صح، بدل ما يرفضك بعدين.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">06</span>
+            <h3>التعرف أفضل من التذكر <span class="en">Recognition Rather Than Recall</span></h3>
+            <span class="tagline">لا تحمّل ذاكرة المستخدم شي يقدر يشوفه</span>
+            <p>خلّي الخيارات ظاهرة قدام المستخدم، بدل ما تخليه يعتمد على ذاكرته.</p>
+            <div class="example-box"><b>مثال:</b> قائمة "الطلبات الأخيرة" بتطبيق توصيل الأكل، بدل ما تتذكر وش طلبت قبل.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">07</span>
+            <h3>المرونة وكفاءة الاستخدام <span class="en">Flexibility and Efficiency of Use</span></h3>
+            <span class="tagline">خلّي المحترف يطير، والمبتدئ يمشي براحته</span>
+            <p>وفّر اختصارات للمستخدم المتمرس، بدون ما تعقّد التجربة على المبتدئ.</p>
+            <div class="example-box"><b>مثال:</b> اختصارات لوحة المفاتيح بفوتوشوب للمحترفين، مع بقاء القوائم للمبتدئين.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">08</span>
+            <h3>تصميم جمالي وبسيط <span class="en">Aesthetic and Minimalist Design</span></h3>
+            <span class="tagline">كل عنصر زايد يسرق انتباه عنصر مهم</span>
+            <p>أي معلومة زايدة عن الحاجة تنافس المعلومات المهمة على انتباه المستخدم — قللها.</p>
+            <div class="example-box"><b>مثال:</b> محرك بحث جوجل — صفحة فاضية وشريط بحث واحد بس.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">09</span>
+            <h3>التعافي من الأخطاء <span class="en">Help Users Recognize, Diagnose, and Recover from Errors</span></h3>
+            <span class="tagline">الخطأ مو نهاية العالم، بس وضّح طريق الحل</span>
+            <p>لما يصير خطأ، وضّح للمستخدم وش صار بالضبط ووش الحل بلغة بسيطة.</p>
+            <div class="example-box"><b>مثال:</b> رسالة "كلمة المرور قصيرة، لازم 8 أحرف على الأقل" بدل "خطأ" بس.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">10</span>
+            <h3>المساعدة والتوثيق <span class="en">Help and Documentation</span></h3>
+            <span class="tagline">أفضل مساعدة هي اللي ما تحتاجها أصلاً</span>
+            <p>المنتج المثالي ما يحتاج دليل استخدام، بس إذا احتاج، خلّي المساعدة قريبة وسهلة البحث.</p>
+            <div class="example-box"><b>مثال:</b> أيقونة "؟" جنب حقل معقد بفورم توضح وش تكتب فيه بالضبط.</div>
+          </div>
+
+        </div>
+
+        <div class="checklist">
+          <h4>✓ راجع نفسك — قبل ما تسلّم أي تصميم</h4>
+          <label><input type="checkbox"> هل وفرت للمستخدم إشارة واضحة إن فعله انسجل؟</label>
+          <label><input type="checkbox"> هل يقدر يتراجع عن أي إجراء سواه بالغلط؟</label>
+          <label><input type="checkbox"> هل نفس العنصر يشتغل بنفس الطريقة بكل الصفحة؟</label>
+          <label><input type="checkbox"> هل قللت عدد الخيارات الظاهرة أمام المستخدم دفعة وحدة؟</label>
+        </div>
+      </section>
+
+      <section class="lesson-section" style="--example-color: var(--line-amber);">
+        <h2><span class="sec-num">02</span> نظريات الإدراك الأساسية (Cognitive & Perception Basics)</h2>
+        <div class="principle-grid">
+
+          <div class="principle-card">
+            <span class="principle-num">01</span>
+            <h3>مبادئ الجشطالت <span class="en">Gestalt Principles</span></h3>
+            <span class="tagline">عين الإنسان تكسل، فتجمّع الأشياء تلقائياً</span>
+            <p>الدماغ يجمّع العناصر المتقاربة أو المتشابهة كمجموعة وحدة تلقائياً.</p>
+            <div class="example-box"><b>مثال:</b> أيقونات البحث والإشعارات والإعدادات مجمّعة أعلى الشاشة — تحس إنها "مجموعة تنقّل" وحدة.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">02</span>
+            <h3>الحمل المعرفي <span class="en">Cognitive Load</span></h3>
+            <span class="tagline">العقل البشري كسول بطبعه.. لا ترهقه!</span>
+            <p>الذاكرة قصيرة المدى محدودة — كل عنصر زايد بالشاشة يستهلك من طاقة المستخدم الذهنية ويجعله يغادر.</p>
+            <div class="example-box"><b>مثال:</b> تقسيم نموذج التسجيل الطويل إلى 3 خطوات بسيطة بدل صفحة وحدة مليئة بالحقول.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">03</span>
+            <h3>النماذج الذهنية <span class="en">Mental Models</span></h3>
+            <span class="tagline">المستخدم يجيك بتوقعات جاهزة، لا تخالفها بلا سبب</span>
+            <p>المستخدم يتوقع سلوك أي نظام جديد بناءً على خبرته بأنظمة مشابهة قبل.</p>
+            <div class="example-box"><b>مثال:</b> أيقونة سلة الشراء بأي متجر إلكتروني — توقعك جاهز حتى قبل ما تجرب الموقع.</div>
+          </div>
+
+        </div>
+
+        <div class="checklist">
+          <h4>✓ راجع نفسك — قبل ما تسلّم أي تصميم</h4>
+          <label><input type="checkbox"> هل جمّعت العناصر المرتبطة ببعض بصرياً؟</label>
+          <label><input type="checkbox"> هل قسّمت أي نموذج طويل لخطوات أصغر؟</label>
+          <label><input type="checkbox"> هل استخدمت أيقونات ومفاهيم مألوفة للمستخدم؟</label>
+        </div>
+      </section>
+
+      <section class="lesson-section" style="--example-color: var(--line-green);">
+        <h2><span class="sec-num">03</span> أسس تصميم التفاعل (Interaction Design Foundations)</h2>
+        <div class="principle-grid">
+
+          <div class="principle-card">
+            <span class="principle-num">01</span>
+            <h3>الإشارات البصرية <span class="en">Affordance</span></h3>
+            <span class="tagline">خلّي الشكل نفسه يشرح وظيفته</span>
+            <p>شكل العنصر نفسه لازم يوحي بوظيفته.</p>
+            <div class="example-box"><b>مثال:</b> زر بارز بظل وحواف دائرية يوحي إنه "يُضغط"، عكس نص مسطح ما يبين إنه تفاعلي.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">02</span>
+            <h3>التغذية الراجعة <span class="en">Feedback</span></h3>
+            <span class="tagline">كل ضغطة تستاهل رد فعل</span>
+            <p>كل فعل يسويه المستخدم يستاهل رد فعل واضح وفوري من النظام.</p>
+            <div class="example-box"><b>مثال:</b> اهتزاز خفيف بجوالك لما تضغط زر — تأكيد فوري إن الفعل انسجل.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">03</span>
+            <h3>التصميم المتمركز حول المستخدم <span class="en">User-Centered Design</span></h3>
+            <span class="tagline">صمم لهم، مو لذوقك</span>
+            <p>القرارات تُبنى على احتياج المستخدم الحقيقي، مو على ذوق المصمم الشخصي.</p>
+            <div class="example-box"><b>مثال:</b> تطبيقات البنوك تسأل مستخدمين حقيقيين قبل ما تغيّر شكل الشاشة الرئيسية.</div>
+          </div>
+
+          <div class="principle-card">
+            <span class="principle-num">04</span>
+            <h3>التصميم التكراري <span class="en">Iterative Design</span></h3>
+            <span class="tagline">ولا تصميم يطلع مثالي من أول مرة</span>
+            <p>تصميم → اختبار → تحسين، بشكل دوري مستمر، مو خطوة وحدة نهائية.</p>
+            <div class="example-box"><b>مثال:</b> إنستقرام يطلق ميزة لمجموعة صغيرة أول، يجمع ملاحظات، وبعدين يوسعها للكل.</div>
+          </div>
+
+        </div>
+
+        <div class="checklist">
+          <h4>✓ راجع نفسك — قبل ما تسلّم أي تصميم</h4>
+          <label><input type="checkbox"> هل شكل كل زر يوحي إنه قابل للضغط؟</label>
+          <label><input type="checkbox"> هل كل فعل يرجع رد فعل فوري ومفهوم؟</label>
+          <label><input type="checkbox"> هل بنيت القرار على ملاحظات مستخدمين حقيقيين، مو ذوقك؟</label>
+          <label><input type="checkbox"> هل خططت لاختبار وتحسين التصميم لاحقاً؟</label>
+        </div>
+      </section>
+
+      <section class="lesson-section" style="--example-color: var(--gold);">
+        <h2><span class="sec-num">+</span> مصادر إضافية موصى بها</h2>
+        <p style="color:var(--text-mid); font-size:0.9rem; margin-bottom:20px;">لو حاب تتعمق أكثر بعد ما تخلص هالدرس، هذي منصات موثوقة يعتمد عليها متخصصو HCI/UX حول العالم:</p>
+        <table class="resource-table">
+          <tr><th>المجال</th><th>المصدر</th><th>ليش يفيدك</th></tr>
+          <tr><td>مقالات وأبحاث UX</td><td><a href="https://www.nngroup.com/articles/" target="_blank" rel="noopener">Nielsen Norman Group</a></td><td>المرجع الأشهر عالمياً لأبحاث UX التطبيقية</td></tr>
+          <tr><td>أبحاث المستخدم</td><td><a href="https://www.interaction-design.org/" target="_blank" rel="noopener">Interaction Design Foundation</a></td><td>دورات ومقالات متعمقة بمنهجيات البحث والتصميم</td></tr>
+          <tr><td>شهادة احترافية</td><td><a href="https://www.coursera.org/professional-certificates/google-ux-design" target="_blank" rel="noopener">Google UX Design Certificate</a></td><td>مسار كامل من الصفر لجاهزية سوق العمل</td></tr>
+          <tr><td>أداة تصميم</td><td><a href="https://www.figma.com" target="_blank" rel="noopener">Figma</a></td><td>الأداة الأشهر عالمياً لتصميم الواجهات والبروتوتايب</td></tr>
+          <tr><td>ترميز إضافي</td><td><a href="https://www.freecodecamp.org" target="_blank" rel="noopener">freeCodeCamp</a></td><td>تمارين عملية مجانية تكمل مسار HTML/CSS عندنا</td></tr>
+        </table>
+      </section>
+
+      <section class="lesson-section" style="--example-color: var(--line-cyan);">
+        <h2><span class="sec-num">?</span> اختبر فهمك</h2>
+        <p style="color:var(--text-mid); font-size:0.9rem; margin-bottom:20px;">4 أسئلة سريعة — جاوب واضغط "تحقق من إجاباتي" وشوف نتيجتك فوراً.</p>
+
+        <div class="quiz" id="quiz">
+
+
+          <div class="quiz-q" data-correct="b">
+            <p>01. مستخدم ضغط زر "إرسال" ولا صار أي شي بالشاشة. أي مبدأ نيلسن انخرق؟</p>
+            <div class="quiz-options">
+              <label><input type="radio" name="q1" value="a"> الاتساق والمعايير</label>
+              <label><input type="radio" name="q1" value="b"> رؤية حالة النظام</label>
+              <label><input type="radio" name="q1" value="c"> التصميم الجمالي البسيط</label>
+            </div>
+            <p class="quiz-feedback"></p>
+          </div>
+
+          <div class="quiz-q" data-correct="a">
+            <p>02. تقسيم نموذج تسجيل طويل إلى 3 خطوات بسيطة بدل صفحة وحدة — هذا يقلل من؟</p>
+            <div class="quiz-options">
+              <label><input type="radio" name="q2" value="a"> الحمل المعرفي (Cognitive Load)</label>
+              <label><input type="radio" name="q2" value="b"> التغذية الراجعة (Feedback)</label>
+              <label><input type="radio" name="q2" value="c"> النموذج الذهني (Mental Model)</label>
+            </div>
+            <p class="quiz-feedback"></p>
+          </div>
+
+          <div class="quiz-q" data-correct="c">
+            <p>03. زر بارز بظل وحواف دائرية يوحي إنه "قابل للضغط" — هذا مثال على؟</p>
+            <div class="quiz-options">
+              <label><input type="radio" name="q3" value="a"> Iterative Design</label>
+              <label><input type="radio" name="q3" value="b"> Mental Model</label>
+              <label><input type="radio" name="q3" value="c"> Affordance</label>
+            </div>
+            <p class="quiz-feedback"></p>
+          </div>
+
+          <div class="quiz-q" data-correct="b">
+            <p>04. أيقونات البحث والإشعارات والإعدادات مجمّعة أعلى الشاشة، فتحس إنها "مجموعة تنقّل" وحدة — هذا تفسير من؟</p>
+            <div class="quiz-options">
+              <label><input type="radio" name="q4" value="a"> الحمل المعرفي</label>
+              <label><input type="radio" name="q4" value="b"> مبادئ الجشطالت (Gestalt)</label>
+              <label><input type="radio" name="q4" value="c"> التصميم التكراري</label>
+            </div>
+            <p class="quiz-feedback"></p>
+          </div>
+
+          <button type="button" id="quizCheckBtn" class="submit-btn" style="max-width:220px;">تحقق من إجاباتي</button>
+          <p class="quiz-result" id="quizResult"></p>
+        </div>
+      </section>
+
+      <div class="lesson-nav-footer">
+        <a href="discover.html" class="btn-ghost">← اكتشف التخصص</a>
+        <a href="coding.html" class="btn-primary" data-next-stage="coding">التالي: ترميز HTML &amp; CSS →</a>
+      </div>
+      <p style="color:var(--text-mid); font-size:0.82rem; margin-top:12px;">ملاحظة: مرحلة الترميز تنفتح تلقائياً لما تجيب 3 من 4 بالاختبار فوق.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="title-list">
+        <div class="title-row"><span class="k">الدرس</span><span class="v">خط 01 — أساسيات HCI</span></div>
+        <div class="title-row"><span class="k">إعداد</span><span class="v">مازن عطية</span></div>
+      </div>
+    </div>
+  </footer>
+
+<button id="backToTop" class="back-to-top" aria-label="رجوع للأعلى">↑</button>
+
+<script src="api.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

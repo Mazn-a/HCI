@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin.html
+Disallow: /profile.html
+Disallow: /settings.html
+Disallow: /path-choice.html
+Disallow: /data/
+
+Sitemap: /sitemap.xml

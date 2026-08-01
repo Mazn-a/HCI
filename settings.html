@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الإعدادات — HCI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body>
+  <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="logo">HCI</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html#paths">المسارات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+      </nav>
+      <span id="navCtaSlot" class="nav-auth">
+        <a href="auth.html" class="nav-login">تسجيل الدخول</a>
+        <a href="auth.html?tab=signup" class="nav-cta">إنشاء حساب</a>
+      </span>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="القائمة">☰</button>
+    </div>
+  </header>
+
+  <main class="lesson" id="main">
+    <div class="wrap">
+
+      <a href="profile.html" class="page-back">← رجوع للملف الشخصي</a>
+
+      <div class="lesson-head">
+        <span class="eyebrow">/// الإعدادات</span>
+        <h1>خصص حسابك وتجربتك بالموقع</h1>
+        <p>كل تعديل هنا يُحفظ بمتصفحك وينعكس بكل صفحات الموقع فوراً.</p>
+      </div>
+
+      <div class="profile-card">
+
+        <div class="settings-block">
+          <h2>الاسم الظاهر</h2>
+          <p class="sub">هذا الاسم يظهر بالنافبار وملفك الشخصي</p>
+          <input type="text" id="settingsName" class="settings-input" placeholder="اسمك">
+          <br>
+          <button type="button" id="settingsNameSave" class="settings-save">حفظ الاسم</button>
+        </div>
+
+        <div class="settings-block">
+          <h2>لون التمييز بالموقع</h2>
+          <p class="sub">يغيّر لون الأزرار والتفاصيل البارزة</p>
+          <div class="swatch-row" id="settingsSwatchRow">
+            <button type="button" class="swatch-btn" data-color="#C9A24B" style="--swatch-color:#C9A24B;" aria-label="ذهبي"></button>
+            <button type="button" class="swatch-btn" data-color="#6FD6E0" style="--swatch-color:#6FD6E0;" aria-label="سماوي"></button>
+            <button type="button" class="swatch-btn" data-color="#8FC15C" style="--swatch-color:#8FC15C;" aria-label="أخضر"></button>
+            <button type="button" class="swatch-btn" data-color="#B79CE0" style="--swatch-color:#B79CE0;" aria-label="بنفسجي"></button>
+          </div>
+        </div>
+
+        <div class="settings-block">
+          <h2>حجم الخط</h2>
+          <p class="sub">للراحة البصرية — يطبّق على كل صفحات الموقع</p>
+          <div class="size-row" id="settingsSizeRow">
+            <button type="button" class="size-btn" data-size="14px">صغير</button>
+            <button type="button" class="size-btn" data-size="16px">متوسط</button>
+            <button type="button" class="size-btn" data-size="19px">كبير</button>
+          </div>
+        </div>
+
+        <div class="settings-block" style="margin-bottom:0;">
+          <h2>الخصوصية</h2>
+          <p class="sub">بياناتك وتقدمك محفوظان بأمان في حسابك على المنصة، ويتزامنان مع متصفحك الحالي لتسهيل المتابعة.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="title-list">
+        <div class="title-row"><span class="k">الصفحة</span><span class="v">الإعدادات</span></div>
+        <div class="title-row"><span class="k">إعداد</span><span class="v">مازن عطية</span></div>
+      </div>
+    </div>
+  </footer>
+
+<button id="backToTop" class="back-to-top" aria-label="رجوع للأعلى">↑</button>
+
+<script src="api.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

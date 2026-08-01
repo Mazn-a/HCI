@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HCI — تفاعل الإنسان والحاسوب | منصة تعلم HCI</title>
+<meta name="description" content="HCI منصة عربية لتخصص تفاعل الإنسان والحاسوب (Human-Computer Interaction). خارطة طريق من اكتشاف التخصص وأساسيات HCI وترميز الواجهات إلى الدورات والكتب وإفادة الآخرين.">
+<meta name="keywords" content="HCI, تفاعل الإنسان والحاسوب, تفاعل الانسان مع الحاسوب, Human Computer Interaction, UX, UI, تجربة المستخدم, تصميم واجهات, أساسيات HCI, تعلم HCI, منصة HCI">
+<meta name="author" content="مازن عطية">
+<meta name="robots" content="index, follow">
+<meta name="application-name" content="HCI">
+<meta name="apple-mobile-web-app-title" content="HCI">
+<meta property="og:site_name" content="HCI">
+<meta property="og:title" content="HCI — تفاعل الإنسان والحاسوب">
+<meta property="og:description" content="منصة عربية لطلاب تخصص تفاعل الإنسان والحاسوب: مسارات، أساسيات، ترميز، دورات وكتب.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_SA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HCI — تفاعل الإنسان والحاسوب">
+<meta name="twitter:description" content="منصة عربية لتعلم HCI من البداية حتى إفادة الآخرين.">
+<link rel="canonical" href="/index.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "HCI",
+  "alternateName": ["تفاعل الإنسان والحاسوب", "Human-Computer Interaction", "منصة HCI"],
+  "description": "منصة عربية لتخصص تفاعل الإنسان والحاسوب HCI",
+  "inLanguage": "ar",
+  "about": {
+    "@type": "Thing",
+    "name": "Human-Computer Interaction",
+    "alternateName": "تفاعل الإنسان والحاسوب"
+  }
+}
+</script>
+<script src="gate.js"></script>
+</head>
+<body>
+  <a href="#hero" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="logo">HCI</a>
+      <nav class="nav-links" id="navLinks" aria-label="القائمة الرئيسية">
+        <a href="#hero">الرئيسية</a>
+        <a href="#paths">المسارات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+      </nav>
+      <span id="navCtaSlot" class="nav-auth">
+        <a href="auth.html" class="nav-login">تسجيل الدخول</a>
+        <a href="auth.html?tab=signup" class="nav-cta">إنشاء حساب</a>
+      </span>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="القائمة">☰</button>
+    </div>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="hero-orbit" aria-hidden="true">
+      <span class="o1"></span>
+      <span class="o2"></span>
+      <span class="o3"></span>
+    </div>
+    <div class="wrap">
+      <p class="greeting" id="greeting"></p>
+      <a href="index.html" class="wordmark">HCI</a>
+      <div class="wordmark-rule"></div>
+      <span class="hero-tag">/// من رغبتك الأولى… إلى ما تُفيد به غيرك</span>
+      <h1>بوصلتك لإتقان <span>تفاعل الإنسان والحاسوب (HCI)</span></h1>
+      <p class="hero-lead">مسار تعليمي تفاعلي يركّز على المهارات العملية: من فهم سلوك المستخدم وتصميم الواجهات، إلى الترميز والتطبيق — خطوة بخطوة حتى تستطيع إفادة غيرك.</p>
+      <div class="hero-actions">
+        <a href="discover.html" class="btn-primary" id="heroCta">ابدأ رحلتك</a>
+        <a href="#paths" class="btn-ghost">شاهد المسارات</a>
+      </div>
+
+      <div class="journey-strip" aria-label="تقدمك بالرحلة">
+        <span class="js-label">تقدم الرحلة</span>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="overallProgressFill"></div>
+        </div>
+        <span class="js-pct" id="overallProgressPct">0%</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="problem">
+    <div class="wrap reveal">
+      <h2>كل طالب HCI مرّ بنفس اللحظة: يفتح جوجل، يلقى 40 مصدر متفرق، ويقفل اللابتوب تايه.</h2>
+      <p>التخصص جديد نسبياً في جامعاتنا، ومصادره متناثرة بين مواقع أجنبية ودورات مبعثرة. الفكرة هنا مو نعيد اختراع المحتوى — نرتّب الطريق: وش تتعلم أول، ووين المصدر الصح، وكيف تعرف إنك فهمت صدق.</p>
+    </div>
+  </section>
+
+  <section class="section-pad" id="methods">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">/// كيف تتعلم هنا</span>
+        <h2>مو حفظ… فهم يبني نفسه طبقة فوق طبقة</h2>
+        <p>كل مرحلة تفتح اللي بعدها بعد ما تثبت فهمك — نفس منطق التصميم التكراري اللي تتعلمه بالتخصص.</p>
+      </div>
+      <div class="method-grid">
+        <article class="method-card reveal reveal-delay-1">
+          <div class="method-icon">01</div>
+          <h3>تسلسل يفتح تدريجياً</h3>
+          <p>ما تشوف المرحلة التالية كمحتوى كامل لين تخلص اللي قبلها باختبار أو إنجاز حقيقي.</p>
+        </article>
+        <article class="method-card reveal reveal-delay-2">
+          <div class="method-icon">02</div>
+          <h3>تعلّم بالمقارنة والخطأ</h3>
+          <p>تشوف واجهات سيئة وجيدة جنب بعض، وتختار بنفسك — عشان المبدأ يثبت بذاكرتك.</p>
+        </article>
+        <article class="method-card reveal reveal-delay-3">
+          <div class="method-icon">03</div>
+          <h3>من المتعلم إلى المُفيد</h3>
+          <p>الهدف النهائي مو شهادة بس — تصير قادر تشرح لغيرك وتساعد طلاب جدد بنفس التخصص.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="stations-section" id="paths">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">/// رحلتك الكاملة</span>
+        <h2>سبع محطات… من الفضول إلى الإفادة</h2>
+        <p>اتبع الترتيب أو ارجع لأي مرحلة مفتوحة. المحطات القادمة توضّح لك الخطوة المطلوبة لفتحها.</p>
+      </div>
+
+      <ol class="stations" id="stationsList" aria-label="مسارات التعلم بالترتيب">
+
+        <li class="station s1 reveal" data-stage="discover">
+          <div class="station-meta">
+            <span class="station-num">00</span>
+            <span class="station-status open">مفتوح</span>
+          </div>
+          <h3>اكتشف التخصص</h3>
+          <p>وش يعني HCI؟ ليش يناسبك؟ وش الفرص بالمملكة؟ نبذة صادقة قبل ما تغوص بالتفاصيل.</p>
+          <div class="tags">
+            <span class="tag">لماذا HCI؟</span>
+            <span class="tag">مسار مهني</span>
+          </div>
+          <a href="discover.html" class="station-link">ابدأ الاكتشاف ←</a>
+        </li>
+
+        <li class="station s2 reveal reveal-delay-1" data-stage="fundamentals">
+          <div class="station-meta">
+            <span class="station-num">01</span>
+            <span class="station-status">—</span>
+          </div>
+          <h3>أساسيات HCI</h3>
+          <p>مبادئ نيلسن، نظريات الإدراك، وأسس التفاعل — مع أمثلة واختبار يفتح المرحلة التالية.</p>
+          <div class="tags">
+            <span class="tag">Heuristics</span>
+            <span class="tag">إدراك</span>
+          </div>
+          <a href="fundamentals.html" class="station-link">ادخل الأساسيات ←</a>
+        </li>
+
+        <li class="station s3 reveal reveal-delay-2" data-stage="coding">
+          <div class="station-meta">
+            <span class="station-num">02</span>
+            <span class="station-status">—</span>
+          </div>
+          <h3>ترميز HTML &amp; CSS</h3>
+          <p>حوّل فكرتك لواجهة حقيقية. دروس متسلسلة — كل درس يفتح بعد إكمال اللي قبله.</p>
+          <div class="tags">
+            <span class="tag">HTML</span>
+            <span class="tag">CSS</span>
+          </div>
+          <a href="coding.html" class="station-link">افتح الترميز ←</a>
+        </li>
+
+        <li class="station s4 reveal" data-stage="courses">
+          <div class="station-meta">
+            <span class="station-num">03</span>
+            <span class="station-status">—</span>
+          </div>
+          <h3>دورات متخصصة</h3>
+          <p>مسارات UI/UX مرتّبة من سطر وطويق ومصادر عالمية — مختارة لطالب التخصص.</p>
+          <div class="tags">
+            <span class="tag">UI/UX</span>
+            <span class="tag">Figma</span>
+          </div>
+          <a href="courses.html" class="station-link">استكشف الدورات ←</a>
+        </li>
+
+        <li class="station s5 reveal reveal-delay-1" data-stage="books">
+          <div class="station-meta">
+            <span class="station-num">04</span>
+            <span class="station-status">—</span>
+          </div>
+          <h3>كتب ومراجع</h3>
+          <p>كتب كلاسيكية في المجال مع ملخصات عربية تساعدك تفهم الجوهر بدون ما تضيع.</p>
+          <div class="tags">
+            <span class="tag">ملخصات عربية</span>
+            <span class="tag">مراجع</span>
+          </div>
+          <a href="books.html" class="station-link">مكتبة الكتب ←</a>
+        </li>
+
+        <li class="station s6 reveal reveal-delay-2" data-stage="practice">
+          <div class="station-meta">
+            <span class="station-num">05</span>
+            <span class="station-status">—</span>
+          </div>
+          <h3>تعلّم بالمرح</h3>
+          <p>تمارين «اختَر الأفضل» ومقارنات واجهات — تثبت المبادئ بطريقة ممتعة.</p>
+          <div class="tags">
+            <span class="tag">تفاعلي</span>
+            <span class="tag">تحديات</span>
+          </div>
+          <a href="practice.html" class="station-link">جرّب التمارين ←</a>
+        </li>
+
+        <li class="station s1 reveal" data-stage="contribute" style="grid-column: 1 / -1; max-width: 480px;">
+          <div class="station-meta">
+            <span class="station-num">06</span>
+            <span class="station-status">—</span>
+          </div>
+          <h3>أفد غيرك</h3>
+          <p>لما توصل هنا، صرت فاهم كفاية تساعد طلاب جدد: شرح، مراجعة واجهات، ومصادر تشاركها.</p>
+          <div class="tags">
+            <span class="tag">مجتمع</span>
+            <span class="tag">عطاء</span>
+          </div>
+          <a href="contribute.html" class="station-link">ابدأ الإفادة ←</a>
+        </li>
+
+      </ol>
+    </div>
+  </section>
+
+  <section class="section-pad">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">/// موارد سريعة</span>
+        <h2>أدوات تساعدك بأي مرحلة</h2>
+      </div>
+      <div class="content-grid">
+        <a href="glossary.html" class="content-card reveal">
+          <div class="cc-top">
+            <h3>معجم المصطلحات</h3>
+            <span class="cc-badge">مفتوح للكل</span>
+          </div>
+          <p>عربي + إنجليزي لكل مصطلح HCI/UX تحتاجه بمحاضرة أو مقابلة.</p>
+        </a>
+        <a href="practice.html" class="content-card reveal reveal-delay-1">
+          <div class="cc-top">
+            <h3>تمارين سريعة</h3>
+            <span class="cc-badge">تفاعلي</span>
+          </div>
+          <p>ثبّت فهمك باختيارات عملية — مو أسئلة نظرية بس.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer id="about">
+    <div class="wrap">
+      <nav class="footer-nav" aria-label="روابط سريعة">
+        <a href="discover.html">اكتشف التخصص</a>
+        <a href="fundamentals.html">الأساسيات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+        <a href="contribute.html">أفد غيرك</a>
+      </nav>
+      <div class="title-list">
+        <div class="title-row"><span class="k">المشروع</span><span class="v">HCI — خارطة طريق التخصص</span></div>
+        <div class="title-row"><span class="k">الإصدار</span><span class="v">Sheet 02 / v1.0</span></div>
+        <div class="title-row"><span class="k">إعداد</span><span class="v">مازن عطية</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <button id="backToTop" class="back-to-top" aria-label="رجوع للأعلى">↑</button>
+  <script src="api.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

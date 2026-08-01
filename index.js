@@ -35,6 +35,33 @@ const upload = multer({
 
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
+
+/* robots/sitemap دائماً 200 عشان قوقل ما يعتبر الموقع محظور */
+app.get('/robots.txt', (_req, res) => {
+  res.status(200);
+  res.type('text/plain; charset=utf-8');
+  res.set('Cache-Control', 'no-store');
+  res.send(
+    [
+      'User-agent: *',
+      'Allow: /',
+      '',
+      'User-agent: Googlebot',
+      'Allow: /',
+      '',
+      'Sitemap: https://hci-72ms.onrender.com/sitemap.xml',
+      ''
+    ].join('\n')
+  );
+});
+
+app.get('/sitemap.xml', (_req, res) => {
+  res.status(200);
+  res.type('application/xml; charset=utf-8');
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(__dirname));
 

@@ -1,11 +1,7 @@
 User-agent: *
 Allow: /
 
-Disallow: /admin.html
-Disallow: /profile.html
-Disallow: /settings.html
-Disallow: /path-choice.html
-Disallow: /certificate.html
-Disallow: /data/
+User-agent: Googlebot
+Allow: /
 
 Sitemap: https://hci-72ms.onrender.com/sitemap.xml

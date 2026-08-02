@@ -5,7 +5,10 @@ const bcrypt = require('bcryptjs');
 
 const dataDir = process.env.HCI_DATA_DIR || process.env.DATA_DIR || path.join(__dirname, 'data');
 const dbPath = path.join(dataDir, 'hci-db.json');
-const DATABASE_URL = process.env.DATABASE_URL || '';
+const DATABASE_URL = String(process.env.DATABASE_URL || '')
+  .replace(/&?channel_binding=require/gi, '')
+  .replace(/\?&/, '?')
+  .replace(/\?$/, '');
 
 const ADMIN_EMAIL = 'mazntyh7@gmail.com';
 const ADMIN_PHONE = '0536786288';

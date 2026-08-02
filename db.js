@@ -1,16 +1,22 @@
-/* قاعدة بيانات JSON بسيطة — بدون مكتبات أصلية */
+/* قاعدة بيانات JSON — محلياً ملف، وعلى Render تُحفظ في Postgres (دائمة) */
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const dataDir = path.join(__dirname, 'data');
+const dataDir = process.env.HCI_DATA_DIR || process.env.DATA_DIR || path.join(__dirname, 'data');
 const dbPath = path.join(dataDir, 'hci-db.json');
+const DATABASE_URL = process.env.DATABASE_URL || '';
 
 const ADMIN_EMAIL = 'mazntyh7@gmail.com';
 const ADMIN_PHONE = '0536786288';
 const ADMIN_PIN = '1111';
 
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+
+let pgPool = null;
+let saveTimer = null;
+let readyResolve;
+const ready = new Promise(function (resolve) { readyResolve = resolve; });
 
 function defaultDb() {
   return {
@@ -26,28 +32,26 @@ function defaultDb() {
   };
 }
 
-function load() {
+function loadFromFile() {
   if (!fs.existsSync(dbPath)) {
     const fresh = defaultDb();
-    save(fresh);
+    writeLocal(fresh);
     return fresh;
   }
   try {
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
   } catch {
     const fresh = defaultDb();
-    save(fresh);
+    writeLocal(fresh);
     return fresh;
   }
 }
 
-function save(data) {
+function writeLocal(data) {
   fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
-let cache = load();
-
-(function migrate() {
+function migrate(cache) {
   var changed = false;
   if (!cache.reports) { cache.reports = []; changed = true; }
   if (!cache.nextReportId) { cache.nextReportId = 1; changed = true; }
@@ -63,12 +67,71 @@ let cache = load();
       changed = true;
     }
   });
-  if (changed) save(cache);
-})();
+  return changed;
+}
+
+let cache = loadFromFile();
+if (migrate(cache)) writeLocal(cache);
+
+async function initRemote() {
+  if (!DATABASE_URL) {
+    console.log('HCI DB: ملف محلي (للتطوير). على Render أضف DATABASE_URL للحفظ الدائم.');
+    readyResolve();
+    return;
+  }
+  try {
+    const { Pool } = require('pg');
+    pgPool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+    });
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS hci_store (
+        id INTEGER PRIMARY KEY,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    const res = await pgPool.query('SELECT data FROM hci_store WHERE id = 1');
+    if (res.rows[0] && res.rows[0].data) {
+      cache = res.rows[0].data;
+      if (migrate(cache)) await flushRemote();
+      writeLocal(cache);
+      console.log('HCI DB: تم التحميل من Postgres (بيانات دائمة).');
+    } else {
+      if (migrate(cache)) writeLocal(cache);
+      await flushRemote();
+      console.log('HCI DB: تم إنشاء التخزين الدائم في Postgres.');
+    }
+  } catch (err) {
+    console.error('HCI DB: فشل الاتصال بـ Postgres — نكمل بالملف المحلي:', err.message);
+    pgPool = null;
+  }
+  readyResolve();
+}
+
+async function flushRemote() {
+  if (!pgPool) return;
+  await pgPool.query(
+    `INSERT INTO hci_store (id, data, updated_at)
+     VALUES (1, $1::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
+    [JSON.stringify(cache)]
+  );
+}
 
 function persist() {
-  save(cache);
+  writeLocal(cache);
+  if (!pgPool) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(function () {
+    flushRemote().catch(function (err) {
+      console.error('HCI DB: فشل حفظ Postgres:', err.message);
+    });
+  }, 150);
 }
+
+initRemote();
 
 function toWesternDigits(str) {
   return String(str || '')
@@ -381,6 +444,8 @@ module.exports = {
   ensureAdmin,
   checkPassword,
   toWesternDigits,
+  ready,
+  dataDir,
   ADMIN_EMAIL,
   ADMIN_PHONE,
   ADMIN_PIN

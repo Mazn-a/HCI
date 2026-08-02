@@ -6,13 +6,13 @@ const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { db, ensureAdmin, checkPassword } = require('./db');
+const { db, ensureAdmin, checkPassword, ready, dataDir } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'hci-platform-secret-change-in-production-2026';
 
-const uploadsDir = path.join(__dirname, 'data', 'uploads');
+const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -660,19 +660,25 @@ app.get('/api/admin/messages', adminRequired, (req, res) => {
   });
 });
 
-const adminInfo = ensureAdmin();
+ready.then(() => {
+  const adminInfo = ensureAdmin();
 
-app.listen(PORT, () => {
-  console.log('');
-  console.log('═══════════════════════════════════════');
-  console.log('  HCI Platform يعمل على:');
-  console.log('  http://localhost:' + PORT);
-  console.log('  لوحة الإدارة: http://localhost:' + PORT + '/admin.html');
-  console.log('');
-  console.log('  حساب المدير:');
-  console.log('  البريد: ' + adminInfo.email);
-  console.log('  الجوال: ' + adminInfo.phone);
-  console.log('  كلمة المرور: ' + adminInfo.password);
-  console.log('═══════════════════════════════════════');
-  console.log('');
+  app.listen(PORT, () => {
+    console.log('');
+    console.log('═══════════════════════════════════════');
+    console.log('  HCI Platform يعمل على:');
+    console.log('  http://localhost:' + PORT);
+    console.log('  لوحة الإدارة: http://localhost:' + PORT + '/admin.html');
+    console.log('  حفظ البيانات: ' + (process.env.DATABASE_URL ? 'Postgres (دائم)' : 'ملف محلي'));
+    console.log('');
+    console.log('  حساب المدير:');
+    console.log('  البريد: ' + adminInfo.email);
+    console.log('  الجوال: ' + adminInfo.phone);
+    console.log('  كلمة المرور: ' + adminInfo.password);
+    console.log('═══════════════════════════════════════');
+    console.log('');
+  });
+}).catch((err) => {
+  console.error('فشل تشغيل HCI:', err);
+  process.exit(1);
 });

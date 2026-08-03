@@ -922,7 +922,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           : (normalizePhoneLocal(signupPhone.value));
       }
       showTab('verify');
-      statusMsg.textContent = 'الحساب جاهز — أكّد ملكية البريد أو رقم الهاتف برمز التحقق من HCI';
+      statusMsg.textContent = 'الحساب جاهز — أكّد ملكية البريد أو رقم الهاتف برمز التحقق';
       statusMsg.classList.add('show');
       signupSubmit.disabled = false;
       signupSubmit.textContent = 'إنشاء الحساب';

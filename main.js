@@ -123,6 +123,11 @@ function isUnlocked(stageId){
     return !!(j.visited && j.visited.discover) || !!(j.done && j.done.discover) || !!(j.unlocked && j.unlocked.fundamentals);
   }
 
+  // الترميز يُفتح باجتياز الأساسيات (اختبار 3/4)
+  if (stageId === 'coding'){
+    return !!(j.done && j.done.fundamentals) || !!(j.unlocked && j.unlocked.coding);
+  }
+
   // practice بعد fundamentals مفتوح أو مكتمل أو discover مكتمل
   if (stageId === 'practice'){
     return !!(j.done && j.done.fundamentals) || !!(j.unlocked && j.unlocked.practice) || !!(j.done && j.done.discover);
@@ -169,7 +174,7 @@ var STAGE_LOCK_INFO = {
     cta: 'افتح اكتشف التخصص'
   },
   coding: {
-    reason: 'لفتح مسار الترميز اجتز اختبار أساسيات HCI بنتيجة 3 من 4 على الأقل.',
+    reason: 'لفتح مسار الترميز: أجب عن اختبار أساسيات HCI بنتيجة 3 من 4 على الأقل، ثم اضغط «تحقق من إجاباتي».',
     href: 'fundamentals.html#quiz',
     cta: 'اذهب للاختبار'
   },
@@ -563,12 +568,13 @@ if (stationsRoot){
 var lockGate = document.getElementById('lockGate');
 var pageStage = document.body.getAttribute('data-page-stage');
 
-if (pageStage){
-  markVisited(pageStage);
+function refreshPageLockGate(){
+  if (!pageStage || !lockGate) return;
+  var mainContent = document.getElementById('main');
+  var unlocked = isUnlocked(pageStage);
 
-  if (!isUnlocked(pageStage) && lockGate){
-    var mainContent = document.getElementById('main');
-    if (mainContent){ mainContent.hidden = true; }
+  if (!unlocked){
+    if (mainContent) mainContent.hidden = true;
     lockGate.hidden = false;
     var info = getLockInfo(pageStage);
     var gateP = lockGate.querySelector('p');
@@ -588,10 +594,15 @@ if (pageStage){
       gateBtn.href = info.href;
       gateBtn.textContent = info.cta;
     }
-    showStageLock(pageStage);
-  } else if (lockGate){
+  } else {
     lockGate.hidden = true;
+    if (mainContent) mainContent.hidden = false;
   }
+}
+
+if (pageStage){
+  markVisited(pageStage);
+  refreshPageLockGate();
 }
 
 // تلميح قوائم المراجعة + شرط تحديد الكل قبل الإكمال/التالي
@@ -1078,6 +1089,9 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 // مزامنة التقدم من السيرفر عند وجود جلسة + توجيه المسار الناقص
 if (window.HCIApi && HCIApi.isLoggedIn()){
   HCIApi.syncProgress().then(function(){
+    // بعد المزامنة: أعد تقييم القفل (قد يكون الترميز مفتوحاً على السيرفر)
+    if (typeof refreshPageLockGate === 'function') refreshPageLockGate();
+
     var overallFillEl = document.getElementById('overallProgressFill');
     var overallPctEl = document.getElementById('overallProgressPct');
     if (overallFillEl || overallPctEl){
@@ -1673,7 +1687,16 @@ if (quizCheckBtn && quizResult){
     // فتح الترميز عند 3/4 أو أكثر
     if (correctCount >= 3){
       markComplete('fundamentals');
-      quizResult.textContent += ' — ممتاز! فتحت مسار الترميز ✨';
+      var jUnlock = getJourney();
+      if (!jUnlock.unlocked) jUnlock.unlocked = {};
+      jUnlock.unlocked.coding = true;
+      jUnlock.done = jUnlock.done || {};
+      jUnlock.done.fundamentals = true;
+      saveJourney(jUnlock);
+      quizResult.textContent += ' — ممتاز! فُتح مسار الترميز.';
+      if (window.HCIApi && HCIApi.isLoggedIn()){
+        HCIApi.syncProgress().catch(function(){});
+      }
     } else {
       quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح المرحلة التالية';
     }

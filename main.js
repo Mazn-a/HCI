@@ -826,8 +826,26 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     });
   }
   if (signupPhone){
+    signupPhone.setAttribute('maxlength', '10');
+    signupPhone.addEventListener('keydown', function(e){
+      // اسمح بمفاتيح التحكم والحذف والتنقل
+      var allow = e.ctrlKey || e.metaKey || e.altKey ||
+        e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' ||
+        e.key === 'Enter' || e.key === 'Escape' ||
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+        e.key === 'Home' || e.key === 'End';
+      if (allow) return;
+      if (e.key.length === 1 && /\D/.test(e.key)) {
+        e.preventDefault();
+        return;
+      }
+      var selected = (signupPhone.selectionEnd || 0) - (signupPhone.selectionStart || 0);
+      if (e.key.length === 1 && signupPhone.value.length - selected >= 10) {
+        e.preventDefault();
+      }
+    });
     signupPhone.addEventListener('input', function(){
-      // أرقام فقط، وبحد أقصى 10
+      // أرقام فقط، وبحد أقصى 10 — لا يمكن الزيادة
       var digits = signupPhone.value.replace(/\D/g, '').slice(0, 10);
       if (signupPhone.value !== digits) signupPhone.value = digits;
       if (signupPhoneError) signupPhoneError.classList.remove('show');

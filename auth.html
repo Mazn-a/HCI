@@ -105,7 +105,7 @@
 
       <div class="contact-toggle" role="group" aria-label="طريقة التواصل">
         <button type="button" class="size-btn active" id="useEmailBtn" data-mode="email">بريد إلكتروني</button>
-        <button type="button" class="size-btn" id="usePhoneBtn" data-mode="phone">رقم جوال</button>
+        <button type="button" class="size-btn" id="usePhoneBtn" data-mode="phone">رقم هاتف</button>
       </div>
 
       <div id="emailFieldWrap">
@@ -116,10 +116,10 @@
       </div>
 
       <div id="phoneFieldWrap" hidden>
-        <label for="signupPhone">رقم الجوال</label>
-        <input type="tel" id="signupPhone" dir="ltr" placeholder="05xxxxxxxx" autocomplete="tel" inputmode="numeric" maxlength="10" pattern="[0-9]*">
-        <p class="field-hint">رقم سعودي: 05xxxxxxxx (10 أرقام فقط)</p>
-        <p class="field-error" id="signupPhoneError">أدخل رقم جوال سعودي بصيغة 05xxxxxxxx</p>
+        <label for="signupPhone">رقم الهاتف</label>
+        <input type="tel" id="signupPhone" dir="ltr" placeholder="05xxxxxxxx" autocomplete="tel" inputmode="numeric" maxlength="10" minlength="10" pattern="[0-9]{10}">
+        <p class="field-hint">مثال: 05xxxxxxxx</p>
+        <p class="field-error" id="signupPhoneError">أدخل رقم هاتف بصيغة 05xxxxxxxx (10 أرقام)</p>
       </div>
 
       <div>

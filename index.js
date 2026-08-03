@@ -143,7 +143,7 @@ function resolveIdentifier(raw) {
     return { identifier: email, channel: 'email', email: email, phone: null };
   }
   const phone = normalizePhone(value);
-  if (!isValidPhone(phone)) return { error: 'رقم الجوال غير صحيح. استخدم صيغة سعودية: 05xxxxxxxx' };
+  if (!isValidPhone(phone)) return { error: 'رقم الهاتف غير صحيح. استخدم صيغة 05xxxxxxxx (10 أرقام)' };
   return { identifier: phone, channel: 'phone', email: null, phone: phone };
 }
 
@@ -193,7 +193,7 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح. استخدم صيغة مثل name@example.com' });
     }
     if (phone && !isValidPhone(phone)) {
-      return res.status(400).json({ error: 'رقم الجوال غير صحيح. استخدم صيغة سعودية: 05xxxxxxxx' });
+      return res.status(400).json({ error: 'رقم الهاتف غير صحيح. استخدم صيغة 05xxxxxxxx (10 أرقام)' });
     }
     if (password.length < 8) {
       return res.status(400).json({ error: 'كلمة المرور لازم 8 أحرف على الأقل' });

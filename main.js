@@ -393,8 +393,8 @@ if (greetingEl){
   else if (hour < 17) { greetingText = 'مساء الخير'; }
   else { greetingText = 'مساء النور'; }
 
-  if (loggedInName){ greetingText += '، يا ' + loggedInName; }
-  else { greetingText += '، جاهز تتعلم اليوم؟'; }
+  if (loggedInName){ greetingText += '، ' + loggedInName; }
+  else { greetingText += ' — مرحباً بك في HCI'; }
 
   // حدّث النص فقط إذا تغيّر — يقلل القفز البصري
   var nextGreet = '/// ' + greetingText;

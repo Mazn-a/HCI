@@ -122,6 +122,18 @@ function publicUser(row) {
   };
 }
 
+function nameHistoryPublic(row) {
+  return (row.name_history || []).map((h) => ({
+    oldName: ((h.old_first || '') + ' ' + (h.old_last || '')).trim(),
+    newName: ((h.new_first || '') + ' ' + (h.new_last || '')).trim(),
+    oldFirst: h.old_first,
+    oldLast: h.old_last,
+    newFirst: h.new_first,
+    newLast: h.new_last,
+    changedAt: h.changed_at
+  }));
+}
+
 function resolveIdentifier(raw) {
   const value = String(raw || '').trim();
   if (!value) return { error: 'أدخل البريد أو رقم الجوال' };
@@ -235,6 +247,21 @@ app.get('/api/auth/me', authRequired, (req, res) => {
   const user = db.findUserById(req.user.id);
   if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
   res.json({ user: publicUser(user) });
+});
+
+/* تحديث الاسم — ينعكس على الشهادة ولوحة الإدارة مع سجل التغيير */
+app.patch('/api/auth/profile', authRequired, (req, res) => {
+  try {
+    const firstName = String(req.body.firstName || '').trim();
+    const lastName = String(req.body.lastName || '').trim();
+    const result = db.updateUserName(req.user.id, firstName, lastName);
+    if (!result) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    if (result.error) return res.status(400).json({ error: result.error });
+    res.json({ user: publicUser(result.user) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر تحديث الاسم' });
+  }
 });
 
 /* ---------- طلب رمز تحقق (بريد أو جوال) ---------- */
@@ -424,6 +451,7 @@ app.put('/api/progress', authRequired, (req, res) => {
 app.get('/api/messages', authRequired, (req, res) => {
   const rows = db.getMessagesForUser(req.user.id);
   res.json({
+    unreadCount: db.countUnreadForUser(req.user.id),
     messages: rows.map((m) => {
       const admin = db.findUserById(m.admin_id);
       return {
@@ -431,6 +459,7 @@ app.get('/api/messages', authRequired, (req, res) => {
         subject: m.subject,
         body: m.body,
         createdAt: m.created_at,
+        updatedAt: m.updated_at || null,
         read: !!m.read_by_user,
         from: admin ? admin.first_name + ' ' + admin.last_name : 'الإدارة'
       };
@@ -438,9 +467,13 @@ app.get('/api/messages', authRequired, (req, res) => {
   });
 });
 
+app.get('/api/messages/unread-count', authRequired, (req, res) => {
+  res.json({ count: db.countUnreadForUser(req.user.id) });
+});
+
 app.post('/api/messages/:id/read', authRequired, (req, res) => {
   db.markMessageRead(req.params.id, req.user.id);
-  res.json({ ok: true });
+  res.json({ ok: true, unreadCount: db.countUnreadForUser(req.user.id) });
 });
 
 /* ---------- لوحة الإدارة ---------- */
@@ -546,6 +579,12 @@ app.get('/api/admin/users', adminRequired, (req, res) => {
       return {
         ...publicUser(u),
         notes: u.notes || '',
+        passwordStatus: 'مشفّرة (bcrypt)',
+        passwordStored: !!u.password_hash,
+        nameChanged: Array.isArray(u.name_history) && u.name_history.length > 0,
+        lastNameChange: Array.isArray(u.name_history) && u.name_history[0]
+          ? u.name_history[0].changed_at
+          : null,
         progressPercent: Math.round((doneCount / 7) * 100),
         doneStages: doneCount,
         progressUpdated: p ? p.updated_at : null
@@ -565,9 +604,11 @@ app.get('/api/admin/users/:id', adminRequired, (req, res) => {
     user: {
       ...publicUser(u),
       notes: u.notes || '',
+      nameHistory: nameHistoryPublic(u),
       // كلمات المرور مشفّرة (bcrypt) ولا يمكن استرجاع النص الأصلي أبداً — هذا متعمد للأمان
       passwordStored: !!u.password_hash,
       passwordAlgo: 'bcrypt',
+      passwordStatus: 'مشفّرة (لا تُعرض كنص)',
       passwordHint: 'كلمة المرور محفوظة بشكل مشفّر ولا تُعرض كنص. استخدم «إعادة تعيين» لوضع كلمة جديدة.'
     },
     progress: p ? {
@@ -657,6 +698,7 @@ app.get('/api/admin/messages', adminRequired, (req, res) => {
         subject: m.subject,
         body: m.body,
         createdAt: m.created_at,
+        updatedAt: m.updated_at || null,
         read: !!m.read_by_user,
         user: u ? {
           id: u.id,
@@ -667,6 +709,31 @@ app.get('/api/admin/messages', adminRequired, (req, res) => {
       };
     })
   });
+});
+
+app.patch('/api/admin/messages/:id', adminRequired, (req, res) => {
+  const subject = String(req.body.subject || '').trim();
+  const body = String(req.body.body || '').trim();
+  if (!subject || !body) {
+    return res.status(400).json({ error: 'الموضوع ونص الرسالة مطلوبان' });
+  }
+  const msg = db.updateMessage(req.params.id, req.user.id, { subject, body });
+  if (!msg) return res.status(404).json({ error: 'الرسالة غير موجودة أو ليست من حسابك' });
+  res.json({
+    ok: true,
+    message: {
+      id: msg.id,
+      subject: msg.subject,
+      body: msg.body,
+      updatedAt: msg.updated_at
+    }
+  });
+});
+
+app.delete('/api/admin/messages/:id', adminRequired, (req, res) => {
+  const ok = db.deleteMessage(req.params.id, req.user.id);
+  if (!ok) return res.status(404).json({ error: 'الرسالة غير موجودة أو ليست من حسابك' });
+  res.json({ ok: true });
 });
 
 ready.then(() => {

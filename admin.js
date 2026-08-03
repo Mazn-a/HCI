@@ -166,8 +166,10 @@
 
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><strong>' + u.fullName + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel + '</span></td>' +
+        '<td><strong>' + u.fullName + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel +
+          (u.nameChanged ? ' · تغيّر الاسم' : '') + '</span></td>' +
         '<td dir="ltr">' + contact + '</td>' +
+        '<td><span class="pct-pill" title="لا يمكن عرض النص الأصلي">' + (u.passwordStatus || 'مشفّرة') + '</span></td>' +
         '<td><span class="pct-pill">' + u.progressPercent + '% · ' + u.doneStages + '/7</span></td>' +
         '<td>' + formatDate(u.lastLogin) + '</td>' +
         '<td>' + actions + '</td>';
@@ -180,6 +182,7 @@
           '<strong>' + u.fullName + '</strong>' +
           '<div class="meta">' +
             pathLabel + '<br dir="ltr">' + contact + '<br>' +
+            'كلمة المرور: ' + (u.passwordStatus || 'مشفّرة') + '<br>' +
             'التقدم: ' + u.progressPercent + '% · ' + u.doneStages + '/7<br>' +
             'آخر دخول: ' + formatDate(u.lastLogin) +
           '</div>' + actions;
@@ -205,21 +208,74 @@
 
     data.messages.forEach(function (m) {
       var div = document.createElement('div');
+      div.className = 'admin-msg-item';
       div.style.cssText = 'padding:16px 0; border-bottom:1px solid var(--ink-3);';
       div.innerHTML =
         '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;">' +
-          '<strong>' + m.subject + '</strong>' +
+          '<strong class="msg-subject-text">' + escapeHtml(m.subject) + '</strong>' +
           '<span style="color:var(--text-mid);font-size:0.78rem;">' + formatDate(m.createdAt) +
+          (m.updatedAt ? ' · عُدّلت ' + formatDate(m.updatedAt) : '') +
           (m.read ? ' · مقروءة' : ' · لم تُقرأ') + '</span>' +
         '</div>' +
         '<p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:6px;">إلى: ' +
-          (m.user ? m.user.name : '—') +
-          (m.user && m.user.email ? ' · ' + m.user.email : '') +
-          (m.user && m.user.phone ? ' · ' + m.user.phone : '') +
+          (m.user ? escapeHtml(m.user.name) : '—') +
+          (m.user && m.user.email ? ' · ' + escapeHtml(m.user.email) : '') +
+          (m.user && m.user.phone ? ' · ' + escapeHtml(m.user.phone) : '') +
         '</p>' +
-        '<p style="font-size:0.9rem;">' + m.body + '</p>';
+        '<p class="msg-body-text" style="font-size:0.95rem; margin-bottom:10px;">' + escapeHtml(m.body) + '</p>' +
+        '<div class="admin-actions">' +
+          '<button type="button" class="view-btn msg-edit-btn" data-id="' + m.id + '">تعديل</button>' +
+          '<button type="button" class="del-btn msg-del-btn" data-id="' + m.id + '">حذف</button>' +
+        '</div>';
       list.appendChild(div);
     });
+
+    list.querySelectorAll('.msg-del-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (!confirm('حذف هذه الرسالة؟ ستُحذف أيضاً من صندوق الطالب.')) return;
+        try {
+          await HCIApi.request('/api/admin/messages/' + btn.getAttribute('data-id'), { method: 'DELETE' });
+          await loadMessages();
+          await loadStats();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+
+    list.querySelectorAll('.msg-edit-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var item = btn.closest('.admin-msg-item');
+        var oldSubject = item.querySelector('.msg-subject-text').textContent;
+        var oldBody = item.querySelector('.msg-body-text').textContent;
+        var subject = prompt('موضوع الرسالة:', oldSubject);
+        if (subject === null) return;
+        subject = subject.trim();
+        if (!subject) { alert('الموضوع مطلوب'); return; }
+        var body = prompt('نص الرسالة:', oldBody);
+        if (body === null) return;
+        body = body.trim();
+        if (!body) { alert('نص الرسالة مطلوب'); return; }
+        try {
+          await HCIApi.request('/api/admin/messages/' + btn.getAttribute('data-id'), {
+            method: 'PATCH',
+            body: { subject: subject, body: body }
+          });
+          await loadMessages();
+          alert('تم تعديل الرسالة، وسيظهر التحديث لدى الطالب.');
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function setAdminTab(active) {
@@ -315,7 +371,7 @@
       });
       msgModal.classList.remove('open');
       await loadStats();
-      alert('تم إرسال الرسالة ✓');
+      alert('تم إرسال الرسالة. سيظهر تنبيه للطالب عند فتح المنصة.');
     } catch (err) {
       alert(err.message);
     }
@@ -333,7 +389,7 @@
     document.getElementById('detailSub').textContent =
       'معرّف #' + u.id + ' · انضم ' + formatDate(u.createdAt);
     document.getElementById('detailInfo').innerHTML =
-      '<strong>الاسم:</strong> ' + u.fullName + '<br>' +
+      '<strong>الاسم الحالي:</strong> ' + u.fullName + '<br>' +
       '<strong>البريد:</strong> ' + (u.email || '—') +
         (u.email ? ' · ' + (u.emailVerified ? '<span style="color:var(--line-green)">متحقق ✓</span>' : '<span style="color:var(--line-amber)">غير متحقق</span>') : '') + '<br>' +
       '<strong>الجوال:</strong> ' + (u.phone || '—') +
@@ -341,12 +397,25 @@
       '<strong>المسار:</strong> ' + (u.pathType === 'specialist' ? 'متخصص' : (u.pathType === 'curious' ? 'مهتم' : 'لم يُختر')) + '<br>' +
       '<strong>آخر دخول:</strong> ' + formatDate(u.lastLogin) + '<br>' +
       '<strong>آخر تغيير لكلمة المرور:</strong> ' + formatDate(u.passwordChangedAt) + '<br>' +
-      '<strong>حالة كلمة المرور:</strong> مشفّرة (' + (u.passwordAlgo || 'bcrypt') + ') — لا تُعرض كنص';
+      '<strong>حالة كلمة المرور:</strong> <span style="color:var(--gold)">' + (u.passwordStatus || 'مشفّرة') + '</span> — لا تُعرض كنص<br>' +
+      nameHistoryHtml(u.nameHistory);
     document.getElementById('detailNotes').value = u.notes || '';
     document.getElementById('detailNewPass').value = '';
     document.getElementById('detailProgress').textContent =
       JSON.stringify(data.progress, null, 2);
     detailModal.classList.add('open');
+  }
+
+  function nameHistoryHtml(history) {
+    if (!history || !history.length) {
+      return '<strong>سجل تغيير الاسم:</strong> لا يوجد تغييرات مسجّلة';
+    }
+    var rows = history.map(function (h) {
+      return '<li style="margin-bottom:6px;">من «' + escapeHtml(h.oldName) +
+        '» إلى «' + escapeHtml(h.newName) +
+        '» — <span style="color:var(--text-mid)">' + formatDate(h.changedAt) + '</span></li>';
+    }).join('');
+    return '<strong>سجل تغيير الاسم:</strong><ul style="margin:8px 0 0 0; padding-inline-start:18px;">' + rows + '</ul>';
   }
   document.getElementById('detailClose').addEventListener('click', function () {
     detailModal.classList.remove('open');

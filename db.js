@@ -65,6 +65,7 @@ function migrate(cache) {
     if (typeof u.intro_seen === 'undefined') { u.intro_seen = false; changed = true; }
     if (typeof u.email_verified === 'undefined') { u.email_verified = u.role === 'admin'; changed = true; }
     if (typeof u.phone_verified === 'undefined') { u.phone_verified = u.role === 'admin'; changed = true; }
+    if (!Array.isArray(u.name_history)) { u.name_history = []; changed = true; }
     if (typeof u.password_changed_at === 'undefined') {
       u.password_changed_at = u.created_at || new Date().toISOString();
       changed = true;
@@ -183,7 +184,8 @@ const db = {
       password_changed_at: now,
       created_at: now,
       last_login: now,
-      notes: ''
+      notes: '',
+      name_history: []
     };
     cache.users.push(user);
     cache.progress.push({
@@ -206,6 +208,34 @@ const db = {
     Object.assign(user, patch);
     persist();
     return user;
+  },
+
+  /** تحديث الاسم مع حفظ السجل للإدارة والشهادة */
+  updateUserName(id, firstName, lastName) {
+    const user = this.findUserById(id);
+    if (!user) return null;
+    const nextFirst = String(firstName || '').trim();
+    const nextLast = String(lastName || '').trim();
+    if (nextFirst.length < 2 || nextLast.length < 2) {
+      return { error: 'الاسم الأول والثاني مطلوبان (حرفان على الأقل لكل منهما)' };
+    }
+    if (!user.name_history) user.name_history = [];
+    const oldFirst = user.first_name;
+    const oldLast = user.last_name;
+    if (oldFirst !== nextFirst || oldLast !== nextLast) {
+      user.name_history.unshift({
+        old_first: oldFirst,
+        old_last: oldLast,
+        new_first: nextFirst,
+        new_last: nextLast,
+        changed_at: new Date().toISOString()
+      });
+      if (user.name_history.length > 20) user.name_history = user.name_history.slice(0, 20);
+      user.first_name = nextFirst;
+      user.last_name = nextLast;
+      persist();
+    }
+    return { user: user };
   },
 
   deleteUser(id) {
@@ -275,6 +305,34 @@ const db = {
       msg.read_by_user = 1;
       persist();
     }
+  },
+
+  updateMessage(id, adminId, patch) {
+    const msg = cache.messages.find(
+      (m) => m.id === Number(id) && m.admin_id === Number(adminId)
+    );
+    if (!msg) return null;
+    if (typeof patch.subject === 'string') msg.subject = patch.subject.trim();
+    if (typeof patch.body === 'string') msg.body = patch.body.trim();
+    msg.updated_at = new Date().toISOString();
+    persist();
+    return msg;
+  },
+
+  deleteMessage(id, adminId) {
+    const before = cache.messages.length;
+    cache.messages = cache.messages.filter(
+      (m) => !(m.id === Number(id) && m.admin_id === Number(adminId))
+    );
+    if (cache.messages.length === before) return false;
+    persist();
+    return true;
+  },
+
+  countUnreadForUser(userId) {
+    return cache.messages.filter(
+      (m) => m.user_id === Number(userId) && !m.read_by_user
+    ).length;
   },
 
   createReport({ userId, name, contact, message, page, mediaPath, mediaType, mediaName }) {

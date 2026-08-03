@@ -1,6 +1,9 @@
 /* بوابة الدخول — الصفحات العامة للفهرسة، والمسارات بعد تسجيل الدخول */
 (function () {
   try {
+    var theme = localStorage.getItem('hci_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     if (!page || page === '/' || page === '') page = 'index.html';
     var loggedIn = !!localStorage.getItem('hci_token');

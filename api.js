@@ -174,6 +174,24 @@
     return request('/api/progress', { method: 'PUT', body: payload });
   }
 
+  async function updateProfile(firstName, lastName) {
+    var data = await request('/api/auth/profile', {
+      method: 'PATCH',
+      body: { firstName: firstName, lastName: lastName }
+    });
+    if (data && data.user) {
+      setSession(getToken(), data.user);
+      try {
+        localStorage.setItem('hci_user_name', data.user.fullName || '');
+      } catch (e) { /* */ }
+    }
+    return data;
+  }
+
+  async function fetchUnreadCount() {
+    return request('/api/messages/unread-count');
+  }
+
   async function fetchMessages() {
     return request('/api/messages');
   }
@@ -395,6 +413,8 @@
     fetchProgress: fetchProgress,
     saveProgress: saveProgress,
     fetchMessages: fetchMessages,
+    fetchUnreadCount: fetchUnreadCount,
+    updateProfile: updateProfile,
     collectLocalProgress: collectLocalProgress,
     applyProgress: applyProgress,
     syncProgress: syncProgress,

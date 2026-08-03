@@ -3,11 +3,24 @@
    ============================================ */
 
 // ----- تفضيلات المظهر -----
-var savedFontSize = localStorage.getItem('hci_font_size');
-if (savedFontSize){ document.documentElement.style.fontSize = savedFontSize; }
+var savedFontSize = localStorage.getItem('hci_font_size') || '18px';
+document.documentElement.style.fontSize = savedFontSize;
 
 var savedAccent = localStorage.getItem('hci_accent_color');
 if (savedAccent){ document.documentElement.style.setProperty('--gold', savedAccent); }
+
+(function applyThemeEarly(){
+  var theme = localStorage.getItem('hci_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  if (document.body) document.body.setAttribute('data-theme', theme);
+})();
+
+function setTheme(theme){
+  theme = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  if (document.body) document.body.setAttribute('data-theme', theme);
+  try { localStorage.setItem('hci_theme', theme); } catch (e) { /* */ }
+}
 
 // ----- نظام الرحلة (فتح تدريجي) -----
 // المراحل بالترتيب: discover → fundamentals → coding → courses → books → practice → contribute
@@ -330,24 +343,43 @@ if (backToTop){
 // ----- قائمة الجوال / الآيباد -----
 var menuBtn = document.getElementById('menuBtn');
 var navLinks = document.getElementById('navLinks');
+var navBackdrop = document.getElementById('navBackdrop');
+if (!navBackdrop && document.body){
+  navBackdrop = document.createElement('button');
+  navBackdrop.type = 'button';
+  navBackdrop.id = 'navBackdrop';
+  navBackdrop.className = 'nav-backdrop';
+  navBackdrop.setAttribute('aria-label', 'إغلاق القائمة');
+  document.body.appendChild(navBackdrop);
+}
 
 function setNavOpen(isOpen){
   if (!navLinks || !menuBtn) return;
   navLinks.classList.toggle('is-open', isOpen);
   menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   document.body.classList.toggle('nav-open', isOpen);
+  if (navBackdrop) navBackdrop.classList.toggle('is-visible', isOpen);
 }
 
 if (menuBtn && navLinks){
-  menuBtn.addEventListener('click', function(){
+  menuBtn.addEventListener('click', function(e){
+    e.stopPropagation();
     setNavOpen(!navLinks.classList.contains('is-open'));
   });
   navLinks.querySelectorAll('a').forEach(function(link){
     link.addEventListener('click', function(){ setNavOpen(false); });
   });
+  if (navBackdrop){
+    navBackdrop.addEventListener('click', function(){ setNavOpen(false); });
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') setNavOpen(false);
+  });
   window.addEventListener('resize', function(){
     if (window.innerWidth > 860) setNavOpen(false);
   });
+  // أغلق القائمة عند التحميل لتفادي بقاء شريط مائل/جزئي
+  setNavOpen(false);
 }
 
 // ----- حساب المستخدم -----
@@ -1046,7 +1078,7 @@ var inboxList = document.getElementById('inboxList');
 if (inboxList && window.HCIApi && HCIApi.isLoggedIn()){
   HCIApi.fetchMessages().then(function(data){
     if (!data.messages || !data.messages.length){
-      inboxList.innerHTML = '<p class="progress-note">ما في رسائل من الإدارة حالياً.</p>';
+      inboxList.innerHTML = '<p class="progress-note">لا توجد رسائل من الإدارة حالياً.</p>';
       return;
     }
     inboxList.innerHTML = data.messages.map(function(m){
@@ -1054,7 +1086,8 @@ if (inboxList && window.HCIApi && HCIApi.isLoggedIn()){
         '<div class="term-row"><span class="term-ar">' + m.subject + '</span>' +
         '<span class="term-en">' + (m.read ? 'مقروءة' : 'جديدة') + '</span></div>' +
         '<p class="term-def">' + m.body + '</p>' +
-        '<p class="progress-note">من ' + m.from + '</p>' +
+        '<p class="progress-note">من ' + m.from +
+          (m.updatedAt ? ' · عُدّلت' : '') + '</p>' +
       '</div>';
     }).join('');
     data.messages.forEach(function(m){
@@ -1063,9 +1096,72 @@ if (inboxList && window.HCIApi && HCIApi.isLoggedIn()){
       }
     });
   }).catch(function(){
-    inboxList.innerHTML = '<p class="progress-note">تعذر جلب الرسائل — تأكد إن السيرفر شغال.</p>';
+    inboxList.innerHTML = '<p class="progress-note">تعذر جلب الرسائل. تأكد من اتصال المنصة.</p>';
   });
 }
+
+// تنبيه عند وصول رسالة من الإدارة
+(function setupAdminMessageAlert(){
+  if (!window.HCIApi || !HCIApi.isLoggedIn() || HCIApi.isAdmin()) return;
+
+  function showMsgToast(count, subject){
+    var existing = document.getElementById('adminMsgToast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.id = 'adminMsgToast';
+    toast.className = 'admin-msg-toast';
+    toast.setAttribute('role', 'status');
+    var text = count === 1
+      ? ('رسالة جديدة من الإدارة' + (subject ? ': ' + subject : ''))
+      : ('لديك ' + count + ' رسائل جديدة من الإدارة');
+    toast.innerHTML = '<strong>تنبيه</strong><span>' + text + '</span>' +
+      '<a href="profile.html#inbox">عرض الرسائل</a>' +
+      '<button type="button" class="toast-close" aria-label="إغلاق">×</button>';
+    document.body.appendChild(toast);
+    toast.querySelector('.toast-close').addEventListener('click', function(){ toast.remove(); });
+    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 12000);
+  }
+
+  function updateMsgBadge(count){
+    var slot = document.querySelector('.nav-user-wrap') || document.getElementById('navCtaSlot');
+    if (!slot) return;
+    var badge = document.getElementById('navMsgBadge');
+    if (count <= 0){
+      if (badge) badge.remove();
+      return;
+    }
+    if (!badge){
+      badge = document.createElement('a');
+      badge.id = 'navMsgBadge';
+      badge.className = 'nav-msg-badge';
+      badge.href = 'profile.html#inbox';
+      badge.setAttribute('aria-label', 'رسائل غير مقروءة');
+      slot.appendChild(badge);
+    }
+    badge.textContent = String(count);
+  }
+
+  function checkMessages(){
+    HCIApi.fetchMessages().then(function(data){
+      var unread = (data.messages || []).filter(function(m){ return !m.read; });
+      var count = data.unreadCount != null ? data.unreadCount : unread.length;
+      updateMsgBadge(count);
+      if (!count) return;
+      var seenKey = 'hci_seen_msg_ids';
+      var seen = [];
+      try { seen = JSON.parse(localStorage.getItem(seenKey) || '[]'); } catch (e) { seen = []; }
+      var fresh = unread.filter(function(m){ return seen.indexOf(m.id) === -1; });
+      if (fresh.length){
+        showMsgToast(fresh.length, fresh[0].subject);
+        fresh.forEach(function(m){ seen.push(m.id); });
+        try { localStorage.setItem(seenKey, JSON.stringify(seen.slice(-50))); } catch (e) { /* */ }
+      }
+    }).catch(function(){});
+  }
+
+  checkMessages();
+  setInterval(checkMessages, 45000);
+})();
 
 // خريطة الرحلة في الملف الشخصي
 var journeyMap = document.getElementById('journeyMap');
@@ -1296,28 +1392,71 @@ if (lessonList && codingProgressFill && codingProgressNote){
 }
 
 // ----- الإعدادات -----
-var settingsNameInput = document.getElementById('settingsName');
+var settingsFirstName = document.getElementById('settingsFirstName');
+var settingsLastName = document.getElementById('settingsLastName');
 var settingsNameSave = document.getElementById('settingsNameSave');
+var settingsNameNote = document.getElementById('settingsNameNote');
 var settingsSizeRow = document.getElementById('settingsSizeRow');
 var settingsSwatchRow = document.getElementById('settingsSwatchRow');
+var settingsThemeRow = document.getElementById('settingsThemeRow');
 
-if (settingsNameInput && settingsNameSave){
-  var currentName = localStorage.getItem('hci_user_name');
-  if (currentName){ settingsNameInput.value = currentName; }
+if (settingsFirstName && settingsLastName && settingsNameSave){
+  var u = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
+  if (u){
+    settingsFirstName.value = u.firstName || '';
+    settingsLastName.value = u.lastName || '';
+  } else {
+    var legacy = localStorage.getItem('hci_user_name') || '';
+    var parts = legacy.trim().split(/\s+/);
+    settingsFirstName.value = parts[0] || '';
+    settingsLastName.value = parts.slice(1).join(' ') || '';
+  }
 
-  settingsNameSave.addEventListener('click', function(){
-    var value = settingsNameInput.value.trim();
-    if (value){
-      localStorage.setItem('hci_user_name', value);
-      settingsNameSave.textContent = 'تم الحفظ ✓';
-      setTimeout(function(){ settingsNameSave.textContent = 'حفظ الاسم'; }, 1500);
+  settingsNameSave.addEventListener('click', async function(){
+    var first = settingsFirstName.value.trim();
+    var last = settingsLastName.value.trim();
+    if (first.length < 2 || last.length < 2){
+      if (settingsNameNote) settingsNameNote.textContent = 'أدخل الاسم الأول واسم العائلة (حرفان على الأقل لكل منهما).';
+      return;
     }
+    settingsNameSave.disabled = true;
+    try {
+      if (window.HCIApi && HCIApi.isLoggedIn()){
+        await HCIApi.updateProfile(first, last);
+        if (settingsNameNote) settingsNameNote.textContent = 'تم حفظ الاسم في الحساب والشهادة ولوحة الإدارة.';
+      } else {
+        localStorage.setItem('hci_user_name', first + ' ' + last);
+        if (settingsNameNote) settingsNameNote.textContent = 'تم الحفظ محلياً. سجّل الدخول لمزامنة الاسم مع الشهادة والإدارة.';
+      }
+      settingsNameSave.textContent = 'تم الحفظ ✓';
+      setTimeout(function(){ settingsNameSave.textContent = 'حفظ الاسم'; }, 1600);
+      var chip = document.querySelector('.nav-user-name');
+      if (chip) chip.textContent = first + ' ' + last;
+    } catch (err) {
+      if (settingsNameNote) settingsNameNote.textContent = err.message || 'تعذر حفظ الاسم';
+    } finally {
+      settingsNameSave.disabled = false;
+    }
+  });
+}
+
+if (settingsThemeRow){
+  var themeButtons = settingsThemeRow.querySelectorAll('.size-btn');
+  var currentTheme = localStorage.getItem('hci_theme') || 'dark';
+  themeButtons.forEach(function(btn){
+    btn.classList.toggle('active', btn.getAttribute('data-theme') === currentTheme);
+    btn.addEventListener('click', function(){
+      var theme = btn.getAttribute('data-theme');
+      setTheme(theme);
+      themeButtons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
   });
 }
 
 if (settingsSizeRow){
   var sizeButtons = settingsSizeRow.querySelectorAll('.size-btn');
-  var storedSize = localStorage.getItem('hci_font_size') || '16px';
+  var storedSize = localStorage.getItem('hci_font_size') || '18px';
 
   sizeButtons.forEach(function(btn){
     btn.classList.toggle('active', btn.getAttribute('data-size') === storedSize);

@@ -827,20 +827,35 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   }
   if (signupPhone){
     signupPhone.addEventListener('input', function(){
-      // أرقام ومسافة و+ فقط، ثم قص الطول
-      var cleaned = signupPhone.value.replace(/[^\d+\s]/g, '');
-      if (cleaned !== signupPhone.value) signupPhone.value = cleaned;
-      if (signupPhone.value.replace(/\D/g, '').length > 12) {
-        // قص الأرقام الزائدة مع الإبقاء على التنسيق البسيط
-        var d = signupPhone.value.replace(/\D/g, '').slice(0, 12);
-        signupPhone.value = d;
-      }
+      // أرقام فقط، وبحد أقصى 10
+      var digits = signupPhone.value.replace(/\D/g, '').slice(0, 10);
+      if (signupPhone.value !== digits) signupPhone.value = digits;
       if (signupPhoneError) signupPhoneError.classList.remove('show');
     });
+    signupPhone.addEventListener('beforeinput', function(e){
+      if (!e.data) return;
+      if (/\D/.test(e.data)) {
+        e.preventDefault();
+        return;
+      }
+      var selected = (signupPhone.selectionEnd || 0) - (signupPhone.selectionStart || 0);
+      var nextLen = signupPhone.value.length - selected + e.data.length;
+      if (nextLen > 10) e.preventDefault();
+    });
     signupPhone.addEventListener('blur', function(){
-      var normalized = normalizePhoneLocal(signupPhone.value);
+      var normalized = normalizePhoneLocal(signupPhone.value).slice(0, 10);
       if (normalized) signupPhone.value = normalized;
       if (signupPhone.value) validateField(signupPhone, signupPhoneError, isValidPhone);
+    });
+    signupPhone.addEventListener('paste', function(e){
+      e.preventDefault();
+      var text = '';
+      try {
+        text = (e.clipboardData || window.clipboardData).getData('text') || '';
+      } catch (err) { text = ''; }
+      var digits = String(text).replace(/\D/g, '').slice(0, 10);
+      signupPhone.value = digits;
+      if (signupPhoneError) signupPhoneError.classList.remove('show');
     });
   }
 

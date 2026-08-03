@@ -1583,21 +1583,21 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
 }
 .cert-title{
   position:relative; text-align:center; font-size: clamp(1.45rem, 3.6vw, 2rem);
-  margin-bottom: 16px;
+  margin-bottom: 16px; color: #f5f1e8;
 }
 .cert-line{
-  position:relative; text-align:center; color: var(--text-mid); font-size: 0.95rem;
+  position:relative; text-align:center; color: #c8c2b6; font-size: 0.95rem;
   margin-bottom: 10px;
 }
 .cert-name{
   position:relative; text-align:center; font-size: clamp(1.7rem, 4.2vw, 2.5rem);
-  font-weight:700; color: var(--line-cyan); margin-bottom: 18px;
+  font-weight:700; color: #5ed7e0; margin-bottom: 18px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(201,162,75,0.25);
   max-width: 520px; margin-left:auto; margin-right:auto;
 }
 .cert-body{
-  position:relative; text-align:center; color: var(--text-mid); font-size: 1rem;
+  position:relative; text-align:center; color: #d5cfc3; font-size: 1rem;
   line-height: 1.95; max-width: 580px; margin: 18px auto 20px;
 }
 .cert-motto{
@@ -1623,10 +1623,11 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
 }
 .cert-footer{
   position:relative; display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-  border-top: 1px solid var(--ink-3); padding-top: 18px; text-align:center;
+  border-top: 1px solid rgba(255,255,255,0.12); padding-top: 18px; text-align:center;
 }
+.cert-footer strong{ color: #f5f1e8; }
 .cert-label{
-  display:block; color: var(--text-mid); font-size: 0.75rem; margin-bottom: 4px;
+  display:block; color: #b9b2a6; font-size: 0.75rem; margin-bottom: 4px;
 }
 .cert-locked{
   text-align:center; color: var(--text-mid); max-width: 420px; margin: 80px auto;
@@ -1638,7 +1639,7 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
   .cert-seal{ width: 96px; height: 96px; }
 }
 @media print{
-  .no-print, header, footer, .skip-link, .back-to-top{ display:none !important; }
+  .no-print, header, footer, .skip-link, .back-to-top, .report-section{ display:none !important; }
   body, .cert-page{ background:#fff !important; color:#111 !important; padding:0 !important; }
   .cert-sheet{
     box-shadow:none; border: 2px solid #c9a24b; background:#fff !important;

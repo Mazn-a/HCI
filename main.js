@@ -1552,10 +1552,11 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   if (document.getElementById('reportSection')) return;
 
   var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
-  var skipPages = ['admin.html', 'auth.html', 'path-choice.html'];
+  var skipPages = ['admin.html', 'auth.html', 'path-choice.html', 'certificate.html'];
   if (skipPages.indexOf(pageName) !== -1) return;
   if (document.body.classList.contains('auth-page')) return;
   if (document.body.classList.contains('path-choice-page')) return;
+  if (document.body.classList.contains('cert-page')) return;
 
   var section = document.createElement('section');
   section.id = 'reportSection';

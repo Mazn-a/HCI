@@ -139,26 +139,36 @@ function resolveIdentifier(raw) {
   if (!value) return { error: 'أدخل البريد أو رقم الجوال' };
   if (value.includes('@')) {
     const email = value.toLowerCase();
-    if (!isValidEmail(email)) return { error: 'البريد الإلكتروني غير صحيح' };
+    if (!isValidEmail(email)) return { error: 'البريد الإلكتروني غير صحيح. استخدم صيغة مثل name@example.com' };
     return { identifier: email, channel: 'email', email: email, phone: null };
   }
   const phone = normalizePhone(value);
-  if (!isValidPhone(phone)) return { error: 'رقم الجوال غير صحيح' };
+  if (!isValidPhone(phone)) return { error: 'رقم الجوال غير صحيح. استخدم صيغة سعودية: 05xxxxxxxx' };
   return { identifier: phone, channel: 'phone', email: null, phone: phone };
 }
 
 function isValidEmail(v) {
-  return typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  if (typeof v !== 'string') return false;
+  const s = v.trim().toLowerCase();
+  if (s.length < 6 || s.length > 100) return false;
+  if (s.includes('..')) return false;
+  return /^[a-z0-9](?:[a-z0-9._%+\-]*[a-z0-9])?@[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?)+$/i.test(s);
 }
 
 function isValidPhone(v) {
   if (typeof v !== 'string') return false;
-  const digits = v.replace(/\D/g, '');
-  return digits.length >= 9 && digits.length <= 15;
+  return /^05[0-9]{8}$/.test(normalizePhone(v));
 }
 
 function normalizePhone(v) {
-  return String(v || '').replace(/\D/g, '');
+  let digits = String(v || '').replace(/\D/g, '');
+  if (digits.startsWith('966') && digits.length >= 12) {
+    digits = '0' + digits.slice(3);
+  }
+  if (digits.length === 9 && digits.startsWith('5')) {
+    digits = '0' + digits;
+  }
+  return digits;
 }
 
 /* ---------- تسجيل حساب ---------- */
@@ -180,10 +190,10 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: 'أدخل البريد الإلكتروني أو رقم الجوال' });
     }
     if (email && !isValidEmail(email)) {
-      return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح' });
+      return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح. استخدم صيغة مثل name@example.com (بحد أقصى 100 حرف)' });
     }
     if (phone && !isValidPhone(phone)) {
-      return res.status(400).json({ error: 'رقم الجوال غير صحيح (9–15 رقم)' });
+      return res.status(400).json({ error: 'رقم الجوال غير صحيح. استخدم صيغة سعودية: 05xxxxxxxx' });
     }
     if (password.length < 8) {
       return res.status(400).json({ error: 'كلمة المرور لازم 8 أحرف على الأقل' });

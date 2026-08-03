@@ -699,12 +699,29 @@ function showTab(tab){
 }
 
 function isValidEmail(value){
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+  var s = String(value || '').trim().toLowerCase();
+  if (s.length < 6 || s.length > 100) return false;
+  if (s.indexOf('..') !== -1) return false;
+  // صيغة قياسية: اسم@نطاق.امتداد (الامتداد حرفان فأكثر)
+  return /^[a-z0-9](?:[a-z0-9._%+\-]*[a-z0-9])?@[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?)+$/i.test(s);
+}
+
+function normalizePhoneLocal(value){
+  var digits = String(value || '').replace(/\D/g, '');
+  // 9665xxxxxxxx → 05xxxxxxxx
+  if (digits.indexOf('966') === 0 && digits.length >= 12) {
+    digits = '0' + digits.slice(3);
+  }
+  // 5xxxxxxxx → 05xxxxxxxx
+  if (digits.length === 9 && digits.charAt(0) === '5') {
+    digits = '0' + digits;
+  }
+  return digits;
 }
 
 function isValidPhone(value){
-  var digits = String(value || '').replace(/\D/g, '');
-  return digits.length >= 9 && digits.length <= 15;
+  // جوال سعودي: 05xxxxxxxx بالضبط
+  return /^05[0-9]{8}$/.test(normalizePhoneLocal(value));
 }
 
 function validateField(input, errorEl, checkFn){
@@ -797,6 +814,36 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var signupPassError = document.getElementById('signupPassError');
   var signupSubmit = document.getElementById('signupSubmit');
 
+  // حدود وصيغة مباشرة أثناء الكتابة
+  if (signupEmail){
+    signupEmail.addEventListener('input', function(){
+      if (signupEmail.value.length > 100) signupEmail.value = signupEmail.value.slice(0, 100);
+      if (signupEmailError) signupEmailError.classList.remove('show');
+    });
+    signupEmail.addEventListener('blur', function(){
+      signupEmail.value = signupEmail.value.trim().toLowerCase();
+      if (signupEmail.value) validateField(signupEmail, signupEmailError, isValidEmail);
+    });
+  }
+  if (signupPhone){
+    signupPhone.addEventListener('input', function(){
+      // أرقام ومسافة و+ فقط، ثم قص الطول
+      var cleaned = signupPhone.value.replace(/[^\d+\s]/g, '');
+      if (cleaned !== signupPhone.value) signupPhone.value = cleaned;
+      if (signupPhone.value.replace(/\D/g, '').length > 12) {
+        // قص الأرقام الزائدة مع الإبقاء على التنسيق البسيط
+        var d = signupPhone.value.replace(/\D/g, '').slice(0, 12);
+        signupPhone.value = d;
+      }
+      if (signupPhoneError) signupPhoneError.classList.remove('show');
+    });
+    signupPhone.addEventListener('blur', function(){
+      var normalized = normalizePhoneLocal(signupPhone.value);
+      if (normalized) signupPhone.value = normalized;
+      if (signupPhone.value) validateField(signupPhone, signupPhoneError, isValidPhone);
+    });
+  }
+
   formSignup.addEventListener('submit', async function(event){
     event.preventDefault();
     var firstOk = validateField(signupFirst, signupFirstError, function(v){ return v.trim().length >= 2; });
@@ -805,9 +852,11 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 
     var contactOk = false;
     if (contactMode === 'email'){
+      if (signupEmail) signupEmail.value = signupEmail.value.trim().toLowerCase();
       contactOk = validateField(signupEmail, signupEmailError, isValidEmail);
       if (signupPhoneError) signupPhoneError.classList.remove('show');
     } else {
+      if (signupPhone) signupPhone.value = normalizePhoneLocal(signupPhone.value);
       contactOk = validateField(signupPhone, signupPhoneError, isValidPhone);
       if (signupEmailError) signupEmailError.classList.remove('show');
     }
@@ -827,8 +876,8 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       var reg = await HCIApi.register({
         firstName: signupFirst.value.trim(),
         lastName: signupLast.value.trim(),
-        email: contactMode === 'email' ? signupEmail.value.trim() : null,
-        phone: contactMode === 'phone' ? signupPhone.value.trim() : null,
+        email: contactMode === 'email' ? signupEmail.value.trim().toLowerCase() : null,
+        phone: contactMode === 'phone' ? normalizePhoneLocal(signupPhone.value) : null,
         password: signupPass.value
       });
       try { await HCIApi.syncProgress(); } catch (syncErr) { /* تجاهل */ }
@@ -837,7 +886,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       if (verifyIdentifier) {
         verifyIdentifier.value = contactMode === 'email'
           ? (signupEmail.value.trim())
-          : (signupPhone.value.trim());
+          : (normalizePhoneLocal(signupPhone.value));
       }
       showTab('verify');
       statusMsg.textContent = 'الحساب جاهز — أكّد ملكية البريد أو الجوال برمز التحقق';

@@ -1200,6 +1200,7 @@ a.jm-row:hover, button.jm-row:hover:not(.locked){
 .auth-card input::placeholder{ color: rgba(255,255,255,0.28); }
 .field-error{ color: var(--error); font-size: 0.78rem; margin-top: 5px; display:none; }
 .field-error.show{ display:block; }
+.field-hint{ color: var(--text-mid); font-size: 0.78rem; margin-top: 5px; line-height: 1.45; }
 
 .name-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .contact-toggle{ display:flex; gap:8px; margin-bottom:4px; }

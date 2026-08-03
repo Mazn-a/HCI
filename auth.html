@@ -36,8 +36,8 @@
     <form id="formLogin" class="active" novalidate>
       <div>
         <label for="loginIdentifier">البريد الإلكتروني أو رقم الجوال</label>
-        <input type="text" id="loginIdentifier" dir="ltr" placeholder="you@email.com أو 05xxxxxxxx" required autocomplete="username">
-        <p class="field-error" id="loginIdentifierError">أدخل بريد أو رقم جوال</p>
+        <input type="text" id="loginIdentifier" dir="ltr" placeholder="name@example.com أو 05xxxxxxxx" required autocomplete="username">
+        <p class="field-error" id="loginIdentifierError">أدخل بريداً بصيغة صحيحة أو جوالاً بصيغة 05xxxxxxxx</p>
       </div>
       <div>
         <label for="loginPass">كلمة المرور</label>
@@ -110,14 +110,16 @@
 
       <div id="emailFieldWrap">
         <label for="signupEmail">البريد الإلكتروني</label>
-        <input type="email" id="signupEmail" dir="ltr" placeholder="you@example.com" autocomplete="email">
-        <p class="field-error" id="signupEmailError">تأكد إن البريد صحيح</p>
+        <input type="email" id="signupEmail" dir="ltr" placeholder="name@example.com" autocomplete="email" inputmode="email" maxlength="100" spellcheck="false">
+        <p class="field-hint">مثال: name@example.com — بحد أقصى 100 حرف</p>
+        <p class="field-error" id="signupEmailError">أدخل بريداً إلكترونياً بصيغة صحيحة</p>
       </div>
 
       <div id="phoneFieldWrap" hidden>
         <label for="signupPhone">رقم الجوال</label>
-        <input type="tel" id="signupPhone" dir="ltr" placeholder="05xxxxxxxx" autocomplete="tel">
-        <p class="field-error" id="signupPhoneError">أدخل رقم جوال صحيح (9 أرقام فأكثر)</p>
+        <input type="tel" id="signupPhone" dir="ltr" placeholder="05xxxxxxxx" autocomplete="tel" inputmode="numeric" maxlength="14" pattern="[0-9+ ]*">
+        <p class="field-hint">رقم سعودي: 05xxxxxxxx (10 أرقام)</p>
+        <p class="field-error" id="signupPhoneError">أدخل رقم جوال سعودي بصيغة 05xxxxxxxx</p>
       </div>
 
       <div>

@@ -49,7 +49,7 @@ app.get('/robots.txt', (_req, res) => {
       'User-agent: Googlebot',
       'Allow: /',
       '',
-      'Sitemap: https://hci-72ms.onrender.com/sitemap.xml',
+      'Sitemap: https://hci-1-fk7w.onrender.com/sitemap.xml',
       ''
     ].join('\n')
   );

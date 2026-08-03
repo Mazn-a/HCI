@@ -13,7 +13,6 @@
 <body class="settings-page">
   <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
 
-
   <header>
     <div class="wrap nav">
       <a href="index.html" class="logo">HCI</a>
@@ -32,74 +31,101 @@
     </div>
   </header>
 
-  <main class="lesson settings-main" id="main">
-    <div class="wrap settings-wrap">
+  <main class="settings-main" id="main">
+    <div class="wrap">
 
       <a href="profile.html" class="page-back">← رجوع للملف الشخصي</a>
 
-      <div class="lesson-head settings-head">
-        <span class="eyebrow">/// الإعدادات</span>
-        <h1>خصص حسابك وتجربتك في المنصة</h1>
-        <p>تُحفظ التعديلات في حسابك ومتصفحك وتنعكس على الصفحات فوراً.</p>
-      </div>
+      <header class="settings-page-header">
+        <p class="settings-kicker">الإعدادات</p>
+        <h1>حسابك وتفضيلات العرض</h1>
+        <p class="settings-lead">عدّل بياناتك ومظهر المنصة، ثم احفظ من أسفل الصفحة.</p>
+      </header>
 
-      <div class="profile-card settings-card">
+      <div class="settings-layout">
 
-        <div class="settings-block">
-          <h2>الاسم الظاهر</h2>
-          <p class="sub">يظهر في الشهادة ولوحة الإدارة والشريط العلوي. عند التعديل يُحفظ سجل للاسم السابق وتاريخ التغيير.</p>
-          <div class="settings-name-grid">
-            <div>
-              <label for="settingsFirstName" class="settings-label">الاسم الأول</label>
-              <input type="text" id="settingsFirstName" class="settings-input" placeholder="الاسم الأول" autocomplete="given-name">
+        <nav class="settings-side" aria-label="أقسام الإعدادات">
+          <a href="#sec-account" class="settings-side-link">الحساب</a>
+          <a href="#sec-appearance" class="settings-side-link">المظهر</a>
+          <a href="#sec-privacy" class="settings-side-link">الخصوصية</a>
+        </nav>
+
+        <div class="settings-content">
+
+          <section class="settings-panel" id="sec-account">
+            <div class="settings-panel-head">
+              <h2>الحساب</h2>
+              <p>الاسم الظاهر في الشهادة ولوحة الإدارة والشريط العلوي.</p>
             </div>
-            <div>
-              <label for="settingsLastName" class="settings-label">اسم العائلة</label>
-              <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
+            <div class="settings-fields settings-fields-2">
+              <div class="settings-field">
+                <label for="settingsFirstName">الاسم الأول</label>
+                <input type="text" id="settingsFirstName" class="settings-input" placeholder="الاسم الأول" autocomplete="given-name">
+              </div>
+              <div class="settings-field">
+                <label for="settingsLastName">اسم العائلة</label>
+                <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
+              </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        <div class="settings-prefs-grid">
-          <div class="settings-block">
-            <h2>مظهر الواجهة</h2>
-            <p class="sub">الخلفية الداكنة اختيارية. يمكنك الاختيار دون تغيير شكل المحتوى الأساسي.</p>
-            <div class="size-row" id="settingsThemeRow">
-              <button type="button" class="size-btn" data-theme="dark">داكن</button>
-              <button type="button" class="size-btn" data-theme="light">فاتح</button>
+          <section class="settings-panel" id="sec-appearance">
+            <div class="settings-panel-head">
+              <h2>المظهر</h2>
+              <p>اختر الوضع واللون وحجم الخط بما يناسب قراءتك.</p>
             </div>
-          </div>
 
-          <div class="settings-block">
-            <h2>حجم الخط</h2>
-            <p class="sub">للراحة البصرية — يُطبَّق على جميع صفحات المنصة</p>
-            <div class="size-row" id="settingsSizeRow">
-              <button type="button" class="size-btn" data-size="16px">صغير</button>
-              <button type="button" class="size-btn" data-size="18px">متوسط</button>
-              <button type="button" class="size-btn" data-size="20px">كبير</button>
-              <button type="button" class="size-btn" data-size="22px">أكبر</button>
+            <div class="settings-control">
+              <div class="settings-control-label">
+                <strong>وضع الواجهة</strong>
+                <span>داكن أو فاتح — يُحفظ في متصفحك</span>
+              </div>
+              <div class="size-row settings-choice-row" id="settingsThemeRow" role="group" aria-label="وضع الواجهة">
+                <button type="button" class="size-btn" data-theme="dark">داكن</button>
+                <button type="button" class="size-btn" data-theme="light">فاتح</button>
+              </div>
             </div>
+
+            <div class="settings-control">
+              <div class="settings-control-label">
+                <strong>حجم الخط</strong>
+                <span>يُطبَّق على جميع صفحات المنصة</span>
+              </div>
+              <div class="size-row settings-choice-row" id="settingsSizeRow" role="group" aria-label="حجم الخط">
+                <button type="button" class="size-btn" data-size="16px">صغير</button>
+                <button type="button" class="size-btn" data-size="18px">متوسط</button>
+                <button type="button" class="size-btn" data-size="20px">كبير</button>
+                <button type="button" class="size-btn" data-size="22px">أكبر</button>
+              </div>
+            </div>
+
+            <div class="settings-control settings-control-last">
+              <div class="settings-control-label">
+                <strong>لون التمييز</strong>
+                <span>لون الأزرار والعناصر البارزة</span>
+              </div>
+              <div class="swatch-row" id="settingsSwatchRow" role="group" aria-label="لون التمييز">
+                <button type="button" class="swatch-btn" data-color="#C9A24B" style="--swatch-color:#C9A24B;" aria-label="ذهبي"></button>
+                <button type="button" class="swatch-btn" data-color="#6FD6E0" style="--swatch-color:#6FD6E0;" aria-label="سماوي"></button>
+                <button type="button" class="swatch-btn" data-color="#8FC15C" style="--swatch-color:#8FC15C;" aria-label="أخضر"></button>
+                <button type="button" class="swatch-btn" data-color="#B79CE0" style="--swatch-color:#B79CE0;" aria-label="بنفسجي"></button>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-panel" id="sec-privacy">
+            <div class="settings-panel-head">
+              <h2>الخصوصية</h2>
+              <p>بياناتك وتقدمك محفوظان في حسابك، ويتزامنان مع متصفحك الحالي لمتابعة التعلّم.</p>
+            </div>
+          </section>
+
+          <div class="settings-actions">
+            <button type="button" id="settingsSaveAll" class="settings-save settings-save-full">حفظ التغييرات</button>
+            <p id="settingsSaveNote" class="settings-save-note" role="status"></p>
           </div>
-        </div>
 
-        <div class="settings-block">
-          <h2>لون التمييز بالموقع</h2>
-          <p class="sub">يغيّر لون الأزرار والتفاصيل البارزة</p>
-          <div class="swatch-row" id="settingsSwatchRow">
-            <button type="button" class="swatch-btn" data-color="#C9A24B" style="--swatch-color:#C9A24B;" aria-label="ذهبي"></button>
-            <button type="button" class="swatch-btn" data-color="#6FD6E0" style="--swatch-color:#6FD6E0;" aria-label="سماوي"></button>
-            <button type="button" class="swatch-btn" data-color="#8FC15C" style="--swatch-color:#8FC15C;" aria-label="أخضر"></button>
-            <button type="button" class="swatch-btn" data-color="#B79CE0" style="--swatch-color:#B79CE0;" aria-label="بنفسجي"></button>
-          </div>
         </div>
-
-        <div class="settings-block" style="margin-bottom:0;">
-          <h2>الخصوصية</h2>
-          <p class="sub">بياناتك وتقدمك محفوظان بأمان في حسابك على المنصة، ويتزامنان مع متصفحك الحالي لتسهيل المتابعة.</p>
-          <button type="button" id="settingsSaveAll" class="settings-save settings-save-full">حفظ التغييرات</button>
-          <p id="settingsSaveNote" class="sub" style="margin-top:10px;"></p>
-        </div>
-
       </div>
 
     </div>

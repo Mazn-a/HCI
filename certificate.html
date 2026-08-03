@@ -13,32 +13,49 @@
 <body class="cert-page">
   <a href="#cert" class="skip-link">تخطي إلى الشهادة</a>
 
-  <div class="cert-toolbar no-print">
+  <div class="cert-toolbar no-print" id="certToolbar">
     <a href="profile.html" class="btn-ghost">← الملف الشخصي</a>
-    <button type="button" class="btn-primary" id="printCertBtn">طباعة / حفظ PDF</button>
+    <div class="cert-toolbar-actions">
+      <a href="index.html" class="btn-ghost">الرئيسية</a>
+      <button type="button" class="btn-primary" id="printCertBtn">طباعة / حفظ PDF</button>
+    </div>
   </div>
 
   <div class="cert-sheet" id="cert">
     <div class="cert-ornament" aria-hidden="true"></div>
-    <p class="cert-brand">HCI</p>
-    <p class="cert-brand-sub">منصة تعلم تفاعل الإنسان والحاسوب</p>
+    <div class="cert-ornament cert-ornament-inner" aria-hidden="true"></div>
+
+    <div class="cert-top">
+      <p class="cert-brand">HCI</p>
+      <p class="cert-brand-sub">منصة تعلم تفاعل الإنسان والحاسوب</p>
+      <p class="cert-badge">CERTIFICATE OF COMPLETION</p>
+    </div>
+
     <h1 class="cert-title">شهادة إتمام المسار</h1>
     <p class="cert-line">تُمنح هذه الشهادة إلى</p>
     <p class="cert-name" id="certName">الطالب</p>
+
     <p class="cert-body">
       لإتمام رحلة التعلم الكاملة في منصة <strong>HCI</strong> —
       من اكتشاف التخصص وأساسيات تفاعل الإنسان والحاسوب،
       إلى الترميز والدورات والكتب والتمارين وإفادة الآخرين.
     </p>
+
     <p class="cert-motto">«من رغبتك الأولى… إلى ما تُفيد به غيرك»</p>
+
+    <div class="cert-seal" aria-hidden="true">
+      <span class="cert-seal-ring">HCI</span>
+      <span class="cert-seal-text">مكتمل 100%</span>
+    </div>
+
     <div class="cert-footer">
       <div>
         <span class="cert-label">التاريخ</span>
         <strong id="certDate"></strong>
       </div>
       <div>
-        <span class="cert-label">المنصة</span>
-        <strong>HCI</strong>
+        <span class="cert-label">رقم الشهادة</span>
+        <strong id="certId">—</strong>
       </div>
       <div>
         <span class="cert-label">المصمم</span>
@@ -56,38 +73,70 @@
 <script src="main.js"></script>
 <script>
 (function () {
-  var name = localStorage.getItem('hci_user_name') || 'متعلم HCI';
-  var pct = 0;
-  try {
-    if (typeof getOverallProgress === 'function') {
-      pct = getOverallProgress();
-    } else {
+  function userName() {
+    try {
+      if (window.HCIApi && HCIApi.currentUser) {
+        var u = HCIApi.currentUser();
+        if (u && (u.fullName || u.firstName)) {
+          return u.fullName || (u.firstName + (u.lastName ? ' ' + u.lastName : ''));
+        }
+      }
+    } catch (e) { /* */ }
+    return localStorage.getItem('hci_user_name') || 'متعلم HCI';
+  }
+
+  function progressPct() {
+    try {
+      if (typeof getOverallProgress === 'function') return getOverallProgress();
       var j = JSON.parse(localStorage.getItem('hci_journey') || '{}');
       var order = ['discover','fundamentals','coding','courses','books','practice','contribute'];
       var done = order.filter(function (id) { return j.done && j.done[id]; }).length;
-      pct = Math.round((done / order.length) * 100);
+      return Math.round((done / order.length) * 100);
+    } catch (e) {
+      return 0;
     }
-  } catch (e) { pct = 0; }
+  }
+
+  function makeCertId(name) {
+    var base = String(name || 'HCI').replace(/\s+/g, '').slice(0, 8);
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    var n = Math.abs(Array.from(base).reduce(function (a, c) { return a + c.charCodeAt(0); }, 0) % 9000) + 1000;
+    return 'HCI-' + y + m + day + '-' + n;
+  }
+
+  var name = userName();
+  var pct = progressPct();
+  var preview = /(?:\?|&)preview=1(?:&|$)/.test(location.search);
 
   var sheet = document.getElementById('cert');
   var locked = document.getElementById('certLocked');
-  var toolbar = document.querySelector('.cert-toolbar');
+  var toolbar = document.getElementById('certToolbar');
 
   document.getElementById('certName').textContent = name;
   document.getElementById('certDate').textContent = new Date().toLocaleDateString('ar-SA', {
     year: 'numeric', month: 'long', day: 'numeric'
   });
+  document.getElementById('certId').textContent = makeCertId(name);
 
-  if (pct < 100) {
+  if (pct < 100 && !preview) {
     if (sheet) sheet.hidden = true;
     if (toolbar) toolbar.hidden = true;
     if (locked) locked.hidden = false;
     return;
   }
 
-  document.getElementById('printCertBtn').addEventListener('click', function () {
-    window.print();
-  });
+  if (preview && pct < 100) {
+    document.getElementById('certName').textContent = name === 'متعلم HCI' ? 'مازن عطية' : name;
+    document.getElementById('certId').textContent = makeCertId(document.getElementById('certName').textContent);
+  }
+
+  var printBtn = document.getElementById('printCertBtn');
+  if (printBtn) {
+    printBtn.addEventListener('click', function () { window.print(); });
+  }
 })();
 </script>
 </body>

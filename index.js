@@ -62,6 +62,15 @@ app.get('/sitemap.xml', (_req, res) => {
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
 
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok: true,
+    name: 'HCI',
+    db: process.env.DATABASE_URL ? 'postgres' : 'file',
+    time: new Date().toISOString()
+  });
+});
+
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(__dirname));
 

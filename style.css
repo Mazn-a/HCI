@@ -109,8 +109,13 @@ header{
   background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--ink-3);
+  padding-top: env(safe-area-inset-top);
 }
-.nav{ display:flex; align-items:center; justify-content:space-between; padding: 16px 0; gap:12px; }
+.nav{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 14px 0; gap:10px;
+  min-height: 56px; /* يثبت ارتفاع الهيدر ويمنع اهتزاز الترتيب */
+}
 .logo{
   font-family: var(--font-body); font-weight:700; font-size: 1.3rem; color: var(--gold);
   display:inline-block; transition: transform 0.25s var(--ease-spring), opacity 0.2s;
@@ -128,6 +133,7 @@ header{
 .nav-links a:hover::after{ width:100%; }
 .nav-auth{
   display:flex; align-items:center; gap:10px; flex-shrink:0;
+  min-height: 42px; min-width: 0;
 }
 .nav-login{
   color: var(--text-hi); padding: 8px 16px; border-radius: 4px;
@@ -239,9 +245,9 @@ body.nav-open{ overflow: hidden; }
 
 .greeting{
   font-size: 0.9rem; color: var(--gold); font-weight:600;
-  margin-bottom: 18px; opacity: 0; transition: opacity 0.5s ease;
+  margin-bottom: 18px; min-height: 1.4em; /* يمنع قفزة المحتوى لما يظهر الترحيب */
+  opacity: 1; /* يظهر مباشرة بدون انتظار JS */
 }
-.greeting.show{ opacity: 1; }
 .wordmark{
   font-weight:700;
   font-size: clamp(3.2rem, 9vw, 6rem); letter-spacing: -0.02em;
@@ -1026,8 +1032,14 @@ a.jm-row:hover, button.jm-row:hover:not(.locked){
 /* ====== Auth ====== */
 
 .auth-page{
-  min-height: 100vh; display:flex; align-items:center; justify-content:center;
-  padding: 40px 20px; position:relative; overflow:hidden;
+  min-height: 100dvh; display:flex; align-items:center; justify-content:center;
+  padding:
+    max(28px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(28px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  position:relative; overflow-x:hidden; overflow-y:auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(ellipse 70% 50% at 80% 10%, rgba(212,175,55,0.12), transparent 55%),
     radial-gradient(ellipse 60% 45% at 10% 90%, rgba(80,200,220,0.1), transparent 50%),
@@ -1140,6 +1152,9 @@ a.jm-row:hover, button.jm-row:hover:not(.locked){
 }
 .submit-btn:hover{ filter: brightness(1.08); box-shadow: 0 10px 28px rgba(212,175,55,0.32); }
 .submit-btn:active{ transform: scale(0.98); }
+.submit-btn:disabled{
+  opacity: 0.75; cursor: wait; filter: none; transform: none;
+}
 
 .status-msg{
   text-align:center; font-size: 0.85rem; margin-top: 16px;
@@ -1262,17 +1277,22 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
 
 /* آيباد عمودي / جوال عريض */
 @media (max-width: 860px){
+  .wrap{ padding: 0 max(14px, env(safe-area-inset-left)) 0 max(14px, env(safe-area-inset-right)); }
   .nav{
-    flex-wrap: nowrap; padding: 10px 0; gap: 10px; align-items: center;
-    position: relative;
+    flex-wrap: nowrap; padding: 10px 0; gap: 8px; align-items: center;
+    position: relative; min-height: 52px;
   }
   .logo{
     font-size: 1.25rem; order: 1; flex-shrink: 0;
     min-width: 3.2em; /* يمنع قص HCI */
   }
-  .nav-auth{ gap: 8px; order: 2; margin-inline-start: auto; flex-shrink: 0; }
+  .nav-auth{
+    gap: 6px; order: 2; margin-inline-start: auto; flex-shrink: 0;
+    min-height: 40px;
+  }
   .nav-user-wrap{
     order: 2; margin-inline-start: auto; gap: 0; max-width: none;
+    min-height: 40px; min-width: 40px; /* يثبت مكان الأفاتار قبل/بعد JS */
   }
   .nav-user{
     padding: 3px; border-radius: 50%; font-size: 0;
@@ -1286,15 +1306,15 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
   .nav-links{ display:none; width:100%; order: 4; }
   .nav-links.is-open{ display:flex; }
   .nav-login{
-    min-height: 42px; padding: 8px 10px; font-size: 0.78rem;
+    min-height: 40px; padding: 8px 10px; font-size: 0.78rem;
     display:inline-flex; align-items:center;
   }
   .nav-cta{
-    min-height: 42px; padding: 8px 12px; font-size: 0.78rem;
+    min-height: 40px; padding: 8px 12px; font-size: 0.78rem;
     display:inline-flex; align-items:center;
   }
 
-  .hero{ padding: 56px 0 48px; }
+  .hero{ padding: 48px 0 40px; }
   .hero-orbit .o1{ width: 280px; height: 280px; }
   .hero-orbit .o2, .hero-orbit .o3{ opacity: 0.5; }
   .wordmark{ font-size: clamp(2.6rem, 14vw, 4rem); }
@@ -1330,11 +1350,24 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
     right: max(12px, env(safe-area-inset-right));
     padding: 10px 14px; font-size: 0.82rem;
   }
-  .auth-page{ padding: 72px 16px 40px; align-items: flex-start; }
-  .auth-card{ padding: 28px 20px 24px; border-radius: 14px; max-width: 100%; }
-  .tabs{ margin-bottom: 22px; }
+  .auth-page{
+    padding:
+      max(20px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+    align-items: flex-start;
+  }
+  .auth-card{
+    padding: 24px 18px 22px; border-radius: 14px; max-width: 100%;
+    margin-top: 8px; margin-bottom: 16px;
+  }
+  .brand{ font-size: 1.9rem; }
+  .brand-tagline{ margin-bottom: 22px; font-size: 0.78rem; line-height: 1.5; }
+  .tabs{ margin-bottom: 18px; }
   .tab-btn{ min-height: 48px; padding: 12px 8px; font-size: 0.9rem; }
   .submit-btn{ min-height: 52px; font-size: 1rem; }
+  .auth-card input{ font-size: 16px; } /* يمنع زوم iOS عند التركيز */
 
   .path-choice-page{ padding-top: 28px; }
   .path-choice-grid{ grid-template-columns: 1fr !important; gap: 14px; }
@@ -1371,10 +1404,19 @@ footer{ border-top: 1px solid var(--ink-3); padding: 30px 0; }
 
 /* جوال ضيق */
 @media (max-width: 480px){
-  .nav-login{ padding: 8px 8px; font-size: 0.74rem; max-width: 6.5rem; overflow: hidden; text-overflow: ellipsis; }
-  .nav-cta{ padding: 8px 10px; font-size: 0.74rem; }
-  .greeting{ font-size: 0.82rem; }
+  /* زر دخول واحد واضح + إنشاء حساب أقصر لتقليل الزحمة والاهتزاز */
+  .nav-login{
+    padding: 8px 10px; font-size: 0.8rem; max-width: none;
+    min-width: 4.2rem; justify-content: center;
+  }
+  .nav-cta{
+    padding: 8px 10px; font-size: 0.8rem;
+    min-width: 4.8rem; justify-content: center;
+  }
+  .greeting{ font-size: 0.82rem; min-height: 1.35em; }
   .hero-tag{ font-size: 0.75rem; padding: 5px 10px; max-width: 100%; line-height: 1.5; }
+  .hero{ padding: 40px 0 36px; }
+  .section-pad, .problem, .stations-section{ padding-left: 0; padding-right: 0; }
   .book-card{ flex-direction: column; }
   .name-row{ grid-template-columns: 1fr; }
   .admin-stats{ grid-template-columns: 1fr !important; gap: 10px; }

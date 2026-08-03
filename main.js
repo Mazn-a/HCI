@@ -364,8 +364,11 @@ if (greetingEl){
   if (loggedInName){ greetingText += '، يا ' + loggedInName; }
   else { greetingText += '، جاهز تتعلم اليوم؟'; }
 
-  greetingEl.textContent = '/// ' + greetingText;
-  greetingEl.classList.add('show');
+  // حدّث النص فقط إذا تغيّر — يقلل القفز البصري
+  var nextGreet = '/// ' + greetingText;
+  if (greetingEl.textContent.trim() !== nextGreet) {
+    greetingEl.textContent = nextGreet;
+  }
 }
 
 var navCtaSlot = document.getElementById('navCtaSlot');
@@ -732,15 +735,18 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 
     loginSubmit.disabled = true;
     loginSubmit.textContent = 'جاري الدخول…';
+    statusMsg.classList.remove('show');
     try {
       var data = await HCIApi.login(loginIdentifier.value.trim(), loginPass.value);
-      await HCIApi.syncProgress();
+      // لا نعلّق الدخول على المزامنة — نكمل ولو فشلت/تأخّرت
+      try { await HCIApi.syncProgress(); } catch (syncErr) { /* تجاهل */ }
       if (data.user.pathType === 'specialist') HCIApi.applySpecialistUnlocks();
       var dest = await HCIApi.afterAuthFlow(data.user, false);
       window.location.href = dest;
     } catch (err) {
-      statusMsg.textContent = err.message;
+      statusMsg.textContent = err.message || 'تعذر تسجيل الدخول';
       statusMsg.classList.add('show');
+    } finally {
       loginSubmit.disabled = false;
       loginSubmit.textContent = 'تسجيل الدخول';
     }
@@ -784,6 +790,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 
     signupSubmit.disabled = true;
     signupSubmit.textContent = 'جاري الإنشاء…';
+    statusMsg.classList.remove('show');
     try {
       var reg = await HCIApi.register({
         firstName: signupFirst.value.trim(),
@@ -792,7 +799,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         phone: contactMode === 'phone' ? signupPhone.value.trim() : null,
         password: signupPass.value
       });
-      await HCIApi.syncProgress();
+      try { await HCIApi.syncProgress(); } catch (syncErr) { /* تجاهل */ }
       // بعد التسجيل: تحقق من البريد/الجوال ثم اختيار المسار
       var verifyIdentifier = document.getElementById('verifyIdentifier');
       if (verifyIdentifier) {

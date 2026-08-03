@@ -66,6 +66,30 @@
     return localStorage.getItem('hci_user_role') === 'admin';
   }
 
+  function withTimeout(promise, ms, message) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        var err = new Error(message || 'انتهى وقت الانتظار — حاول مرة ثانية');
+        err.code = 'TIMEOUT';
+        reject(err);
+      }, ms);
+      promise.then(function (value) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(value);
+      }, function (err) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+
   async function request(path, options) {
     options = options || {};
     var isForm = typeof FormData !== 'undefined' && options.body instanceof FormData;
@@ -75,16 +99,34 @@
     if (token) headers.Authorization = 'Bearer ' + token;
 
     var res;
+    var timeoutMs = options.timeoutMs || 18000;
     try {
-      res = await fetch(API_BASE + path, {
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var fetchPromise = fetch(API_BASE + path, {
         method: options.method || 'GET',
         headers: headers,
         body: options.body
           ? (isForm ? options.body : JSON.stringify(options.body))
-          : undefined
+          : undefined,
+        signal: ctrl ? ctrl.signal : undefined
       });
+      if (ctrl) {
+        setTimeout(function () {
+          try { ctrl.abort(); } catch (e) { /* */ }
+        }, timeoutMs);
+      }
+      res = await withTimeout(
+        fetchPromise,
+        timeoutMs,
+        'الاتصال بطيء أو السيرفر يفيق من النوم — أعد المحاولة'
+      );
     } catch (err) {
-      var e = new Error('السيرفر غير متصل. شغّل: npm start ثم افتح http://localhost:3000');
+      if (err && err.code === 'TIMEOUT') throw err;
+      var e = new Error(
+        location.protocol === 'file:'
+          ? 'السيرفر غير متصل. شغّل: npm start ثم افتح http://localhost:3000'
+          : 'تعذر الاتصال بالسيرفر — تأكد من الإنترنت أو انتظر قليلاً إذا الموقع يفيق من النوم'
+      );
       e.code = 'OFFLINE';
       throw e;
     }
@@ -210,18 +252,20 @@
   async function syncProgress() {
     if (!isLoggedIn()) return;
     try {
-      var remote = await fetchProgress();
-      var local = collectLocalProgress();
-      var merged = {
-        journey: mergeJourney(local.journey, remote.journey),
-        coding: Object.assign({}, remote.coding || {}, local.coding || {}),
-        codingStage: local.codingStage || remote.codingStage || '',
-        practice: Object.assign({}, remote.practice || {}, local.practice || {}),
-        courses: Object.assign({}, remote.courses || {}, local.courses || {}),
-        books: Object.assign({}, remote.books || {}, local.books || {})
-      };
-      applyProgress(merged);
-      await saveProgress(merged);
+      await withTimeout((async function () {
+        var remote = await fetchProgress();
+        var local = collectLocalProgress();
+        var merged = {
+          journey: mergeJourney(local.journey, remote.journey),
+          coding: Object.assign({}, remote.coding || {}, local.coding || {}),
+          codingStage: local.codingStage || remote.codingStage || '',
+          practice: Object.assign({}, remote.practice || {}, local.practice || {}),
+          courses: Object.assign({}, remote.courses || {}, local.courses || {}),
+          books: Object.assign({}, remote.books || {}, local.books || {})
+        };
+        applyProgress(merged);
+        await saveProgress(merged);
+      })(), 12000, 'مزامنة التقدم استغرقت وقتاً طويلاً');
     } catch (err) {
       console.warn('مزامنة التقدم:', err.message);
     }
@@ -292,7 +336,8 @@
     });
 
     var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var hold = prefersReduced ? 900 : 2800;
+    var isCoarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    var hold = prefersReduced ? 700 : (isCoarse ? 1200 : 2200);
 
     setTimeout(function () {
       overlay.classList.add('hide');
@@ -314,10 +359,16 @@
 
   function afterAuthFlow(user, isNewSignup) {
     return new Promise(function (resolve) {
-      showWelcomeOverlay(user.fullName || user.firstName, function () {
-        var dest = resolvePostAuthDestination(user, isNewSignup);
+      var settled = false;
+      var dest = resolvePostAuthDestination(user, isNewSignup);
+      function done() {
+        if (settled) return;
+        settled = true;
         resolve(dest);
-      });
+      }
+      showWelcomeOverlay(user.fullName || user.firstName, done);
+      // احتياطي ضد التعليق على الجوال/الشبكة البطيئة
+      setTimeout(done, 2500);
     });
   }
 

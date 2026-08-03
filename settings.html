@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="gate.js"></script>
 </head>
-<body>
+<body class="settings-page">
   <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
 
 
@@ -32,34 +32,53 @@
     </div>
   </header>
 
-  <main class="lesson" id="main">
-    <div class="wrap">
+  <main class="lesson settings-main" id="main">
+    <div class="wrap settings-wrap">
 
       <a href="profile.html" class="page-back">← رجوع للملف الشخصي</a>
 
-      <div class="lesson-head">
+      <div class="lesson-head settings-head">
         <span class="eyebrow">/// الإعدادات</span>
-          <h1>خصص حسابك وتجربتك في المنصة</h1>
-          <p>تُحفظ التعديلات في حسابك ومتصفحك وتنعكس على الصفحات فوراً.</p>
+        <h1>خصص حسابك وتجربتك في المنصة</h1>
+        <p>تُحفظ التعديلات في حسابك ومتصفحك وتنعكس على الصفحات فوراً.</p>
       </div>
 
-      <div class="profile-card">
+      <div class="profile-card settings-card">
 
         <div class="settings-block">
           <h2>الاسم الظاهر</h2>
           <p class="sub">يظهر في الشهادة ولوحة الإدارة والشريط العلوي. عند التعديل يُحفظ سجل للاسم السابق وتاريخ التغيير.</p>
-          <label for="settingsFirstName" class="settings-label">الاسم الأول</label>
-          <input type="text" id="settingsFirstName" class="settings-input" placeholder="الاسم الأول" autocomplete="given-name">
-          <label for="settingsLastName" class="settings-label">اسم العائلة</label>
-          <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
+          <div class="settings-name-grid">
+            <div>
+              <label for="settingsFirstName" class="settings-label">الاسم الأول</label>
+              <input type="text" id="settingsFirstName" class="settings-input" placeholder="الاسم الأول" autocomplete="given-name">
+            </div>
+            <div>
+              <label for="settingsLastName" class="settings-label">اسم العائلة</label>
+              <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
+            </div>
+          </div>
         </div>
 
-        <div class="settings-block">
-          <h2>مظهر الواجهة</h2>
-          <p class="sub">الخلفية الداكنة اختيارية. يمكنك الاختيار دون تغيير شكل المحتوى الأساسي.</p>
-          <div class="size-row" id="settingsThemeRow">
-            <button type="button" class="size-btn" data-theme="dark">داكن</button>
-            <button type="button" class="size-btn" data-theme="light">فاتح</button>
+        <div class="settings-prefs-grid">
+          <div class="settings-block">
+            <h2>مظهر الواجهة</h2>
+            <p class="sub">الخلفية الداكنة اختيارية. يمكنك الاختيار دون تغيير شكل المحتوى الأساسي.</p>
+            <div class="size-row" id="settingsThemeRow">
+              <button type="button" class="size-btn" data-theme="dark">داكن</button>
+              <button type="button" class="size-btn" data-theme="light">فاتح</button>
+            </div>
+          </div>
+
+          <div class="settings-block">
+            <h2>حجم الخط</h2>
+            <p class="sub">للراحة البصرية — يُطبَّق على جميع صفحات المنصة</p>
+            <div class="size-row" id="settingsSizeRow">
+              <button type="button" class="size-btn" data-size="16px">صغير</button>
+              <button type="button" class="size-btn" data-size="18px">متوسط</button>
+              <button type="button" class="size-btn" data-size="20px">كبير</button>
+              <button type="button" class="size-btn" data-size="22px">أكبر</button>
+            </div>
           </div>
         </div>
 
@@ -71,17 +90,6 @@
             <button type="button" class="swatch-btn" data-color="#6FD6E0" style="--swatch-color:#6FD6E0;" aria-label="سماوي"></button>
             <button type="button" class="swatch-btn" data-color="#8FC15C" style="--swatch-color:#8FC15C;" aria-label="أخضر"></button>
             <button type="button" class="swatch-btn" data-color="#B79CE0" style="--swatch-color:#B79CE0;" aria-label="بنفسجي"></button>
-          </div>
-        </div>
-
-        <div class="settings-block">
-          <h2>حجم الخط</h2>
-          <p class="sub">للراحة البصرية — يُطبَّق على جميع صفحات المنصة</p>
-          <div class="size-row" id="settingsSizeRow">
-            <button type="button" class="size-btn" data-size="16px">صغير</button>
-            <button type="button" class="size-btn" data-size="18px">متوسط</button>
-            <button type="button" class="size-btn" data-size="20px">كبير</button>
-            <button type="button" class="size-btn" data-size="22px">أكبر</button>
           </div>
         </div>
 

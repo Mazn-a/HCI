@@ -7,7 +7,6 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db, ensureAdmin, checkPassword, ready, dataDir } = require('./db');
-const { deliverOtp, emailConfigured, smsConfigured } = require('./otp-delivery');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -275,8 +274,8 @@ app.patch('/api/auth/profile', authRequired, (req, res) => {
   }
 });
 
-/* ---------- طلب رمز تحقق (بريد أو هاتف) — إرسال حقيقي باسم HCI ---------- */
-app.post('/api/auth/request-otp', async (req, res) => {
+/* ---------- طلب رمز تحقق (بريد أو هاتف) ---------- */
+app.post('/api/auth/request-otp', (req, res) => {
   try {
     const purpose = String(req.body.purpose || 'verify');
     if (purpose !== 'verify' && purpose !== 'reset') {
@@ -309,17 +308,6 @@ app.post('/api/auth/request-otp', async (req, res) => {
       }
     }
 
-    if (resolved.channel === 'email' && !emailConfigured()) {
-      return res.status(503).json({
-        error: 'إرسال البريد غير مفعّل بعد. أضف RESEND_API_KEY و HCI_FROM_EMAIL في إعدادات Render.'
-      });
-    }
-    if (resolved.channel === 'phone' && !smsConfigured()) {
-      return res.status(503).json({
-        error: 'إرسال الرسائل غير مفعّل بعد. أضف مفاتيح Twilio (TWILIO_ACCOUNT_SID و TWILIO_AUTH_TOKEN و TWILIO_FROM) في Render، واجعل المرسل HCI إن أمكن.'
-      });
-    }
-
     const { code } = db.createOtp({
       identifier: resolved.identifier,
       purpose,
@@ -327,31 +315,14 @@ app.post('/api/auth/request-otp', async (req, res) => {
       channel: resolved.channel
     });
 
-    const delivery = await deliverOtp({
-      channel: resolved.channel,
-      target: resolved.channel === 'email' ? resolved.email : resolved.phone,
-      code,
-      purpose
-    });
-
-    if (!delivery.ok) {
-      return res.status(502).json({ error: delivery.error || 'تعذر إرسال رمز التحقق' });
-    }
-
-    const payload = {
+    res.json({
       ok: true,
       channel: resolved.channel,
       message: resolved.channel === 'email'
-        ? 'تم إرسال رمز التحقق إلى بريدك من HCI. أدخله خلال 10 دقائق.'
-        : 'تم إرسال رمز التحقق برسالة نصية من HCI. أدخله خلال 10 دقائق.'
-    };
-
-    // للتطوير فقط — لا يُعرض الرمز للمستخدم في الإنتاج
-    if (String(process.env.OTP_DEMO || '') === '1') {
-      payload.demoCode = code;
-    }
-
-    res.json(payload);
+        ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
+        : 'تم إنشاء رمز تحقق لرقم الهاتف. أدخله خلال 10 دقائق.',
+      demoCode: code
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر إرسال رمز التحقق' });

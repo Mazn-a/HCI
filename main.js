@@ -969,6 +969,11 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           method: 'POST',
           body: { identifier: resetIdentifier.value.trim(), purpose: 'reset' }
         });
+        var resetDemoCode = document.getElementById('resetDemoCode');
+        if (resetDemoCode && otp.demoCode) {
+          resetDemoCode.hidden = false;
+          resetDemoCode.textContent = 'رمز التحقق: ' + otp.demoCode;
+        }
         statusMsg.textContent = otp.message;
         statusMsg.classList.add('show');
       } catch (err) {
@@ -1008,6 +1013,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 
   // ---- تأكيد البريد/الهاتف ----
   var verifySendCode = document.getElementById('verifySendCode');
+  var verifyDemoCode = document.getElementById('verifyDemoCode');
   var verifyIdentifierEl = document.getElementById('verifyIdentifier');
   var verifyCode = document.getElementById('verifyCode');
   var verifySubmit = document.getElementById('verifySubmit');
@@ -1026,6 +1032,10 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           method: 'POST',
           body: { identifier: verifyIdentifierEl.value.trim(), purpose: 'verify' }
         });
+        if (verifyDemoCode && otp.demoCode) {
+          verifyDemoCode.hidden = false;
+          verifyDemoCode.textContent = 'رمز التحقق: ' + otp.demoCode;
+        }
         statusMsg.textContent = otp.message;
         statusMsg.classList.add('show');
       } catch (err) {

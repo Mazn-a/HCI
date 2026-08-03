@@ -190,7 +190,7 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: 'أدخل البريد الإلكتروني أو رقم الجوال' });
     }
     if (email && !isValidEmail(email)) {
-      return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح. استخدم صيغة مثل name@example.com (بحد أقصى 100 حرف)' });
+      return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح. استخدم صيغة مثل name@example.com' });
     }
     if (phone && !isValidPhone(phone)) {
       return res.status(400).json({ error: 'رقم الجوال غير صحيح. استخدم صيغة سعودية: 05xxxxxxxx' });

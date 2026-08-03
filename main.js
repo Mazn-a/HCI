@@ -1488,13 +1488,13 @@ if (lessonList && codingProgressFill && codingProgressNote){
 // ----- الإعدادات -----
 var settingsFirstName = document.getElementById('settingsFirstName');
 var settingsLastName = document.getElementById('settingsLastName');
-var settingsNameSave = document.getElementById('settingsNameSave');
-var settingsNameNote = document.getElementById('settingsNameNote');
+var settingsSaveAll = document.getElementById('settingsSaveAll');
+var settingsSaveNote = document.getElementById('settingsSaveNote');
 var settingsSizeRow = document.getElementById('settingsSizeRow');
 var settingsSwatchRow = document.getElementById('settingsSwatchRow');
 var settingsThemeRow = document.getElementById('settingsThemeRow');
 
-if (settingsFirstName && settingsLastName && settingsNameSave){
+if (settingsFirstName && settingsLastName){
   var u = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
   if (u){
     settingsFirstName.value = u.firstName || '';
@@ -1505,33 +1505,6 @@ if (settingsFirstName && settingsLastName && settingsNameSave){
     settingsFirstName.value = parts[0] || '';
     settingsLastName.value = parts.slice(1).join(' ') || '';
   }
-
-  settingsNameSave.addEventListener('click', async function(){
-    var first = settingsFirstName.value.trim();
-    var last = settingsLastName.value.trim();
-    if (first.length < 2 || last.length < 2){
-      if (settingsNameNote) settingsNameNote.textContent = 'أدخل الاسم الأول واسم العائلة (حرفان على الأقل لكل منهما).';
-      return;
-    }
-    settingsNameSave.disabled = true;
-    try {
-      if (window.HCIApi && HCIApi.isLoggedIn()){
-        await HCIApi.updateProfile(first, last);
-        if (settingsNameNote) settingsNameNote.textContent = 'تم حفظ الاسم في الحساب والشهادة ولوحة الإدارة.';
-      } else {
-        localStorage.setItem('hci_user_name', first + ' ' + last);
-        if (settingsNameNote) settingsNameNote.textContent = 'تم الحفظ محلياً. سجّل الدخول لمزامنة الاسم مع الشهادة والإدارة.';
-      }
-      settingsNameSave.textContent = 'تم الحفظ ✓';
-      setTimeout(function(){ settingsNameSave.textContent = 'حفظ الاسم'; }, 1600);
-      var chip = document.querySelector('.nav-user-name');
-      if (chip) chip.textContent = first + ' ' + last;
-    } catch (err) {
-      if (settingsNameNote) settingsNameNote.textContent = err.message || 'تعذر حفظ الاسم';
-    } finally {
-      settingsNameSave.disabled = false;
-    }
-  });
 }
 
 if (settingsThemeRow){
@@ -1577,6 +1550,60 @@ if (settingsSwatchRow){
       swatchButtons.forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
     });
+  });
+}
+
+if (settingsSaveAll){
+  settingsSaveAll.addEventListener('click', async function(){
+    var first = settingsFirstName ? settingsFirstName.value.trim() : '';
+    var last = settingsLastName ? settingsLastName.value.trim() : '';
+    if (first.length < 2 || last.length < 2){
+      if (settingsSaveNote) settingsSaveNote.textContent = 'أدخل الاسم الأول واسم العائلة (حرفان على الأقل لكل منهما).';
+      return;
+    }
+
+    // ثبّت المظهر/الحجم/اللون من الاختيار الحالي
+    if (settingsThemeRow){
+      var activeTheme = settingsThemeRow.querySelector('.size-btn.active');
+      if (activeTheme) setTheme(activeTheme.getAttribute('data-theme'));
+    }
+    if (settingsSizeRow){
+      var activeSize = settingsSizeRow.querySelector('.size-btn.active');
+      if (activeSize){
+        var size = activeSize.getAttribute('data-size');
+        document.documentElement.style.fontSize = size;
+        localStorage.setItem('hci_font_size', size);
+      }
+    }
+    if (settingsSwatchRow){
+      var activeSwatch = settingsSwatchRow.querySelector('.swatch-btn.active');
+      if (activeSwatch){
+        var color = activeSwatch.getAttribute('data-color');
+        document.documentElement.style.setProperty('--gold', color);
+        localStorage.setItem('hci_accent_color', color);
+      }
+    }
+
+    settingsSaveAll.disabled = true;
+    settingsSaveAll.textContent = 'جاري الحفظ…';
+    try {
+      if (window.HCIApi && HCIApi.isLoggedIn()){
+        await HCIApi.updateProfile(first, last);
+        if (settingsSaveNote) settingsSaveNote.textContent = 'تم حفظ التغييرات في الحساب والشهادة ولوحة الإدارة.';
+      } else {
+        localStorage.setItem('hci_user_name', first + ' ' + last);
+        if (settingsSaveNote) settingsSaveNote.textContent = 'تم حفظ التغييرات محلياً.';
+      }
+      var chip = document.querySelector('.nav-user-name');
+      if (chip) chip.textContent = first + ' ' + last;
+      settingsSaveAll.textContent = 'تم الحفظ ✓';
+      setTimeout(function(){ settingsSaveAll.textContent = 'حفظ التغييرات'; }, 1600);
+    } catch (err) {
+      if (settingsSaveNote) settingsSaveNote.textContent = err.message || 'تعذر حفظ التغييرات';
+      settingsSaveAll.textContent = 'حفظ التغييرات';
+    } finally {
+      settingsSaveAll.disabled = false;
+    }
   });
 }
 

@@ -1310,6 +1310,14 @@ a.jm-row:hover, button.jm-row:hover:not(.locked){
   margin-top:12px; background: var(--gold); color:#000; border:none;
   padding: 10px 22px; border-radius: 6px; font-weight:700; font-size: 0.88rem; cursor:pointer;
 }
+.settings-save-full{
+  display:block; width:100%; margin-top: 18px; min-height: 52px;
+  padding: 14px 22px; font-size: 1rem; border-radius: 8px;
+}
+html[data-theme="light"] .settings-save,
+html[data-theme="light"] .settings-save-full{
+  color: #FFFFFF;
+}
 .swatch-row{ display:flex; gap:12px; flex-wrap:wrap; }
 .swatch-btn{
   width:38px; height:38px; border-radius:50%; border:2px solid var(--ink-3); cursor:pointer;

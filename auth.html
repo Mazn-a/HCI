@@ -58,7 +58,6 @@
         <input type="text" id="resetIdentifier" dir="ltr" placeholder="you@email.com أو 05xxxxxxxx" autocomplete="username">
       </div>
       <button type="button" class="btn-ghost" id="resetSendCode" style="width:100%;">إرسال رمز التحقق</button>
-      <p class="otp-demo" id="resetDemoCode" hidden></p>
       <div>
         <label for="resetCode">رمز التحقق</label>
         <input type="text" id="resetCode" dir="ltr" inputmode="numeric" placeholder="6 أرقام" autocomplete="one-time-code">
@@ -73,20 +72,18 @@
 
     <form id="formVerify" novalidate>
       <p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:4px;line-height:1.55;">
-        عشان نتأكد إن البريد أو الجوال لك: اطلب رمز التحقق وأدخله.
+        لتأكيد ملكية البريد أو رقم الهاتف: اطلب رمز التحقق من HCI ثم أدخله هنا.
       </p>
       <div>
-        <label for="verifyIdentifier">البريد أو رقم الجوال</label>
-        <input type="text" id="verifyIdentifier" dir="ltr" placeholder="نفس اللي سجّلت فيه">
+        <label for="verifyIdentifier">البريد أو رقم الهاتف</label>
+        <input type="text" id="verifyIdentifier" dir="ltr" placeholder="نفس البيانات المستخدمة عند التسجيل">
       </div>
       <button type="button" class="btn-ghost" id="verifySendCode" style="width:100%;">إرسال رمز التحقق</button>
-      <p class="otp-demo" id="verifyDemoCode" hidden></p>
       <div>
         <label for="verifyCode">رمز التحقق</label>
-        <input type="text" id="verifyCode" dir="ltr" inputmode="numeric" placeholder="6 أرقام" autocomplete="one-time-code">
+        <input type="text" id="verifyCode" dir="ltr" inputmode="numeric" maxlength="6" placeholder="6 أرقام" autocomplete="one-time-code">
       </div>
       <button type="submit" class="submit-btn" id="verifySubmit">تأكيد الملكيّة</button>
-      <button type="button" class="auth-link-btn" id="verifySkipBtn">تخطي والمتابعة للمسار ←</button>
     </form>
 
     <form id="formSignup" novalidate>

@@ -922,10 +922,15 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           : (normalizePhoneLocal(signupPhone.value));
       }
       showTab('verify');
-      statusMsg.textContent = 'الحساب جاهز — أكّد ملكية البريد أو الجوال برمز التحقق';
+      statusMsg.textContent = 'الحساب جاهز — أكّد ملكية البريد أو رقم الهاتف برمز التحقق من HCI';
       statusMsg.classList.add('show');
       signupSubmit.disabled = false;
       signupSubmit.textContent = 'إنشاء الحساب';
+      // إرسال الرمز تلقائياً بعد إنشاء الحساب
+      var autoSend = document.getElementById('verifySendCode');
+      if (autoSend) {
+        setTimeout(function () { autoSend.click(); }, 400);
+      }
     } catch (err) {
       statusMsg.textContent = err.message;
       statusMsg.classList.add('show');
@@ -938,7 +943,6 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var forgotOpenBtn = document.getElementById('forgotOpenBtn');
   var resetBackBtn = document.getElementById('resetBackBtn');
   var resetSendCode = document.getElementById('resetSendCode');
-  var resetDemoCode = document.getElementById('resetDemoCode');
   var resetIdentifier = document.getElementById('resetIdentifier');
   var resetCode = document.getElementById('resetCode');
   var resetNewPass = document.getElementById('resetNewPass');
@@ -955,7 +959,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   if (resetSendCode) {
     resetSendCode.addEventListener('click', async function () {
       if (!resetIdentifier || !resetIdentifier.value.trim()) {
-        statusMsg.textContent = 'أدخل البريد أو الجوال أولاً';
+        statusMsg.textContent = 'أدخل البريد أو رقم الهاتف أولاً';
         statusMsg.classList.add('show');
         return;
       }
@@ -965,11 +969,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           method: 'POST',
           body: { identifier: resetIdentifier.value.trim(), purpose: 'reset' }
         });
-        if (resetDemoCode) {
-          resetDemoCode.hidden = false;
-          resetDemoCode.textContent = 'رمز التحقق: ' + otp.demoCode;
-        }
-        statusMsg.textContent = otp.message + (otp.deliveryNote ? ' — ' + otp.deliveryNote : '');
+        statusMsg.textContent = otp.message;
         statusMsg.classList.add('show');
       } catch (err) {
         statusMsg.textContent = err.message;
@@ -1006,31 +1006,26 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     });
   }
 
-  // ---- تأكيد البريد/الجوال ----
+  // ---- تأكيد البريد/الهاتف ----
   var verifySendCode = document.getElementById('verifySendCode');
-  var verifyDemoCode = document.getElementById('verifyDemoCode');
   var verifyIdentifierEl = document.getElementById('verifyIdentifier');
   var verifyCode = document.getElementById('verifyCode');
   var verifySubmit = document.getElementById('verifySubmit');
-  var verifySkipBtn = document.getElementById('verifySkipBtn');
 
   if (verifySendCode) {
     verifySendCode.addEventListener('click', async function () {
       if (!verifyIdentifierEl || !verifyIdentifierEl.value.trim()) {
-        statusMsg.textContent = 'أدخل البريد أو الجوال';
+        statusMsg.textContent = 'أدخل البريد أو رقم الهاتف';
         statusMsg.classList.add('show');
         return;
       }
       try {
         verifySendCode.disabled = true;
+        verifySendCode.textContent = 'جاري الإرسال…';
         var otp = await HCIApi.request('/api/auth/request-otp', {
           method: 'POST',
           body: { identifier: verifyIdentifierEl.value.trim(), purpose: 'verify' }
         });
-        if (verifyDemoCode) {
-          verifyDemoCode.hidden = false;
-          verifyDemoCode.textContent = 'رمز التحقق: ' + otp.demoCode;
-        }
         statusMsg.textContent = otp.message;
         statusMsg.classList.add('show');
       } catch (err) {
@@ -1038,6 +1033,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         statusMsg.classList.add('show');
       } finally {
         verifySendCode.disabled = false;
+        verifySendCode.textContent = 'إرسال رمز التحقق';
       }
     });
   }
@@ -1056,7 +1052,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           }
         });
         if (conf.user) HCIApi.setSession(HCIApi.getToken(), conf.user);
-        statusMsg.textContent = 'تم التأكيد ✓ جاري فتح مسارك…';
+        statusMsg.textContent = 'تم التأكيد. جاري فتح مسارك…';
         statusMsg.classList.add('show');
         var dest = await HCIApi.afterAuthFlow(conf.user || HCIApi.currentUser(), true);
         window.location.href = dest;
@@ -1065,14 +1061,6 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         statusMsg.classList.add('show');
         verifySubmit.disabled = false;
       }
-    });
-  }
-
-  if (verifySkipBtn) {
-    verifySkipBtn.addEventListener('click', async function () {
-      var u = HCIApi.currentUser();
-      var dest = await HCIApi.afterAuthFlow(u, true);
-      window.location.href = dest;
     });
   }
 }

@@ -7,6 +7,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db, ensureAdmin, checkPassword, ready, dataDir } = require('./db');
+const { deliverOtp, emailConfigured, smsConfigured } = require('./otp-delivery');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -274,8 +275,8 @@ app.patch('/api/auth/profile', authRequired, (req, res) => {
   }
 });
 
-/* ---------- طلب رمز تحقق (بريد أو جوال) ---------- */
-app.post('/api/auth/request-otp', (req, res) => {
+/* ---------- طلب رمز تحقق (بريد أو هاتف) — إرسال حقيقي باسم HCI ---------- */
+app.post('/api/auth/request-otp', async (req, res) => {
   try {
     const purpose = String(req.body.purpose || 'verify');
     if (purpose !== 'verify' && purpose !== 'reset') {
@@ -288,7 +289,7 @@ app.post('/api/auth/request-otp', (req, res) => {
     let user = db.findUserByIdentifier(req.body.identifier);
 
     if (purpose === 'reset') {
-      if (!user) return res.status(404).json({ error: 'ما لقينا حساب بهالمعرف' });
+      if (!user) return res.status(404).json({ error: 'لم يُعثر على حساب بهذا المعرف' });
     }
 
     if (purpose === 'verify' && req.headers.authorization) {
@@ -304,8 +305,19 @@ app.post('/api/auth/request-otp', (req, res) => {
         return res.status(400).json({ error: 'البريد لا يطابق حسابك' });
       }
       if (resolved.channel === 'phone' && user.phone !== resolved.phone) {
-        return res.status(400).json({ error: 'الجوال لا يطابق حسابك' });
+        return res.status(400).json({ error: 'رقم الهاتف لا يطابق حسابك' });
       }
+    }
+
+    if (resolved.channel === 'email' && !emailConfigured()) {
+      return res.status(503).json({
+        error: 'إرسال البريد غير مفعّل بعد. أضف RESEND_API_KEY و HCI_FROM_EMAIL في إعدادات Render.'
+      });
+    }
+    if (resolved.channel === 'phone' && !smsConfigured()) {
+      return res.status(503).json({
+        error: 'إرسال الرسائل غير مفعّل بعد. أضف مفاتيح Twilio (TWILIO_ACCOUNT_SID و TWILIO_AUTH_TOKEN و TWILIO_FROM) في Render، واجعل المرسل HCI إن أمكن.'
+      });
     }
 
     const { code } = db.createOtp({
@@ -315,17 +327,31 @@ app.post('/api/auth/request-otp', (req, res) => {
       channel: resolved.channel
     });
 
-    // بدون خدمة SMS/بريد خارجية: نُظهر الرمز مرة واحدة في الاستجابة للتجربة
-    // لاحقاً يُستبدل بإرسال حقيقي للجوال أو البريد
-    res.json({
+    const delivery = await deliverOtp({
+      channel: resolved.channel,
+      target: resolved.channel === 'email' ? resolved.email : resolved.phone,
+      code,
+      purpose
+    });
+
+    if (!delivery.ok) {
+      return res.status(502).json({ error: delivery.error || 'تعذر إرسال رمز التحقق' });
+    }
+
+    const payload = {
       ok: true,
       channel: resolved.channel,
       message: resolved.channel === 'email'
-        ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
-        : 'تم إنشاء رمز تحقق للجوال. أدخله خلال 10 دقائق.',
-      demoCode: code,
-      deliveryNote: 'حالياً يظهر الرمز هنا لأن خدمة الإرسال الخارجية غير مفعّلة بعد.'
-    });
+        ? 'تم إرسال رمز التحقق إلى بريدك من HCI. أدخله خلال 10 دقائق.'
+        : 'تم إرسال رمز التحقق برسالة نصية من HCI. أدخله خلال 10 دقائق.'
+    };
+
+    // للتطوير فقط — لا يُعرض الرمز للمستخدم في الإنتاج
+    if (String(process.env.OTP_DEMO || '') === '1') {
+      payload.demoCode = code;
+    }
+
+    res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر إرسال رمز التحقق' });

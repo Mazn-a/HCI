@@ -707,11 +707,34 @@ a.wordmark{
   white-space: nowrap;
   max-width: 7.5rem;
 }
-.nav-user-menu-btn{ display: none; }
+.nav-user-menu-btn{
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.nav-user-menu-btn:hover,
+.nav-user-menu-btn[aria-expanded="true"]{
+  color: var(--gold);
+  background: rgba(201,162,75,0.08);
+  border-color: rgba(201,162,75,0.28);
+}
+.nav-user-menu-btn svg{ display: block; }
 .nav-logout{ display: none !important; }
 .nav-dropdown{
   opacity:0; visibility:hidden; pointer-events:none;
-  position:absolute; top:calc(100% + 10px); inset-inline-end:0; min-width:200px;
+  position:absolute; top:calc(100% + 10px); inset-inline-end:0; inset-inline-start:auto; min-width:200px;
   background: var(--ink-2); border:1px solid var(--ink-3); border-radius:10px;
   padding:8px; display:flex; flex-direction:column; gap:2px; z-index:60;
   box-shadow: 0 12px 32px rgba(0,0,0,0.6);

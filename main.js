@@ -523,21 +523,20 @@ function compressImageFile(file, maxSize, quality, callback){
 }
 
 if (navCtaSlot && loggedInName){
-  var adminLink = (window.HCIApi && HCIApi.isAdmin())
-    ? '<a href="admin.html">لوحة الإدارة</a>'
-    : '';
   navCtaSlot.innerHTML =
     '<span class="nav-user-wrap">' +
-      '<button type="button" class="nav-user" id="navUserMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="حسابك">' +
+      '<a href="profile.html" class="nav-user" id="navUserProfileLink" aria-label="الملف الشخصي">' +
         '<span class="chip-avatar" id="navAvatarChip">' + loggedInName.charAt(0) + '</span>' +
         '<span class="nav-user-name">' + loggedInName + '</span>' +
+      '</a>' +
+      '<button type="button" class="nav-user-menu-btn" id="navUserMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="خيارات الحساب">' +
+        '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">' +
+          '<path fill="currentColor" d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>' +
+        '</svg>' +
       '</button>' +
       '<div class="nav-dropdown" id="navDropdown">' +
-        '<a href="profile.html">الملف الشخصي</a>' +
-        '<a href="settings.html">الإعدادات</a>' +
-        '<a href="profile.html#inbox">الرسائل والتنبيهات</a>' +
-        adminLink +
-        '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل الخروج</a>' +
+        '<a href="#" id="switchAccountLink">تبديل الحساب</a>' +
+        '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل خروج</a>' +
       '</div>' +
     '</span>';
 
@@ -562,8 +561,15 @@ if (navCtaSlot && loggedInName){
     if (window.HCIApi) await HCIApi.logout();
     window.location.href = 'index.html';
   }
+  async function doSwitchAccount(e){
+    if (e) e.preventDefault();
+    if (window.HCIApi) await HCIApi.logout();
+    window.location.href = 'auth.html';
+  }
   var logoutLink = document.getElementById('logoutLink');
   if (logoutLink) logoutLink.addEventListener('click', doLogout);
+  var switchAccountLink = document.getElementById('switchAccountLink');
+  if (switchAccountLink) switchAccountLink.addEventListener('click', doSwitchAccount);
 }
 
 if (heroCta && loggedInName){

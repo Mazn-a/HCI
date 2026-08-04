@@ -1474,22 +1474,39 @@ if (inboxList){
   function showToast(title, body, link){
     var existing = document.getElementById('adminMsgToast');
     if (existing) existing.remove();
+    ensureUi();
+    var host = document.querySelector('.nav-notif-wrap');
     var toast = document.createElement('div');
     toast.id = 'adminMsgToast';
-    toast.className = 'admin-msg-toast';
+    toast.className = host ? 'nav-notif-toast' : 'admin-msg-toast';
     toast.setAttribute('role', 'status');
+    var shortBody = body ? String(body) : '';
+    if (shortBody.length > 90) shortBody = shortBody.slice(0, 87) + '…';
     toast.innerHTML =
-      '<strong>تنبيه</strong>' +
-      '<span><b>' + escapeHtml(title) + '</b>' + (body ? '<br>' + escapeHtml(body) : '') + '</span>' +
-      (link ? '<a href="' + escapeHtml(link) + '">عرض التفاصيل</a>' : '') +
-      '<button type="button" class="toast-close" aria-label="إغلاق">×</button>';
-    document.body.appendChild(toast);
-    toast.querySelector('.toast-close').addEventListener('click', function(){ toast.remove(); });
+      '<div class="nav-notif-toast-top">' +
+        '<span class="nav-notif-toast-label">تنبيه</span>' +
+        '<button type="button" class="toast-close" aria-label="إغلاق">×</button>' +
+      '</div>' +
+      '<p class="nav-notif-toast-title">' + escapeHtml(title) + '</p>' +
+      (shortBody ? '<p class="nav-notif-toast-body">' + escapeHtml(shortBody) + '</p>' : '') +
+      (link ? '<a class="nav-notif-toast-link" href="' + escapeHtml(link) + '">عرض</a>' : '');
+    if (host){
+      var openPanel = document.getElementById('navNotifPanel');
+      var notifBtn = document.getElementById('navNotifBtn');
+      if (openPanel) openPanel.setAttribute('hidden', '');
+      if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+      host.appendChild(toast);
+    } else document.body.appendChild(toast);
+    toast.querySelector('.toast-close').addEventListener('click', function(e){
+      e.stopPropagation();
+      toast.remove();
+    });
     toast.addEventListener('click', function(e){
       if (e.target.closest('.toast-close')) return;
-      if (link && !e.target.closest('a')) location.href = link;
+      if (e.target.closest('a')) return;
+      if (link) location.href = link;
     });
-    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 10000);
+    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 4500);
   }
 
   function ensureUi(){
@@ -2398,13 +2415,14 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
         );
         setTimeout(function(){ HCINotifCenter.refresh(true); }, 800);
       } else {
+        /* زائر: تنبيه صغير أعلى الصفحة */
         var guestToast = document.createElement('div');
         guestToast.id = 'adminMsgToast';
         guestToast.className = 'admin-msg-toast';
-        guestToast.innerHTML = '<strong>تنبيه</strong><span>تم إرسال بلاغك بنجاح</span><button type="button" class="toast-close" aria-label="إغلاق">×</button>';
+        guestToast.innerHTML = '<div class="nav-notif-toast-top"><span class="nav-notif-toast-label">تنبيه</span><button type="button" class="toast-close" aria-label="إغلاق">×</button></div><p class="nav-notif-toast-title">تم إرسال بلاغك</p>';
         document.body.appendChild(guestToast);
         guestToast.querySelector('.toast-close').addEventListener('click', function(){ guestToast.remove(); });
-        setTimeout(function(){ if (guestToast.parentNode) guestToast.remove(); }, 8000);
+        setTimeout(function(){ if (guestToast.parentNode) guestToast.remove(); }, 4000);
       }
       setTimeout(function(){
         submitBtn.disabled = false;

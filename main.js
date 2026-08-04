@@ -1962,6 +1962,56 @@ if (settingsFirstName && settingsLastName){
   }
 }
 
+(function initSettingsAvatar(){
+  var preview = document.getElementById('settingsAvatarPreview');
+  var upload = document.getElementById('settingsAvatarUpload');
+  var removeBtn = document.getElementById('settingsAvatarRemove');
+  if (!preview || !upload) return;
+
+  function currentName(){
+    var first = settingsFirstName ? settingsFirstName.value.trim() : '';
+    var last = settingsLastName ? settingsLastName.value.trim() : '';
+    var full = (first + ' ' + last).trim();
+    return full || localStorage.getItem('hci_user_name') || '؟';
+  }
+
+  function refreshPreview(){
+    applyAvatarToEl(preview, currentName());
+    applyAvatarToEl(document.getElementById('navAvatarChip'), currentName());
+    if (removeBtn) removeBtn.hidden = !getUserAvatar();
+  }
+
+  refreshPreview();
+
+  if (settingsFirstName) settingsFirstName.addEventListener('input', refreshPreview);
+  if (settingsLastName) settingsLastName.addEventListener('input', refreshPreview);
+
+  upload.addEventListener('change', function(){
+    var file = upload.files && upload.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)){
+      alert('اختَر صورة فقط');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024){
+      alert('الصورة كبيرة — اختَر صورة أصغر من 8MB');
+      return;
+    }
+    compressImageFile(file, 320, 0.82, function(dataUrl){
+      setUserAvatar(dataUrl);
+      refreshPreview();
+    });
+  });
+
+  if (removeBtn){
+    removeBtn.addEventListener('click', function(){
+      setUserAvatar('');
+      upload.value = '';
+      refreshPreview();
+    });
+  }
+})();
+
 if (settingsThemeRow){
   var themeButtons = settingsThemeRow.querySelectorAll('.size-btn');
   var themeNote = document.getElementById('settingsThemeNote');

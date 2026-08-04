@@ -55,16 +55,26 @@
           <section class="settings-block" id="sec-account">
             <div class="settings-block-head">
               <h2>الحساب</h2>
-              <p>الاسم الظاهر في الشهادة ولوحة الإدارة والشريط العلوي.</p>
+              <p>الاسم والصورة الظاهرة في الشهادة والشريط العلوي.</p>
             </div>
-            <div class="settings-fields settings-fields-2">
-              <div class="settings-field">
-                <label for="settingsFirstName">الاسم الأول</label>
-                <input type="text" id="settingsFirstName" class="settings-input" placeholder="الاسم الأول" autocomplete="given-name">
-              </div>
-              <div class="settings-field">
-                <label for="settingsLastName">اسم العائلة</label>
-                <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
+            <div class="settings-identity-row">
+              <span class="profile-avatar" id="settingsAvatarPreview">؟</span>
+              <div class="settings-identity-meta">
+                <div class="settings-fields settings-fields-2">
+                  <div class="settings-field">
+                    <label for="settingsFirstName">الاسم الأول</label>
+                    <input type="text" id="settingsFirstName" class="settings-input" placeholder="الاسم الأول" autocomplete="given-name">
+                  </div>
+                  <div class="settings-field">
+                    <label for="settingsLastName">اسم العائلة</label>
+                    <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
+                  </div>
+                </div>
+                <div class="avatar-actions" id="settingsAvatarActions">
+                  <label class="btn-ghost avatar-upload-btn" for="settingsAvatarUpload">تغيير الصورة</label>
+                  <input type="file" id="settingsAvatarUpload" accept="image/*" hidden>
+                  <button type="button" class="avatar-remove-btn" id="settingsAvatarRemove" hidden>إزالة الصورة</button>
+                </div>
               </div>
             </div>
           </section>

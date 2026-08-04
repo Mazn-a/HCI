@@ -2856,13 +2856,30 @@ body[data-theme="light"] .settings-side-link{
   align-items: flex-start;
 }
 .profile-page .profile-identity-meta{ min-width: 0; flex: 1; }
-.profile-page .avatar-actions{
+.settings-identity-row{
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.settings-identity-meta{
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.settings-identity-row .profile-avatar{
+  width: 72px;
+  height: 72px;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+}
+.avatar-actions{
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 14px;
 }
-.profile-page .avatar-upload-btn{
+.avatar-upload-btn{
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2871,7 +2888,7 @@ body[data-theme="light"] .settings-side-link{
   cursor: pointer;
   margin: 0;
 }
-.profile-page .avatar-remove-btn{
+.avatar-remove-btn{
   background: none;
   border: 1px solid var(--ink-3);
   color: var(--text-mid);
@@ -2882,9 +2899,18 @@ body[data-theme="light"] .settings-side-link{
   cursor: pointer;
   min-height: 42px;
 }
-.profile-page .avatar-remove-btn:hover{
+.avatar-remove-btn:hover{
   border-color: var(--error);
   color: var(--error);
+}
+@media (max-width: 560px){
+  .settings-identity-row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+.profile-page .avatar-actions{
+  margin-top: 14px;
 }
 .profile-page .journey-map{ margin-top: 18px; }
 .profile-page .progress-note{ margin-top: 8px; }

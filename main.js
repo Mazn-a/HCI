@@ -1634,8 +1634,9 @@ if (inboxList){
   }
 
   function ensureUi(){
-    var slot = document.querySelector('.nav-user-wrap') || document.getElementById('navCtaSlot');
-    if (!slot || document.getElementById('navNotifBtn')) return;
+    var slot = document.getElementById('navCtaSlot');
+    var userWrap = document.querySelector('.nav-user-wrap');
+    if ((!slot && !userWrap) || document.getElementById('navNotifBtn')) return;
     var wrap = document.createElement('span');
     wrap.className = 'nav-notif-wrap';
     wrap.innerHTML =
@@ -1653,7 +1654,16 @@ if (inboxList){
         '<div class="nav-notif-list" id="navNotifList"><p class="progress-note">لا توجد تنبيهات</p></div>' +
         '<a class="nav-notif-footer" href="profile.html#inbox">فتح صندوق الرسائل</a>' +
       '</div>';
-    slot.insertBefore(wrap, slot.firstChild);
+    /* جنب الأفاتار بمسافة: … المعجم | جرس · أفاتار */
+    if (slot && userWrap && userWrap.parentNode === slot){
+      slot.insertBefore(wrap, userWrap);
+    } else if (userWrap){
+      userWrap.insertBefore(wrap, userWrap.firstChild);
+    } else if (slot){
+      slot.insertBefore(wrap, slot.firstChild);
+    } else {
+      return;
+    }
 
     var btn = document.getElementById('navNotifBtn');
     var panel = document.getElementById('navNotifPanel');

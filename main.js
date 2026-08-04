@@ -2279,8 +2279,11 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   section.innerHTML =
     '<details class="report-details">' +
       '<summary class="report-summary">' +
-        '<span class="report-summary-title">بلّغ عن مشكلة</span>' +
-        '<span class="report-summary-hint">شفت خطأ أو شي مو واضح؟</span>' +
+        '<span class="report-summary-icon" aria-hidden="true">!</span>' +
+        '<span class="report-summary-copy">' +
+          '<span class="report-summary-title">بلّغ عن مشكلة</span>' +
+          '<span class="report-summary-hint">شفت خطأ أو شي مو واضح؟ اضغط هنا وافتح النموذج</span>' +
+        '</span>' +
         '<span class="report-summary-chevron" aria-hidden="true">▾</span>' +
       '</summary>' +
       '<form class="report-form" id="reportForm">' +

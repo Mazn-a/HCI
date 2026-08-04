@@ -2695,8 +2695,8 @@ body[data-theme="light"] footer{
 .back-to-top{
   position: fixed;
   bottom: max(20px, env(safe-area-inset-bottom));
-  right: max(16px, env(safe-area-inset-right));
-  left: auto;
+  left: max(16px, env(safe-area-inset-left));
+  right: auto;
   z-index: 60;
   width: 42px;
   height: 42px;
@@ -2933,8 +2933,8 @@ body[data-theme="light"] .back-to-top{
 
   .back-to-top{
     bottom: max(18px, env(safe-area-inset-bottom));
-    right: max(16px, env(safe-area-inset-right));
-    left: auto;
+    left: max(16px, env(safe-area-inset-left));
+    right: auto;
     width: 42px; height: 42px;
   }
 

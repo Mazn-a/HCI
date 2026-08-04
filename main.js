@@ -398,28 +398,12 @@ function bootstrapUnlockFromHome(){
 }
 bootstrapUnlockFromHome();
 
-// ----- رجوع للأعلى (يبقى فوق خط التذييل عند الوصول لآخر الصفحة) -----
+// ----- رجوع للأعلى -----
 var backToTop = document.getElementById('backToTop');
 if (backToTop){
-  var siteFooter = document.querySelector('footer');
-  function syncBackToTop(){
-    var show = window.scrollY > 420;
-    backToTop.classList.toggle('show', show);
-    if (!show || !siteFooter){
-      backToTop.style.bottom = '';
-      return;
-    }
-    var fr = siteFooter.getBoundingClientRect();
-    var overlap = Math.max(0, window.innerHeight - fr.top);
-    if (overlap > 0){
-      backToTop.style.bottom = (overlap + 14) + 'px';
-    } else {
-      backToTop.style.bottom = '';
-    }
-  }
-  window.addEventListener('scroll', syncBackToTop, { passive: true });
-  window.addEventListener('resize', syncBackToTop);
-  syncBackToTop();
+  window.addEventListener('scroll', function(){
+    backToTop.classList.toggle('show', window.scrollY > 420);
+  }, { passive: true });
   backToTop.addEventListener('click', function(){
     var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
@@ -2294,9 +2278,9 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   });
 });
 
-// ----- بلّغ عن مشكلة — زر بالتذييل + نموذج منبثق -----
+// ----- بلّغ عن مشكلة — رابط هادئ في التذييل + نموذج منبثق -----
 (function injectReportSection(){
-  if (document.getElementById('reportSection')) return;
+  if (document.getElementById('reportTrigger') || document.getElementById('reportSection')) return;
 
   var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
   var skipPages = ['admin.html', 'auth.html', 'path-choice.html', 'certificate.html', 'maintenance.html'];
@@ -2308,9 +2292,17 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   var trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.id = 'reportTrigger';
-  trigger.className = 'footer-contact-btn';
+  trigger.className = 'footer-report-link';
   trigger.textContent = 'بلّغ عن مشكلة';
-  window.__hciReportTrigger = trigger;
+
+  var brand = document.querySelector('footer .footer-brand');
+  if (brand){
+    brand.appendChild(trigger);
+  } else {
+    var footer = document.querySelector('footer .footer-inner') || document.querySelector('footer');
+    if (footer) footer.appendChild(trigger);
+    else return;
+  }
 
   var backdrop = document.createElement('div');
   backdrop.id = 'reportSection';
@@ -2498,38 +2490,25 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   });
 })();
 
-// ----- تذييل: يمين الاسم | يسار تواصل + بلاغ -----
+// ----- تواصل معي — تحت الاسم في التذييل -----
 (function injectFooterContact(){
   var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
   if (['admin.html', 'auth.html', 'certificate.html', 'maintenance.html'].indexOf(pageName) !== -1) return;
   if (document.body.classList.contains('auth-page')) return;
 
-  var inner = document.querySelector('footer .footer-inner');
   var bottom = document.querySelector('footer .footer-bottom');
-  if (!inner || !bottom || document.getElementById('footerContactBtn')) return;
+  if (!bottom || document.getElementById('footerContactBtn')) return;
 
-  var credit = document.createElement('div');
-  credit.className = 'footer-credit-block';
-  while (bottom.firstChild) credit.appendChild(bottom.firstChild);
-  bottom.appendChild(credit);
-
-  var actions = document.createElement('div');
-  actions.id = 'footerActions';
-  actions.className = 'footer-actions';
-
+  var wrap = document.createElement('div');
+  wrap.className = 'footer-credit-block';
+  while (bottom.firstChild) wrap.appendChild(bottom.firstChild);
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.id = 'footerContactBtn';
   btn.className = 'footer-contact-btn';
   btn.textContent = 'تواصل معي';
-  actions.appendChild(btn);
-
-  var reportBtn = window.__hciReportTrigger || document.getElementById('reportTrigger');
-  if (reportBtn){
-    reportBtn.className = 'footer-contact-btn';
-    actions.appendChild(reportBtn);
-  }
-  inner.appendChild(actions);
+  wrap.appendChild(btn);
+  bottom.appendChild(wrap);
 
   var backdrop = document.createElement('div');
   backdrop.id = 'contactModal';

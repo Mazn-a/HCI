@@ -60,18 +60,9 @@ var LIGHT_ACCENT_MAP = {
   '#1e4a6e': '#3E7CB0'
 };
 
-function hexToRgbChannels(hex){
-  var h = String(hex || '').replace('#', '').trim();
-  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-  if (h.length !== 6) return [201, 162, 75];
-  var n = parseInt(h, 16);
-  if (isNaN(n)) return [201, 162, 75];
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-
 function resolveAccentForTheme(theme, color){
   if (!color) return theme === 'light' ? '#A9843A' : '#C9A24B';
-  // ترحيل الألوان القديمة إلى الكحلي الحالي
+  // الفحمي/الكحلي الغامق القديم → كحلي أوضح
   if (color === '#3F3F46' || color === '#3f3f46' || color === '#1E4A6E' || color === '#1e4a6e'){
     color = '#3E7CB0';
   }
@@ -82,15 +73,7 @@ function resolveAccentForTheme(theme, color){
 function applyAccentColor(color){
   var theme = document.documentElement.getAttribute('data-theme') || 'dark';
   var resolved = resolveAccentForTheme(theme, color);
-  var rgb = hexToRgbChannels(resolved);
-  var lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
-  var ink = lum > 0.55 ? '#111111' : '#F4F8FC';
-  var root = document.documentElement.style;
-  root.setProperty('--gold', resolved);
-  root.setProperty('--accent-rgb', rgb[0] + ', ' + rgb[1] + ', ' + rgb[2]);
-  root.setProperty('--accent-ink', ink);
-  root.setProperty('--badge-bg', 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.14)');
-  root.setProperty('--card-border-hover', 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.5)');
+  document.documentElement.style.setProperty('--gold', resolved);
   try {
     if (color === '#3F3F46' || color === '#3f3f46' || color === '#1E4A6E' || color === '#1e4a6e'){
       localStorage.setItem('hci_accent_color', '#3E7CB0');

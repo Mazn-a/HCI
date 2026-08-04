@@ -26,6 +26,8 @@ var LIGHT_ACCENT_MAP = {
   '#6fd6e0': '#57534E',
   '#6B9FE8': '#57534E',
   '#6b9fe8': '#57534E',
+  '#6ECF84': '#3F3F46',
+  '#6ecf84': '#3F3F46',
   '#B79CE0': '#7C6A9A',
   '#b79ce0': '#7C6A9A',
   '#4A6B78': '#57534E',
@@ -1209,94 +1211,401 @@ if (avatarLetter && profileNameDisplay && profileNameHint){
   }
 }
 
-// رسائل من الإدارة في الملف الشخصي
+// رسائل من الإدارة + تنبيهات في الملف الشخصي
 var inboxList = document.getElementById('inboxList');
-if (inboxList && window.HCIApi && HCIApi.isLoggedIn()){
-  HCIApi.fetchMessages().then(function(data){
-    if (!data.messages || !data.messages.length){
-      inboxList.innerHTML = '<p class="progress-note">لا توجد رسائل من الإدارة حالياً.</p>';
+function escapeHtml(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function formatNotifTime(iso){
+  if (!iso) return '';
+  try {
+    var d = new Date(iso);
+    return d.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }) +
+      ' · ' + d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return ''; }
+}
+function renderInboxCard(item){
+  var isMsg = item.kind === 'message';
+  var unread = !item.read;
+  return '<article class="inbox-card' + (unread ? ' is-unread' : '') + '" data-kind="' + item.kind + '" data-id="' + item.id + '"' +
+    (item.refId ? ' data-ref="' + item.refId + '"' : '') + '>' +
+    '<div class="inbox-card-top">' +
+      '<span class="inbox-card-type">' + escapeHtml(item.typeLabel) + '</span>' +
+      '<span class="inbox-card-state">' + (unread ? 'جديدة' : 'مقروءة') + '</span>' +
+    '</div>' +
+    '<h3 class="inbox-card-title">' + escapeHtml(item.title) + '</h3>' +
+    '<p class="inbox-card-preview">' + escapeHtml(item.preview) + '</p>' +
+    '<div class="inbox-card-meta">' +
+      '<span>' + escapeHtml(item.meta || '') + '</span>' +
+      '<span>' + escapeHtml(formatNotifTime(item.createdAt)) + '</span>' +
+    '</div>' +
+    '<div class="inbox-card-body" hidden>' + escapeHtml(item.body) + '</div>' +
+    '<button type="button" class="inbox-open-btn">' + (unread ? 'فتح وقراءة' : 'عرض') + '</button>' +
+  '</article>';
+}
+function loadInboxBox(){
+  if (!inboxList || !window.HCIApi || !HCIApi.isLoggedIn()) return;
+  inboxList.innerHTML = '<p class="progress-note">جاري التحميل…</p>';
+  Promise.all([
+    HCIApi.fetchMessages().catch(function(){ return { messages: [] }; }),
+    HCIApi.fetchNotifications().catch(function(){ return { notifications: [] }; })
+  ]).then(function(results){
+    var messages = (results[0].messages || []).map(function(m){
+      return {
+        kind: 'message',
+        id: m.id,
+        refId: m.id,
+        read: !!m.read,
+        typeLabel: 'رسالة إدارة',
+        title: m.subject,
+        preview: m.body,
+        body: m.body,
+        meta: 'من ' + (m.from || 'الإدارة') + (m.updatedAt ? ' · عُدّلت' : ''),
+        createdAt: m.createdAt
+      };
+    });
+    var notifs = (results[1].notifications || [])
+      .filter(function(n){ return n.type !== 'admin_message'; })
+      .map(function(n){
+        var label = n.type === 'report_sent' ? 'بلاغ' :
+          n.type === 'report_done' ? 'إصلاح بلاغ' :
+          n.type === 'settings' ? 'حفظ' : 'تنبيه';
+        return {
+          kind: 'notification',
+          id: n.id,
+          refId: n.refId,
+          read: !!n.read,
+          typeLabel: label,
+          title: n.title,
+          preview: n.body,
+          body: n.body,
+          meta: '',
+          createdAt: n.createdAt
+        };
+      });
+    var items = messages.concat(notifs).sort(function(a, b){
+      return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+    });
+    if (!items.length){
+      inboxList.innerHTML = '<p class="progress-note">لا توجد رسائل أو تنبيهات حالياً.</p>';
       return;
     }
-    inboxList.innerHTML = data.messages.map(function(m){
-      return '<div class="glossary-item">' +
-        '<div class="term-row"><span class="term-ar">' + m.subject + '</span>' +
-        '<span class="term-en">' + (m.read ? 'مقروءة' : 'جديدة') + '</span></div>' +
-        '<p class="term-def">' + m.body + '</p>' +
-        '<p class="progress-note">من ' + m.from +
-          (m.updatedAt ? ' · عُدّلت' : '') + '</p>' +
-      '</div>';
-    }).join('');
-    data.messages.forEach(function(m){
-      if (!m.read){
-        HCIApi.request('/api/messages/' + m.id + '/read', { method: 'POST' }).catch(function(){});
-      }
-    });
+    inboxList.innerHTML = items.map(renderInboxCard).join('');
   }).catch(function(){
     inboxList.innerHTML = '<p class="progress-note">تعذر جلب الرسائل. تأكد من اتصال المنصة.</p>';
   });
 }
+if (inboxList){
+  if (window.HCIApi && HCIApi.isLoggedIn()) loadInboxBox();
+  var inboxRefreshBtn = document.getElementById('inboxRefreshBtn');
+  var inboxMarkAllBtn = document.getElementById('inboxMarkAllBtn');
+  if (inboxRefreshBtn) inboxRefreshBtn.addEventListener('click', loadInboxBox);
+  if (inboxMarkAllBtn){
+    inboxMarkAllBtn.addEventListener('click', function(){
+      if (!window.HCIApi || !HCIApi.isLoggedIn()) return;
+      Promise.all([
+        HCIApi.markAllNotificationsRead().catch(function(){}),
+        HCIApi.fetchMessages().then(function(data){
+          return Promise.all((data.messages || []).filter(function(m){ return !m.read; }).map(function(m){
+            return HCIApi.markMessageRead(m.id);
+          }));
+        }).catch(function(){})
+      ]).then(function(){
+        loadInboxBox();
+        if (window.HCINotifCenter) HCINotifCenter.refresh();
+      });
+    });
+  }
+  inboxList.addEventListener('click', function(e){
+    var btn = e.target.closest('.inbox-open-btn');
+    if (!btn) return;
+    var card = btn.closest('.inbox-card');
+    if (!card) return;
+    var body = card.querySelector('.inbox-card-body');
+    var open = body && body.hasAttribute('hidden');
+    if (body){
+      if (open) body.removeAttribute('hidden');
+      else body.setAttribute('hidden', '');
+    }
+    btn.textContent = open ? 'إخفاء' : (card.classList.contains('is-unread') ? 'فتح وقراءة' : 'عرض');
+    if (!open) return;
+    var kind = card.getAttribute('data-kind');
+    var id = card.getAttribute('data-id');
+    if (!window.HCIApi) return;
+    var markPromise = kind === 'message'
+      ? HCIApi.markMessageRead(id)
+      : HCIApi.markNotificationRead(id);
+    markPromise.then(function(){
+      card.classList.remove('is-unread');
+      var state = card.querySelector('.inbox-card-state');
+      if (state) state.textContent = 'مقروءة';
+      btn.textContent = 'إخفاء';
+      if (window.HCINotifCenter) HCINotifCenter.refresh();
+    }).catch(function(){});
+  });
+  if (location.hash === '#inbox'){
+    setTimeout(function(){
+      var sec = document.getElementById('sec-inbox');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  }
+}
 
-// تنبيه عند وصول رسالة من الإدارة
-(function setupAdminMessageAlert(){
+// مركز التنبيهات — زر في الشريط + لوحة + تنبيه فوري بأي صفحة
+(function setupNotifCenter(){
   if (!window.HCIApi || !HCIApi.isLoggedIn() || HCIApi.isAdmin()) return;
 
-  function showMsgToast(count, subject){
+  var LOCAL_KEY = 'hci_local_notifs';
+  var SEEN_KEY = 'hci_seen_notif_ids';
+
+  function readLocal(){
+    try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function writeLocal(list){
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list.slice(0, 40))); } catch (e) { /* */ }
+  }
+
+  function pushLocal(title, body, link){
+    var list = readLocal();
+    var item = {
+      id: 'local-' + Date.now(),
+      type: 'local',
+      title: title,
+      body: body || '',
+      link: link || '',
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    list.unshift(item);
+    writeLocal(list);
+    showToast(title, body, link);
+    try {
+      var seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+      seen.push('local:' + item.id);
+      localStorage.setItem(SEEN_KEY, JSON.stringify(seen.slice(-80)));
+    } catch (e) { /* */ }
+    refresh(true, { quiet: true });
+    return item;
+  }
+
+  function showToast(title, body, link){
     var existing = document.getElementById('adminMsgToast');
     if (existing) existing.remove();
     var toast = document.createElement('div');
     toast.id = 'adminMsgToast';
     toast.className = 'admin-msg-toast';
     toast.setAttribute('role', 'status');
-    var text = count === 1
-      ? ('رسالة جديدة من الإدارة' + (subject ? ': ' + subject : ''))
-      : ('لديك ' + count + ' رسائل جديدة من الإدارة');
-    toast.innerHTML = '<strong>تنبيه</strong><span>' + text + '</span>' +
-      '<a href="profile.html#inbox">عرض الرسائل</a>' +
+    toast.innerHTML =
+      '<strong>تنبيه</strong>' +
+      '<span><b>' + escapeHtml(title) + '</b>' + (body ? '<br>' + escapeHtml(body) : '') + '</span>' +
+      (link ? '<a href="' + escapeHtml(link) + '">عرض التفاصيل</a>' : '') +
       '<button type="button" class="toast-close" aria-label="إغلاق">×</button>';
     document.body.appendChild(toast);
     toast.querySelector('.toast-close').addEventListener('click', function(){ toast.remove(); });
-    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 12000);
+    toast.addEventListener('click', function(e){
+      if (e.target.closest('.toast-close')) return;
+      if (link && !e.target.closest('a')) location.href = link;
+    });
+    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 10000);
   }
 
-  function updateMsgBadge(count){
+  function ensureUi(){
     var slot = document.querySelector('.nav-user-wrap') || document.getElementById('navCtaSlot');
-    if (!slot) return;
-    var badge = document.getElementById('navMsgBadge');
-    if (count <= 0){
-      if (badge) badge.remove();
-      return;
-    }
-    if (!badge){
-      badge = document.createElement('a');
-      badge.id = 'navMsgBadge';
-      badge.className = 'nav-msg-badge';
-      badge.href = 'profile.html#inbox';
-      badge.setAttribute('aria-label', 'رسائل غير مقروءة');
-      slot.appendChild(badge);
-    }
-    badge.textContent = String(count);
+    if (!slot || document.getElementById('navNotifBtn')) return;
+    var wrap = document.createElement('span');
+    wrap.className = 'nav-notif-wrap';
+    wrap.innerHTML =
+      '<button type="button" class="nav-notif-btn" id="navNotifBtn" aria-haspopup="true" aria-expanded="false" aria-label="التنبيهات">' +
+        '<span class="nav-notif-icon" aria-hidden="true"></span>' +
+        '<span class="nav-notif-label">تنبيهات</span>' +
+        '<span class="nav-notif-count" id="navNotifCount" hidden>0</span>' +
+      '</button>' +
+      '<div class="nav-notif-panel" id="navNotifPanel" hidden>' +
+        '<div class="nav-notif-head">' +
+          '<strong>التنبيهات</strong>' +
+          '<button type="button" class="nav-notif-markall" id="navNotifMarkAll">تعليم الكل مقروء</button>' +
+        '</div>' +
+        '<div class="nav-notif-list" id="navNotifList"><p class="progress-note">لا توجد تنبيهات</p></div>' +
+        '<a class="nav-notif-footer" href="profile.html#inbox">صندوق الرسائل الكامل</a>' +
+      '</div>';
+    slot.insertBefore(wrap, slot.firstChild);
+
+    var btn = document.getElementById('navNotifBtn');
+    var panel = document.getElementById('navNotifPanel');
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = panel.hasAttribute('hidden');
+      if (open){
+        panel.removeAttribute('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        refresh(true);
+      } else {
+        panel.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('click', function(ev){
+      if (!wrap.contains(ev.target)){
+        panel.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.getElementById('navNotifMarkAll').addEventListener('click', function(){
+      var locals = readLocal().map(function(n){ n.read = true; return n; });
+      writeLocal(locals);
+      HCIApi.markAllNotificationsRead().catch(function(){}).then(function(){
+        return HCIApi.fetchMessages().then(function(data){
+          return Promise.all((data.messages || []).filter(function(m){ return !m.read; }).map(function(m){
+            return HCIApi.markMessageRead(m.id);
+          }));
+        });
+      }).catch(function(){}).then(function(){ refresh(true); if (typeof loadInboxBox === 'function') loadInboxBox(); });
+    });
+    document.getElementById('navNotifList').addEventListener('click', function(ev){
+      var row = ev.target.closest('[data-nid]');
+      if (!row) return;
+      var nid = row.getAttribute('data-nid');
+      var ntype = row.getAttribute('data-ntype');
+      var link = row.getAttribute('data-link') || 'profile.html#inbox';
+      if (String(nid).indexOf('local-') === 0){
+        var locals = readLocal().map(function(n){
+          if (String(n.id) === String(nid)) n.read = true;
+          return n;
+        });
+        writeLocal(locals);
+        refresh(true);
+        location.href = link;
+        return;
+      }
+      var p = ntype === 'message'
+        ? HCIApi.markMessageRead(nid)
+        : HCIApi.markNotificationRead(nid);
+      p.catch(function(){}).then(function(){
+        refresh(true);
+        location.href = link;
+      });
+    });
   }
 
-  function checkMessages(){
-    HCIApi.fetchMessages().then(function(data){
-      var unread = (data.messages || []).filter(function(m){ return !m.read; });
-      var count = data.unreadCount != null ? data.unreadCount : unread.length;
-      updateMsgBadge(count);
-      if (!count) return;
-      var seenKey = 'hci_seen_msg_ids';
+  function setBadge(count){
+    var el = document.getElementById('navNotifCount');
+    if (!el) return;
+    if (count > 0){
+      el.hidden = false;
+      el.textContent = count > 99 ? '99+' : String(count);
+    } else {
+      el.hidden = true;
+    }
+  }
+
+  function refresh(renderList, options){
+    options = options || {};
+    ensureUi();
+    Promise.all([
+      HCIApi.fetchNotifications().catch(function(){ return { notifications: [], unreadCount: 0 }; }),
+      HCIApi.fetchMessages().catch(function(){ return { messages: [], unreadCount: 0 }; })
+    ]).then(function(results){
+      var serverNotifs = results[0].notifications || [];
+      var messages = results[1].messages || [];
+      var locals = readLocal();
+
+      var merged = [];
+      serverNotifs.forEach(function(n){
+        merged.push({
+          id: n.id,
+          ntype: 'notification',
+          title: n.title,
+          body: n.body,
+          link: n.link || 'profile.html#inbox',
+          read: !!n.read,
+          createdAt: n.createdAt,
+          type: n.type
+        });
+      });
+      messages.forEach(function(m){
+        var hasTwin = serverNotifs.some(function(n){ return n.type === 'admin_message' && Number(n.refId) === Number(m.id); });
+        if (hasTwin) return;
+        merged.push({
+          id: m.id,
+          ntype: 'message',
+          title: m.subject,
+          body: m.body,
+          link: 'profile.html#inbox',
+          read: !!m.read,
+          createdAt: m.createdAt,
+          type: 'admin_message'
+        });
+      });
+      locals.forEach(function(n){
+        merged.push({
+          id: n.id,
+          ntype: 'local',
+          title: n.title,
+          body: n.body,
+          link: n.link || 'profile.html#inbox',
+          read: !!n.read,
+          createdAt: n.createdAt,
+          type: 'local'
+        });
+      });
+      merged.sort(function(a, b){ return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); });
+
+      var unread = merged.filter(function(n){ return !n.read; });
+      setBadge(unread.length);
+
+      if (renderList){
+        var list = document.getElementById('navNotifList');
+        if (list){
+          if (!merged.length){
+            list.innerHTML = '<p class="progress-note">لا توجد تنبيهات بعد</p>';
+          } else {
+            list.innerHTML = merged.slice(0, 20).map(function(n){
+              return '<button type="button" class="nav-notif-item' + (n.read ? '' : ' is-unread') + '" data-nid="' + escapeHtml(String(n.id)) + '" data-ntype="' + escapeHtml(n.ntype) + '" data-link="' + escapeHtml(n.link) + '">' +
+                '<span class="nav-notif-item-title">' + escapeHtml(n.title) + '</span>' +
+                '<span class="nav-notif-item-body">' + escapeHtml(n.body) + '</span>' +
+                '<span class="nav-notif-item-time">' + escapeHtml(formatNotifTime(n.createdAt)) + (n.read ? '' : ' · جديدة') + '</span>' +
+              '</button>';
+            }).join('');
+          }
+        }
+      }
+
+      if (options.quiet){
+        var seenQuiet = [];
+        try { seenQuiet = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch (e) { seenQuiet = []; }
+        unread.forEach(function(n){
+          var key = n.ntype + ':' + n.id;
+          if (seenQuiet.indexOf(key) === -1) seenQuiet.push(key);
+        });
+        try { localStorage.setItem(SEEN_KEY, JSON.stringify(seenQuiet.slice(-80))); } catch (e) { /* */ }
+        return;
+      }
+
       var seen = [];
-      try { seen = JSON.parse(localStorage.getItem(seenKey) || '[]'); } catch (e) { seen = []; }
-      var fresh = unread.filter(function(m){ return seen.indexOf(m.id) === -1; });
+      try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch (e) { seen = []; }
+      var fresh = unread.filter(function(n){
+        var key = n.ntype + ':' + n.id;
+        return seen.indexOf(key) === -1;
+      });
       if (fresh.length){
-        showMsgToast(fresh.length, fresh[0].subject);
-        fresh.forEach(function(m){ seen.push(m.id); });
-        try { localStorage.setItem(seenKey, JSON.stringify(seen.slice(-50))); } catch (e) { /* */ }
+        var first = fresh[0];
+        showToast(first.title, first.body, first.link || 'profile.html#inbox');
+        fresh.forEach(function(n){ seen.push(n.ntype + ':' + n.id); });
+        try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen.slice(-80))); } catch (e) { /* */ }
       }
     }).catch(function(){});
   }
 
-  checkMessages();
-  setInterval(checkMessages, 45000);
+  ensureUi();
+  refresh(false);
+  setInterval(function(){ refresh(false); }, 30000);
+
+  window.HCINotifCenter = {
+    refresh: function(quiet){ refresh(true, { quiet: !!quiet }); },
+    pushLocal: pushLocal
+  };
 })();
 
 // خريطة الرحلة في الملف الشخصي
@@ -1595,6 +1904,13 @@ if (settingsSaveAll){
       var chip = document.querySelector('.nav-user-name');
       if (chip) chip.textContent = first + ' ' + last;
       settingsSaveAll.textContent = 'تم الحفظ ✓';
+      if (window.HCINotifCenter){
+        HCINotifCenter.pushLocal(
+          'تم حفظ التعديلات',
+          'حُفظت بياناتك وتفضيلات العرض بنجاح.',
+          'settings.html'
+        );
+      }
       setTimeout(function(){ settingsSaveAll.textContent = 'حفظ التغييرات'; }, 1600);
     } catch (err) {
       if (settingsSaveNote) settingsSaveNote.textContent = err.message || 'تعذر حفظ التغييرات';
@@ -1982,6 +2298,22 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
       document.getElementById('reportMessage').value = '';
       clearMedia();
       submitBtn.textContent = 'تم الإرسال';
+      if (window.HCINotifCenter){
+        HCINotifCenter.pushLocal(
+          'تم إرسال بلاغك',
+          'استلمنا البلاغ وسنراجعه. إذا تم الإصلاح سيظهر تنبيه هنا.',
+          'profile.html#inbox'
+        );
+        setTimeout(function(){ HCINotifCenter.refresh(true); }, 800);
+      } else {
+        var guestToast = document.createElement('div');
+        guestToast.id = 'adminMsgToast';
+        guestToast.className = 'admin-msg-toast';
+        guestToast.innerHTML = '<strong>تنبيه</strong><span>تم إرسال بلاغك بنجاح</span><button type="button" class="toast-close" aria-label="إغلاق">×</button>';
+        document.body.appendChild(guestToast);
+        guestToast.querySelector('.toast-close').addEventListener('click', function(){ guestToast.remove(); });
+        setTimeout(function(){ if (guestToast.parentNode) guestToast.remove(); }, 8000);
+      }
       setTimeout(function(){
         submitBtn.disabled = false;
         submitBtn.textContent = 'إرسال البلاغ';

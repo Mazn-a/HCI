@@ -520,6 +520,38 @@ app.post('/api/messages/:id/read', authRequired, (req, res) => {
   res.json({ ok: true, unreadCount: db.countUnreadForUser(req.user.id) });
 });
 
+/* ---------- تنبيهات المستخدم ---------- */
+app.get('/api/notifications', authRequired, (req, res) => {
+  const rows = db.getNotificationsForUser(req.user.id);
+  res.json({
+    unreadCount: db.countUnreadNotifications(req.user.id),
+    notifications: rows.map((n) => ({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      body: n.body,
+      link: n.link || '',
+      refId: n.ref_id,
+      read: !!n.read,
+      createdAt: n.created_at
+    }))
+  });
+});
+
+app.post('/api/notifications/:id/read', authRequired, (req, res) => {
+  const n = db.markNotificationRead(req.params.id, req.user.id);
+  if (!n) return res.status(404).json({ error: 'التنبيه غير موجود' });
+  res.json({
+    ok: true,
+    unreadCount: db.countUnreadNotifications(req.user.id)
+  });
+});
+
+app.post('/api/notifications/read-all', authRequired, (req, res) => {
+  db.markAllNotificationsRead(req.user.id);
+  res.json({ ok: true, unreadCount: 0 });
+});
+
 /* ---------- لوحة الإدارة ---------- */
 app.get('/api/admin/stats', adminRequired, (req, res) => {
   res.json({
@@ -574,6 +606,17 @@ app.post('/api/reports', (req, res) => {
         mediaName
       });
 
+      if (userId) {
+        db.createNotification({
+          userId,
+          type: 'report_sent',
+          title: 'تم استلام بلاغك',
+          body: 'وصلنا بلاغك وسنراجعه قريباً.' + (message.length > 80 ? '' : ' — «' + message.slice(0, 80) + '»'),
+          link: 'profile.html#inbox',
+          refId: report.id
+        });
+      }
+
       res.status(201).json({ ok: true, id: report.id });
     } catch (e) {
       console.error(e);
@@ -606,6 +649,16 @@ app.get('/api/admin/reports', adminRequired, (req, res) => {
 app.patch('/api/admin/reports/:id/done', adminRequired, (req, res) => {
   const r = db.markReportDone(req.params.id);
   if (!r) return res.status(404).json({ error: 'البلاغ غير موجود' });
+  if (r.user_id) {
+    db.createNotification({
+      userId: r.user_id,
+      type: 'report_done',
+      title: 'تم إصلاح بلاغك',
+      body: 'بلاغك رقم #' + r.id + ' تم التعامل معه وإصلاحه. شكراً لمساعدتك في تحسين المنصة.',
+      link: 'profile.html#inbox',
+      refId: r.id
+    });
+  }
   res.json({ ok: true });
 });
 
@@ -727,6 +780,15 @@ app.post('/api/admin/message', adminRequired, (req, res) => {
     userId,
     subject,
     body
+  });
+
+  db.createNotification({
+    userId,
+    type: 'admin_message',
+    title: subject,
+    body: body.length > 160 ? body.slice(0, 160) + '…' : body,
+    link: 'profile.html#inbox',
+    refId: msg.id
   });
 
   res.status(201).json({ id: msg.id, ok: true });

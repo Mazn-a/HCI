@@ -214,7 +214,12 @@
           '<strong class="msg-subject-text">' + escapeHtml(m.subject) + '</strong>' +
           '<span style="color:var(--text-mid);font-size:0.78rem;">' + formatDate(m.createdAt) +
           (m.updatedAt ? ' · عُدّلت ' + formatDate(m.updatedAt) : '') +
-          (m.read ? ' · مقروءة' : ' · لم تُقرأ') + '</span>' +
+          '</span>' +
+          '<span style="font-size:0.78rem;font-weight:700;padding:3px 8px;border-radius:999px;' +
+            (m.read
+              ? 'background:rgba(110,207,132,0.15);color:var(--line-cyan);'
+              : 'background:rgba(201,162,75,0.15);color:var(--gold);') +
+          '">' + (m.read ? 'تمت القراءة' : 'لم تُقرأ بعد') + '</span>' +
         '</div>' +
         '<p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:6px;">إلى: ' +
           (m.user ? escapeHtml(m.user.name) : '—') +

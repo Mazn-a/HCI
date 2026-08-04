@@ -27,10 +27,12 @@ function defaultDb() {
     progress: [],
     messages: [],
     reports: [],
+    notifications: [],
     otps: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
+    nextNotificationId: 1,
     nextOtpId: 1
   };
 }
@@ -58,6 +60,8 @@ function migrate(cache) {
   var changed = false;
   if (!cache.reports) { cache.reports = []; changed = true; }
   if (!cache.nextReportId) { cache.nextReportId = 1; changed = true; }
+  if (!cache.notifications) { cache.notifications = []; changed = true; }
+  if (!cache.nextNotificationId) { cache.nextNotificationId = 1; changed = true; }
   if (!cache.otps) { cache.otps = []; changed = true; }
   if (!cache.nextOtpId) { cache.nextOtpId = 1; changed = true; }
   cache.users.forEach(function (u) {
@@ -364,9 +368,69 @@ const db = {
     const r = cache.reports.find((x) => x.id === Number(id));
     if (r) {
       r.status = 'done';
+      r.done_at = new Date().toISOString();
       persist();
     }
     return r;
+  },
+
+  createNotification({ userId, type, title, body, link, refId }) {
+    if (!userId) return null;
+    const n = {
+      id: cache.nextNotificationId++,
+      user_id: Number(userId),
+      type: type || 'system',
+      title: title || '',
+      body: body || '',
+      link: link || '',
+      ref_id: refId != null ? Number(refId) : null,
+      read: 0,
+      created_at: new Date().toISOString()
+    };
+    cache.notifications.push(n);
+    persist();
+    return n;
+  },
+
+  getNotificationsForUser(userId) {
+    return cache.notifications
+      .filter((n) => n.user_id === Number(userId))
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+      .slice(0, 80);
+  },
+
+  countUnreadNotifications(userId) {
+    return cache.notifications.filter(
+      (n) => n.user_id === Number(userId) && !n.read
+    ).length;
+  },
+
+  markNotificationRead(id, userId) {
+    const n = cache.notifications.find(
+      (x) => x.id === Number(id) && x.user_id === Number(userId)
+    );
+    if (!n) return null;
+    n.read = 1;
+    n.read_at = new Date().toISOString();
+    if (n.type === 'admin_message' && n.ref_id) {
+      this.markMessageRead(n.ref_id, userId);
+    }
+    persist();
+    return n;
+  },
+
+  markAllNotificationsRead(userId) {
+    const uid = Number(userId);
+    cache.notifications.forEach((n) => {
+      if (n.user_id === uid && !n.read) {
+        n.read = 1;
+        n.read_at = new Date().toISOString();
+        if (n.type === 'admin_message' && n.ref_id) {
+          this.markMessageRead(n.ref_id, uid);
+        }
+      }
+    });
+    persist();
   },
 
   countStudents() {

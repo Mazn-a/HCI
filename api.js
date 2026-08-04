@@ -196,6 +196,22 @@
     return request('/api/messages');
   }
 
+  async function fetchNotifications() {
+    return request('/api/notifications');
+  }
+
+  async function markNotificationRead(id) {
+    return request('/api/notifications/' + id + '/read', { method: 'POST' });
+  }
+
+  async function markAllNotificationsRead() {
+    return request('/api/notifications/read-all', { method: 'POST' });
+  }
+
+  async function markMessageRead(id) {
+    return request('/api/messages/' + id + '/read', { method: 'POST' });
+  }
+
   // جمع التقدم من localStorage لإرساله للسيرفر
   function collectLocalProgress() {
     function parse(key) {
@@ -414,6 +430,10 @@
     saveProgress: saveProgress,
     fetchMessages: fetchMessages,
     fetchUnreadCount: fetchUnreadCount,
+    fetchNotifications: fetchNotifications,
+    markNotificationRead: markNotificationRead,
+    markAllNotificationsRead: markAllNotificationsRead,
+    markMessageRead: markMessageRead,
     updateProfile: updateProfile,
     collectLocalProgress: collectLocalProgress,
     applyProgress: applyProgress,

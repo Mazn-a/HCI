@@ -728,16 +728,9 @@ a.wordmark{
   border-color: var(--gold);
   transform: translateY(-1px);
 }
-.nav-admin-link{
-  color: var(--gold) !important;
-  font-weight: 700 !important;
-}
 .nav-dropdown-admin{
   color: var(--gold) !important;
   font-weight: 700 !important;
-}
-.admin-fab{
-  display: none;
 }
 
 .nav-user-wrap{
@@ -3780,32 +3773,9 @@ body[data-theme="light"] .back-to-top{
   .nav-notif-btn{ width: 2.35rem; height: 2.35rem; }
   .nav-admin-btn{
     min-height: 2.2rem;
-    padding: 0.3rem 0.55rem;
-    font-size: 0.72rem;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
   }
-  .admin-fab{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    z-index: 95;
-    bottom: max(72px, calc(env(safe-area-inset-bottom, 0px) + 56px));
-    left: max(12px, env(safe-area-inset-left, 0px));
-    min-height: 44px;
-    padding: 0 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(201,162,75,0.55);
-    background: rgba(18,18,18,0.92);
-    color: var(--gold);
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-  .admin-fab:active{ transform: scale(0.97); }
   /* الحساب من الأفاتار — بدون ⋮ وبدون برغر */
   .nav-user-menu-btn{ display: none !important; }
   .nav-dropdown{

@@ -587,6 +587,7 @@ if (navCtaSlot && loggedInName){
   var adminLinkHtml = (window.HCIApi && HCIApi.isAdmin())
     ? '<a href="admin.html" class="nav-dropdown-admin">لوحة الإدارة</a>'
     : '';
+  /* ملاحظة: زر الإدارة الذهبي يظهر مرة واحدة بجانب الحساب — القائمة احتياطي */
   navCtaSlot.innerHTML =
     '<span class="nav-user-wrap">' +
       '<a href="profile.html" class="nav-user" id="navUserProfileLink" aria-label="الملف الشخصي">' +
@@ -610,37 +611,21 @@ if (navCtaSlot && loggedInName){
   function ensureAdminNavControls(){
     if (!(window.HCIApi && HCIApi.isAdmin())) return;
 
-    /* رابط في شريط الروابط — ظاهر وسهل على الجوال */
-    var navLinks = document.getElementById('navLinks');
-    if (navLinks && !document.getElementById('navAdminLink')){
-      var link = document.createElement('a');
-      link.href = 'admin.html';
-      link.id = 'navAdminLink';
-      link.className = 'nav-admin-link';
-      link.textContent = 'الإدارة';
-      navLinks.appendChild(link);
-    }
+    /* إزالة التكرار القديم إن وُجد */
+    var oldLink = document.getElementById('navAdminLink');
+    if (oldLink) oldLink.remove();
+    var oldFab = document.getElementById('adminFab');
+    if (oldFab) oldFab.remove();
 
-    /* زر ذهبي بجانب الأفاتار */
+    /* زر إدارة واحد فقط — بجانب الحساب */
     if (!document.getElementById('navAdminBtn')){
       var adminBtn = document.createElement('a');
       adminBtn.href = 'admin.html';
       adminBtn.id = 'navAdminBtn';
       adminBtn.className = 'nav-admin-btn';
-      adminBtn.textContent = 'إدارة';
+      adminBtn.textContent = 'الإدارة';
       adminBtn.setAttribute('aria-label', 'لوحة الإدارة');
       navCtaSlot.insertBefore(adminBtn, navCtaSlot.firstChild);
-    }
-
-    /* زر عائم للجوال يرجّع للإدارة بسرعة */
-    if (!document.getElementById('adminFab')){
-      var fab = document.createElement('a');
-      fab.href = 'admin.html';
-      fab.id = 'adminFab';
-      fab.className = 'admin-fab';
-      fab.textContent = 'الإدارة';
-      fab.setAttribute('aria-label', 'العودة للوحة الإدارة');
-      document.body.appendChild(fab);
     }
   }
   ensureAdminNavControls();

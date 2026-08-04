@@ -3521,7 +3521,6 @@ body[data-theme="light"] .back-to-top{
   .lesson{ padding-top: 28px; }
   .lesson-head{ margin-bottom: 36px; }
   footer{ padding: 24px 0 calc(24px + env(safe-area-inset-bottom)); }
-  .footer-inner{ padding-inline-end: 56px; }
   .footer-bottom{ gap: 6px; }
   .report-fields{ grid-template-columns: 1fr; }
   .report-summary{ flex-wrap: wrap; padding: 12px 14px; }

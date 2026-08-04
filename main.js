@@ -42,22 +42,26 @@ var LIGHT_THEME_AVAILABLE = false;
 var LIGHT_ACCENT_MAP = {
   '#C9A24B': '#A9843A',
   '#c9a24b': '#A9843A',
-  '#8FC15C': '#3F3F46',
-  '#8fc15c': '#3F3F46',
+  '#8FC15C': '#1E4A6E',
+  '#8fc15c': '#1E4A6E',
   '#6FD6E0': '#57534E',
   '#6fd6e0': '#57534E',
   '#6B9FE8': '#57534E',
   '#6b9fe8': '#57534E',
-  '#6ECF84': '#3F3F46',
-  '#6ecf84': '#3F3F46',
+  '#6ECF84': '#1E4A6E',
+  '#6ecf84': '#1E4A6E',
   '#B79CE0': '#7C6A9A',
   '#b79ce0': '#7C6A9A',
   '#4A6B78': '#57534E',
-  '#4a6b78': '#57534E'
+  '#4a6b78': '#57534E',
+  '#3F3F46': '#1E4A6E',
+  '#3f3f46': '#1E4A6E'
 };
 
 function resolveAccentForTheme(theme, color){
   if (!color) return theme === 'light' ? '#A9843A' : '#C9A24B';
+  // الفحمي القديم استُبدل بالكحلي
+  if (color === '#3F3F46' || color === '#3f3f46') color = '#1E4A6E';
   if (theme === 'light' && LIGHT_ACCENT_MAP[color]) return LIGHT_ACCENT_MAP[color];
   return color;
 }

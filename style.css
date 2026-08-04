@@ -3594,7 +3594,7 @@ body[data-theme="light"] .back-to-top{
   }
   .hero{ padding: 28px 0 40px; }
   .nav{ padding: 0.55rem 0; }
-  .hero-orbit .o1{ width: 280px; height: 280px; }
+  .hero-orbit .o1{ width: 280px; height: 280px; top: -40px; left: -60px; }
   .hero-orbit .o2, .hero-orbit .o3{ opacity: 0.5; }
   .wordmark{ font-size: clamp(2.6rem, 14vw, 4rem); }
   .hero h1{ font-size: clamp(1.45rem, 6.2vw, 2.1rem); line-height: 1.4; }

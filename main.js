@@ -2236,39 +2236,46 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   section.className = 'report-section';
   section.setAttribute('aria-label', 'بلّغ عن مشكلة');
   section.innerHTML =
-    '<div class="wrap">' +
-      '<details class="report-details">' +
-        '<summary class="report-summary">' +
-          '<span class="report-summary-title">بلّغ عن مشكلة</span>' +
-          '<span class="report-summary-hint">شفت خطأ أو شي مو واضح؟ اضغط هنا</span>' +
-          '<span class="report-summary-chevron" aria-hidden="true">▾</span>' +
-        '</summary>' +
-        '<form class="report-form" id="reportForm">' +
-          '<p class="report-lead">اكتب المشكلة باختصار — تقدر ترفق صورة أو فيديو قصير (حد أقصى ١٠ ثوانٍ).</p>' +
-          '<div class="report-fields">' +
-            '<input type="text" id="reportName" class="settings-input" placeholder="اسمك (اختياري)" autocomplete="name">' +
-            '<input type="text" id="reportContact" class="settings-input" dir="ltr" placeholder="بريد أو جوال (اختياري)">' +
-          '</div>' +
-          '<textarea id="reportMessage" class="report-textarea" required placeholder="صف المشكلة أو الخطأ…" rows="3"></textarea>' +
-          '<div class="report-media">' +
-            '<label class="report-media-btn" for="reportMedia">إرفاق صورة أو فيديو</label>' +
-            '<input type="file" id="reportMedia" accept="image/*,video/mp4,video/webm,video/quicktime" hidden>' +
-            '<span class="report-media-name" id="reportMediaName">اختياري · الفيديو ≤ ١٠ ثوانٍ</span>' +
-            '<button type="button" class="report-media-clear" id="reportMediaClear" hidden>إزالة</button>' +
-          '</div>' +
-          '<div class="report-media-preview" id="reportMediaPreview" hidden></div>' +
-          '<div class="report-submit-row">' +
-            '<button type="submit" class="btn-primary" id="reportSubmit">إرسال البلاغ</button>' +
-            '<p class="status-msg" id="reportStatus"></p>' +
-          '</div>' +
-        '</form>' +
-      '</details>' +
-    '</div>';
+    '<details class="report-details">' +
+      '<summary class="report-summary">' +
+        '<span class="report-summary-title">بلّغ عن مشكلة</span>' +
+        '<span class="report-summary-hint">شفت خطأ أو شي مو واضح؟</span>' +
+        '<span class="report-summary-chevron" aria-hidden="true">▾</span>' +
+      '</summary>' +
+      '<form class="report-form" id="reportForm">' +
+        '<p class="report-lead">اكتب المشكلة باختصار — تقدر ترفق صورة أو فيديو قصير (حد أقصى ١٠ ثوانٍ).</p>' +
+        '<div class="report-fields">' +
+          '<input type="text" id="reportName" class="settings-input" placeholder="اسمك (اختياري)" autocomplete="name">' +
+          '<input type="text" id="reportContact" class="settings-input" dir="ltr" placeholder="بريد أو جوال (اختياري)">' +
+        '</div>' +
+        '<textarea id="reportMessage" class="report-textarea" required placeholder="صف المشكلة أو الخطأ…" rows="3"></textarea>' +
+        '<div class="report-media">' +
+          '<label class="report-media-btn" for="reportMedia">إرفاق صورة أو فيديو</label>' +
+          '<input type="file" id="reportMedia" accept="image/*,video/mp4,video/webm,video/quicktime" hidden>' +
+          '<span class="report-media-name" id="reportMediaName">اختياري · الفيديو ≤ ١٠ ثوانٍ</span>' +
+          '<button type="button" class="report-media-clear" id="reportMediaClear" hidden>إزالة</button>' +
+        '</div>' +
+        '<div class="report-media-preview" id="reportMediaPreview" hidden></div>' +
+        '<div class="report-submit-row">' +
+          '<button type="submit" class="btn-primary" id="reportSubmit">إرسال البلاغ</button>' +
+          '<p class="status-msg" id="reportStatus"></p>' +
+        '</div>' +
+      '</form>' +
+    '</details>';
 
-  // دائماً في آخر الصفحة بعد الفوتر، بعرض كامل
   var footer = document.querySelector('footer');
-  if (footer) footer.insertAdjacentElement('afterend', section);
-  else document.body.appendChild(section);
+  var footerInner = footer && footer.querySelector('.footer-inner');
+  var footerBottom = footerInner && footerInner.querySelector('.footer-bottom');
+  if (footerInner && footerBottom){
+    var slot = document.createElement('div');
+    slot.className = 'footer-report-slot';
+    slot.appendChild(section);
+    footerInner.insertBefore(slot, footerBottom);
+  } else if (footer){
+    footer.appendChild(section);
+  } else {
+    document.body.appendChild(section);
+  }
 
   var form = document.getElementById('reportForm');
   var status = document.getElementById('reportStatus');

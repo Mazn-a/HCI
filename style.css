@@ -1285,7 +1285,8 @@ body.nav-open{ overflow: hidden; }
 .station.s3,
 .station.s4,
 .station.s5,
-.station.s6{ --line-color: var(--gold); }
+.station.s6,
+.station.s7{ --line-color: var(--gold); }
 
 /* دليل المسار — أين أنت وما الخطوة التالية */
 .path-guide{

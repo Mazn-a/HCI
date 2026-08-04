@@ -1929,24 +1929,69 @@ body.nav-open{ overflow: hidden; }
 /* ====== المعجم ====== */
 
 .glossary-search{
-  width:100%; background: var(--ink-2); border: 1px solid var(--ink-3);
-  border-radius: 10px; padding: 14px 18px; color: var(--text-hi);
+  width:100%; background: var(--card-bg-panel); border: 1px solid var(--card-border);
+  border-radius: var(--card-radius); padding: 14px 18px; color: var(--text-hi);
   font-family: var(--font-body); font-size: 1rem; outline:none; margin-bottom: 8px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .glossary-search:focus{ border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,75,0.15); }
-.glossary-count{ color: var(--text-mid); font-size: 0.82rem; margin-bottom: 24px; display:block; }
-.glossary-list{ display:flex; flex-direction:column; }
-.glossary-item{
-  padding: 18px 4px; border-bottom: 1px solid var(--ink-3);
-  animation: fadeUp 0.4s var(--ease-out) both;
+.glossary-count{ color: var(--text-mid); font-size: 0.82rem; margin-bottom: 20px; display:block; }
+.glossary-list{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--block-gap, 14px);
 }
-.glossary-item:last-child{ border-bottom:none; }
-.glossary-item .term-row{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
-.glossary-item .term-ar{ font-size: 1.05rem; font-weight:700; color: var(--text-hi); }
-.glossary-item .term-en{ font-family: var(--font-mono); font-size: 0.78rem; color: var(--gold); }
-.glossary-item .term-def{ color: var(--text-mid); font-size: 0.9rem; }
-.glossary-empty{ color: var(--text-mid); font-size: 0.9rem; padding: 20px 4px; display:none; }
+.glossary-item{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--card-pad);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg-panel);
+  animation: fadeUp 0.4s var(--ease-out) both;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.glossary-item:hover{
+  border-color: var(--card-border-hover);
+  background: rgba(201,162,75,0.06);
+  box-shadow: var(--card-shadow);
+}
+.glossary-item .term-row{
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.glossary-item .term-ar{
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  line-height: 1.35;
+}
+.glossary-item .term-en{
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--gold);
+  line-height: 1.45;
+}
+.glossary-item .term-def{
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin: 0;
+}
+.glossary-empty{
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  padding: 20px 4px;
+  display: none;
+}
+
+@media (min-width: 720px){
+  .glossary-list{ grid-template-columns: 1fr 1fr; }
+}
 
 /* ====== Quiz — نفس أسلوب مربعات المراجعة ====== */
 

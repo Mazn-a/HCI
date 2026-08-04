@@ -3377,6 +3377,57 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   }
 })();
 
+/* ====== نبذة عني — نافذة من زر التذييل ====== */
+(function initAboutModal(){
+  if (document.getElementById('aboutModal')) return;
+  var triggers = document.querySelectorAll('[data-about-open]');
+  if (!triggers.length) return;
+
+  var aboutHtml =
+    '<p class="about-modal-lead">المنصة من إعداد <strong>مازن عطية الذبياني</strong>.</p>' +
+    '<p>طالب في <strong>جامعة أم القرى</strong>، يدرس تخصص <strong>تفاعل الإنسان والحاسوب (HCI)</strong>.</p>' +
+    '<p>يسعى لنشر التخصص ومفاهيمه بالعربية، وترتيب مسار تعلّم واضح للطلاب، مع الاستمرار في تطوير المنصة وتحسين التجربة خطوة بخطوة.</p>';
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'aboutModal';
+  backdrop.className = 'site-modal-backdrop';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-labelledby', 'aboutModalTitle');
+  backdrop.hidden = true;
+  backdrop.innerHTML =
+    '<div class="site-modal about-modal">' +
+      '<div class="site-modal-head">' +
+        '<h3 id="aboutModalTitle">نبذة عني</h3>' +
+        '<button type="button" class="site-modal-close" id="aboutModalClose" aria-label="إغلاق">×</button>' +
+      '</div>' +
+      '<div class="about-modal-body">' + aboutHtml + '</div>' +
+    '</div>';
+  document.body.appendChild(backdrop);
+
+  function openAbout(){
+    backdrop.hidden = false;
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeAbout(){
+    backdrop.classList.remove('open');
+    backdrop.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  triggers.forEach(function(btn){
+    btn.addEventListener('click', openAbout);
+  });
+  document.getElementById('aboutModalClose').addEventListener('click', closeAbout);
+  backdrop.addEventListener('click', function(e){
+    if (e.target === backdrop) closeAbout();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && backdrop.classList.contains('open')) closeAbout();
+  });
+})();
+
 /* ====== أقسام القراءة: نفس المحتوى للجوال واللابتوب (عرض كامل) ====== */
 (function initReadSteps(){
   document.querySelectorAll('[data-read-steps]').forEach(function(root){

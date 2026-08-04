@@ -4000,6 +4000,21 @@ footer{
   font-size: 0.9rem;
   line-height: 1.55;
 }
+.about-modal-body{
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
+.about-modal-body p{ margin: 0 0 12px; }
+.about-modal-body p:last-child{ margin-bottom: 0; }
+.about-modal-lead{ margin: 0 0 12px; color: var(--text-hi); }
+.about-modal-body strong{ color: var(--text-hi); font-weight: 600; }
+.footer-meta-links .footer-text-link{
+  color: var(--text-mid);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.footer-meta-links .footer-text-link:hover{ color: var(--gold); }
 .site-modal-label{
   display: block;
   font-size: 0.84rem;

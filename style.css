@@ -3756,18 +3756,16 @@ footer{
   direction: ltr;
 }
 .footer-bottom strong{
-  color: var(--text-hi);
-  font-weight: 600;
+  color: inherit;
+  font-weight: inherit;
 }
-
-.footer-cols{ display: contents; }
-.footer-nav{ grid-area: nav; }
-.footer-support{ grid-area: actions; }
-.footer-legal{ grid-area: legal; }
-
-/* لابتوب: شريط سفلي كلاسيكي — الإعداد | الحقوق (بدون تكرار القانوني) */
-.footer-meta-links{ display: none; }
-.footer-credit{ color: inherit; }
+.footer-credit{
+  color: var(--text-mid);
+}
+.footer-credit strong{
+  color: inherit;
+  font-weight: inherit;
+}
 
 /* ===== جوال: تخطيط مضغوط مختلف، بنفس الهوية ===== */
 @media (max-width: 860px){

@@ -2614,11 +2614,11 @@ if (settingsSwatchRow){
   var swatchButtons = settingsSwatchRow.querySelectorAll('.swatch-btn');
   var customSwatch = document.getElementById('settingsAccentCustomBtn');
   var accentPalette = document.getElementById('settingsAccentPalette');
-  var storedAccent = localStorage.getItem('hci_accent_color') || '#C9A24B';
+  var storedAccent = localStorage.getItem('hci_accent_color') || DEFAULT_ACCENT_COLOR;
   var activeThemeId = getAccentThemeId(storedAccent);
 
   function syncAccentSwatches(){
-    var stored = localStorage.getItem('hci_accent_color') || '#C9A24B';
+    var stored = localStorage.getItem('hci_accent_color') || DEFAULT_ACCENT_COLOR;
     var id = getAccentThemeId(stored);
     swatchButtons.forEach(function(btn){
       btn.classList.toggle('active', getAccentThemeId(btn.getAttribute('data-color')) === id);

@@ -3387,7 +3387,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   }
 })();
 
-/* ====== نبذة عنا — نافذة من زر التذييل ====== */
+/* ====== نبذة عني — نافذة من زر التذييل ====== */
 (function initAboutModal(){
   if (document.getElementById('aboutModal')) return;
   var triggers = document.querySelectorAll('[data-about-open]');
@@ -3408,7 +3408,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   backdrop.innerHTML =
     '<div class="site-modal about-modal">' +
       '<div class="site-modal-head">' +
-        '<h3 id="aboutModalTitle">نبذة عنا</h3>' +
+        '<h3 id="aboutModalTitle">نبذة عني</h3>' +
         '<button type="button" class="site-modal-close" id="aboutModalClose" aria-label="إغلاق">×</button>' +
       '</div>' +
       '<div class="about-modal-body">' + aboutHtml + '</div>' +

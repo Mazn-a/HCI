@@ -2222,12 +2222,7 @@ body.nav-open{ overflow: hidden; }
 }
 .lesson-section > p{ color: var(--text-mid); margin-bottom: 14px; }
 
-.principle-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--block-gap);
-  max-width: 720px;
-}
+.principle-grid{ display:grid; grid-template-columns: 1fr; gap: var(--block-gap); max-width: 720px; }
 .principle-card{
   display: flex;
   flex-direction: column;

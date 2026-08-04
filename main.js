@@ -995,8 +995,18 @@ function isValidEmail(value){
   return /^[a-z0-9](?:[a-z0-9._%+\-]*[a-z0-9])?@[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?)+$/i.test(s);
 }
 
+function toAsciiDigits(value){
+  return String(value || '')
+    .replace(/[\u0660-\u0669]/g, function(ch){ return String(ch.charCodeAt(0) - 0x0660); })
+    .replace(/[\u06F0-\u06F9]/g, function(ch){ return String(ch.charCodeAt(0) - 0x06F0); });
+}
+
+function onlyAsciiDigits(value){
+  return toAsciiDigits(value).replace(/[^0-9]/g, '');
+}
+
 function normalizePhoneLocal(value){
-  var digits = String(value || '').replace(/\D/g, '');
+  var digits = onlyAsciiDigits(value);
   // 9665xxxxxxxx → 05xxxxxxxx
   if (digits.indexOf('966') === 0 && digits.length >= 12) {
     digits = '0' + digits.slice(3);
@@ -1009,8 +1019,100 @@ function normalizePhoneLocal(value){
 }
 
 function isValidPhone(value){
-  // جوال سعودي: 05xxxxxxxx بالضبط
+  // جوال سعودي: 05xxxxxxxx بالضبط — أرقام إنجليزية فقط
   return /^05[0-9]{8}$/.test(normalizePhoneLocal(value));
+}
+
+/** يجبر الحقل على أرقام إنجليزية 0-9 فقط (مع تحويل العربية/الفارسية تلقائياً) */
+function bindAsciiDigitsOnly(input, maxLen){
+  if (!input) return;
+  if (maxLen) input.setAttribute('maxlength', String(maxLen));
+  input.setAttribute('inputmode', 'numeric');
+  input.setAttribute('lang', 'en');
+
+  function applyDigits(){
+    var digits = onlyAsciiDigits(input.value);
+    if (maxLen) digits = digits.slice(0, maxLen);
+    if (input.value !== digits) input.value = digits;
+  }
+
+  input.addEventListener('keydown', function(e){
+    var allow = e.ctrlKey || e.metaKey || e.altKey ||
+      e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' ||
+      e.key === 'Enter' || e.key === 'Escape' ||
+      e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+      e.key === 'Home' || e.key === 'End';
+    if (allow) return;
+    if (e.key.length !== 1) return;
+
+    var ascii = onlyAsciiDigits(e.key);
+    if (!ascii) {
+      e.preventDefault();
+      return;
+    }
+    /* رقم عربي/فارسي → أدخله إنجليزي */
+    if (ascii !== e.key) {
+      e.preventDefault();
+      var start = input.selectionStart || 0;
+      var end = input.selectionEnd || 0;
+      var next = onlyAsciiDigits(input.value.slice(0, start) + ascii + input.value.slice(end));
+      if (maxLen) next = next.slice(0, maxLen);
+      if (maxLen && input.value.length - (end - start) >= maxLen && end === start) return;
+      input.value = next;
+      var pos = Math.min(start + ascii.length, next.length);
+      try { input.setSelectionRange(pos, pos); } catch (err) { /* */ }
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+    if (maxLen) {
+      var selected = (input.selectionEnd || 0) - (input.selectionStart || 0);
+      if (input.value.length - selected >= maxLen) e.preventDefault();
+    }
+  });
+
+  input.addEventListener('beforeinput', function(e){
+    if (!e.data) return;
+    var ascii = onlyAsciiDigits(e.data);
+    if (!ascii) {
+      e.preventDefault();
+      return;
+    }
+    if (ascii === e.data) return;
+    e.preventDefault();
+    var start = input.selectionStart || 0;
+    var end = input.selectionEnd || 0;
+    var next = onlyAsciiDigits(input.value.slice(0, start) + ascii + input.value.slice(end));
+    if (maxLen) next = next.slice(0, maxLen);
+    input.value = next;
+    var pos = Math.min(start + ascii.length, next.length);
+    try { input.setSelectionRange(pos, pos); } catch (err) { /* */ }
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  input.addEventListener('input', applyDigits);
+  input.addEventListener('blur', applyDigits);
+  input.addEventListener('paste', function(e){
+    e.preventDefault();
+    var text = '';
+    try { text = (e.clipboardData || window.clipboardData).getData('text') || ''; } catch (err) { text = ''; }
+    var digits = onlyAsciiDigits(text);
+    if (maxLen) digits = digits.slice(0, maxLen);
+    input.value = digits;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
+/** للحقول المختلطة (بريد أو جوال): يحوّل الأرقام غير الإنجليزية → إنجليزي */
+function bindAsciiDigitsInMixedField(input){
+  if (!input) return;
+  function normalizeMixed(){
+    var raw = toAsciiDigits(input.value);
+    var v = raw.includes('@') ? raw : onlyAsciiDigits(raw);
+    if (input.value !== v) input.value = v;
+  }
+  input.addEventListener('input', normalizeMixed);
+  input.addEventListener('blur', normalizeMixed);
+  input.addEventListener('paste', function(){ setTimeout(normalizeMixed, 0); });
 }
 
 function validateField(input, errorEl, checkFn){
@@ -1115,56 +1217,22 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     });
   }
   if (signupPhone){
-    signupPhone.setAttribute('maxlength', '10');
-    signupPhone.addEventListener('keydown', function(e){
-      // اسمح بمفاتيح التحكم والحذف والتنقل
-      var allow = e.ctrlKey || e.metaKey || e.altKey ||
-        e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' ||
-        e.key === 'Enter' || e.key === 'Escape' ||
-        e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
-        e.key === 'Home' || e.key === 'End';
-      if (allow) return;
-      if (e.key.length === 1 && /\D/.test(e.key)) {
-        e.preventDefault();
-        return;
-      }
-      var selected = (signupPhone.selectionEnd || 0) - (signupPhone.selectionStart || 0);
-      if (e.key.length === 1 && signupPhone.value.length - selected >= 10) {
-        e.preventDefault();
-      }
-    });
+    bindAsciiDigitsOnly(signupPhone, 10);
     signupPhone.addEventListener('input', function(){
-      // أرقام فقط، وبحد أقصى 10 — لا يمكن الزيادة
-      var digits = signupPhone.value.replace(/\D/g, '').slice(0, 10);
-      if (signupPhone.value !== digits) signupPhone.value = digits;
       if (signupPhoneError) signupPhoneError.classList.remove('show');
-    });
-    signupPhone.addEventListener('beforeinput', function(e){
-      if (!e.data) return;
-      if (/\D/.test(e.data)) {
-        e.preventDefault();
-        return;
-      }
-      var selected = (signupPhone.selectionEnd || 0) - (signupPhone.selectionStart || 0);
-      var nextLen = signupPhone.value.length - selected + e.data.length;
-      if (nextLen > 10) e.preventDefault();
     });
     signupPhone.addEventListener('blur', function(){
       var normalized = normalizePhoneLocal(signupPhone.value).slice(0, 10);
       if (normalized) signupPhone.value = normalized;
       if (signupPhone.value) validateField(signupPhone, signupPhoneError, isValidPhone);
     });
-    signupPhone.addEventListener('paste', function(e){
-      e.preventDefault();
-      var text = '';
-      try {
-        text = (e.clipboardData || window.clipboardData).getData('text') || '';
-      } catch (err) { text = ''; }
-      var digits = String(text).replace(/\D/g, '').slice(0, 10);
-      signupPhone.value = digits;
-      if (signupPhoneError) signupPhoneError.classList.remove('show');
-    });
   }
+
+  bindAsciiDigitsInMixedField(loginIdentifier);
+  bindAsciiDigitsInMixedField(document.getElementById('resetIdentifier'));
+  bindAsciiDigitsInMixedField(document.getElementById('verifyIdentifier'));
+  bindAsciiDigitsOnly(document.getElementById('resetCode'), 6);
+  bindAsciiDigitsOnly(document.getElementById('verifyCode'), 6);
 
   formSignup.addEventListener('submit', async function(event){
     event.preventDefault();

@@ -218,8 +218,14 @@ function isValidPhone(v) {
   return /^05[0-9]{8}$/.test(normalizePhone(v));
 }
 
+function toAsciiDigits(v) {
+  return String(v || '')
+    .replace(/[\u0660-\u0669]/g, (ch) => String(ch.charCodeAt(0) - 0x0660))
+    .replace(/[\u06F0-\u06F9]/g, (ch) => String(ch.charCodeAt(0) - 0x06F0));
+}
+
 function normalizePhone(v) {
-  let digits = String(v || '').replace(/\D/g, '');
+  let digits = toAsciiDigits(v).replace(/[^0-9]/g, '');
   if (digits.startsWith('966') && digits.length >= 12) {
     digits = '0' + digits.slice(3);
   }

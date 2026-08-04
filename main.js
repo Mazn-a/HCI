@@ -588,29 +588,33 @@ if (navCtaSlot && loggedInName){
 
   applyAvatarToEl(document.getElementById('navAvatarChip'), loggedInName);
 
-  /* على الجوال: خيارات الحساب داخل قائمة ☰ بدل تكديس ⋮ + أفاتار */
-  if (navLinks && !navLinks.querySelector('.nav-links-account')){
-    var accountBlock = document.createElement('div');
-    accountBlock.className = 'nav-links-account';
-    accountBlock.setAttribute('aria-label', 'الحساب');
-    accountBlock.innerHTML =
-      '<a href="profile.html">الملف الشخصي</a>' +
-      '<a href="settings.html">الإعدادات</a>' +
-      '<a href="#" id="switchAccountLinkMobile">تبديل الحساب</a>' +
-      '<a href="#" id="logoutLinkMobile" class="nav-dropdown-logout">تسجيل خروج</a>';
-    navLinks.appendChild(accountBlock);
-  }
-
   var navUserMenuBtn = document.getElementById('navUserMenuBtn');
   var navDropdown = document.getElementById('navDropdown');
-  navUserMenuBtn.addEventListener('click', function(e){
-    e.stopPropagation();
+  var navUserProfileLink = document.getElementById('navUserProfileLink');
+
+  function toggleAccountMenu(e){
+    if (e) e.preventDefault();
+    if (e) e.stopPropagation();
     setNavOpen(false);
     var isOpen = navDropdown.classList.toggle('open');
-    navUserMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-  });
+    if (navUserMenuBtn) navUserMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+
+  if (navUserMenuBtn){
+    navUserMenuBtn.addEventListener('click', toggleAccountMenu);
+  }
+  /* على الجوال: الأفاتار يفتح قائمة الحساب بدل البرغر/⋮ */
+  if (navUserProfileLink){
+    navUserProfileLink.addEventListener('click', function(e){
+      if (window.matchMedia('(max-width: 860px)').matches){
+        toggleAccountMenu(e);
+      }
+    });
+  }
   document.addEventListener('click', function(event){
-    if (!navUserMenuBtn.contains(event.target) && !navDropdown.contains(event.target)){
+    if (!navDropdown) return;
+    var wrap = document.querySelector('.nav-user-wrap');
+    if (wrap && !wrap.contains(event.target)){
       closeAccountMenu();
     }
   });
@@ -629,10 +633,6 @@ if (navCtaSlot && loggedInName){
   if (logoutLink) logoutLink.addEventListener('click', doLogout);
   var switchAccountLink = document.getElementById('switchAccountLink');
   if (switchAccountLink) switchAccountLink.addEventListener('click', doSwitchAccount);
-  var logoutLinkMobile = document.getElementById('logoutLinkMobile');
-  if (logoutLinkMobile) logoutLinkMobile.addEventListener('click', doLogout);
-  var switchAccountLinkMobile = document.getElementById('switchAccountLinkMobile');
-  if (switchAccountLinkMobile) switchAccountLinkMobile.addEventListener('click', doSwitchAccount);
 }
 
 if (heroCta && loggedInName){

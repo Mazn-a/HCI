@@ -312,9 +312,37 @@ body[data-theme="light"] .spot-option.is-correct{
   border-color: var(--line-green);
   background: rgba(74,107,120,0.08);
 }
+html[data-theme="light"] .quiz,
+body[data-theme="light"] .quiz{
+  background:
+    linear-gradient(145deg, rgba(201,162,75,0.1), transparent 55%),
+    #F4F4F5;
+  border-color: rgba(201,162,75,0.3);
+}
+html[data-theme="light"] .quiz-options label,
+body[data-theme="light"] .quiz-options label{
+  background: #FFFFFF;
+  border-color: #E4E4E7;
+  color: #52525B;
+}
+html[data-theme="light"] .quiz-options label:hover,
+body[data-theme="light"] .quiz-options label:hover,
+html[data-theme="light"] .quiz-options label:has(input:checked),
+body[data-theme="light"] .quiz-options label:has(input:checked),
+html[data-theme="light"] .quiz-options label.selected,
+body[data-theme="light"] .quiz-options label.selected{
+  background: rgba(201,162,75,0.08);
+  border-color: rgba(201,162,75,0.4);
+  color: #18181B;
+}
+html[data-theme="light"] .quiz-options label::before,
+body[data-theme="light"] .quiz-options label::before{
+  background: #FFFFFF;
+  border-color: #A1A1AA;
+}
 html[data-theme="light"] .quiz-q.correct .quiz-options label.selected,
 body[data-theme="light"] .quiz-q.correct .quiz-options label.selected{
-  border-color: var(--line-green);
+  border-color: rgba(74,107,120,0.45);
   background: rgba(74,107,120,0.08);
 }
 html[data-theme="light"] .quiz-q.correct .quiz-feedback,
@@ -1767,14 +1795,66 @@ body.nav-open{ overflow: hidden; }
 
 .spot-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
 .spot-option{
-  border:2px solid var(--ink-3); border-radius:10px; padding:18px;
-  background: var(--ink); cursor:pointer; text-align:right;
-  transition: border-color 0.2s, background 0.2s, transform 0.2s;
-  font-size:0.9rem; color: var(--text-hi);
+  position: relative;
+  border: 1px solid var(--ink-3);
+  border-radius: 12px;
+  padding: 14px 14px 14px 14px;
+  padding-inline-start: 52px;
+  background: rgba(0,0,0,0.22);
+  cursor: pointer;
+  text-align: start;
+  transition: border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+  font-size: 0.92rem;
+  color: var(--text-mid);
+  line-height: 1.6;
 }
-.spot-option:hover{ border-color: var(--gold); transform: scale(1.01); }
-.spot-option.is-correct{ border-color: var(--line-green); background: rgba(111,214,224,0.1); }
-.spot-option.is-wrong{ border-color: var(--error); background: rgba(224,101,79,0.08); }
+.spot-option::before{
+  content: "";
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 14px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(157,180,198,0.55);
+  background: rgba(0,0,0,0.35);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.spot-option:hover{
+  border-color: rgba(201,162,75,0.45);
+  background: rgba(201,162,75,0.06);
+  color: var(--text-hi);
+  transform: none;
+}
+.spot-option:hover::before{ border-color: var(--gold); }
+.spot-option.is-correct{
+  border-color: rgba(111,214,224,0.55);
+  background: rgba(111,214,224,0.1);
+  color: var(--text-hi);
+}
+.spot-option.is-correct::before{
+  border-color: var(--line-green);
+  background: var(--line-green);
+  box-shadow: 0 0 0 3px rgba(111,214,224,0.22);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.2l2.8 2.8 6.2-6.2' stroke='%23111111' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 13px;
+}
+.spot-option.is-wrong{
+  border-color: rgba(224,101,79,0.55);
+  background: rgba(224,101,79,0.1);
+  color: var(--text-hi);
+}
+.spot-option.is-wrong::before{
+  border-color: var(--error);
+  background: var(--error);
+  box-shadow: 0 0 0 3px rgba(224,101,79,0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 4l8 8M12 4L4 12' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px;
+}
 .spot-feedback{
   margin-top:14px; font-size:0.9rem; font-weight:600; min-height:1.4em;
   transition: opacity 0.3s;
@@ -1806,27 +1886,125 @@ body.nav-open{ overflow: hidden; }
 .glossary-item .term-def{ color: var(--text-mid); font-size: 0.9rem; }
 .glossary-empty{ color: var(--text-mid); font-size: 0.9rem; padding: 20px 4px; display:none; }
 
-/* ====== Quiz ====== */
+/* ====== Quiz — نفس أسلوب مربعات المراجعة ====== */
 
-.quiz{ border:1px solid var(--ink-3); border-radius: 12px; padding: 26px; background: var(--ink-2); }
+.quiz{
+  border: 1px solid rgba(201,162,75,0.28);
+  border-radius: 16px;
+  padding: clamp(20px, 3vw, 28px);
+  background:
+    linear-gradient(145deg, rgba(201,162,75,0.08), transparent 55%),
+    var(--ink-2);
+}
 .quiz-q{ margin-bottom: 26px; }
-.quiz-q p{ font-weight:600; margin-bottom: 12px; }
+.quiz-q:last-of-type{ margin-bottom: 18px; }
+.quiz-q p{ font-weight:700; margin-bottom: 12px; line-height: 1.5; color: var(--text-hi); }
 .quiz-options{ display:flex; flex-direction:column; gap:8px; }
 .quiz-options label{
-  display:flex; align-items:center; gap:10px; padding:10px 14px;
-  border:1px solid var(--ink-3); border-radius:8px; font-size:0.9rem;
-  color: var(--text-hi); cursor:pointer; transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--ink-3);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  cursor: pointer;
+  line-height: 1.6;
+  background: rgba(0,0,0,0.22);
+  transition: border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+  user-select: none;
 }
-.quiz-options label:hover{ border-color: var(--gold); }
-.quiz-options input[type="radio"]{ accent-color: var(--gold); flex-shrink:0; }
-.quiz-q.correct .quiz-options label.selected{ border-color: var(--line-green); background: rgba(111,214,224,0.08); }
-.quiz-q.wrong .quiz-options label.selected{ border-color: var(--error); background: rgba(224,101,79,0.08); }
-.quiz-q .quiz-feedback{ font-size:0.82rem; margin-top:8px; display:none; }
+.quiz-options label:hover{
+  border-color: rgba(201,162,75,0.45);
+  background: rgba(201,162,75,0.06);
+  color: var(--text-hi);
+}
+.quiz-options input[type="radio"]{
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+.quiz-options label::before{
+  content: "";
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(157,180,198,0.55);
+  background: rgba(0,0,0,0.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.quiz-options label:hover::before{
+  border-color: var(--gold);
+  transform: scale(1.04);
+}
+.quiz-options label:has(input:checked),
+.quiz-options label.selected{
+  border-color: rgba(201,162,75,0.55);
+  background: rgba(201,162,75,0.1);
+  color: var(--text-hi);
+  box-shadow: inset 0 0 0 1px rgba(201,162,75,0.12);
+}
+.quiz-options label:has(input:checked)::before,
+.quiz-options label.selected::before{
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,162,75,0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.2l2.8 2.8 6.2-6.2' stroke='%23111111' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 13px;
+  animation: checkPop 0.28s var(--ease-spring);
+}
+.quiz-options label:focus-within{
+  outline: 2px solid rgba(201,162,75,0.55);
+  outline-offset: 2px;
+}
+.quiz-q.correct .quiz-options label.selected{
+  border-color: rgba(111,214,224,0.55);
+  background: rgba(111,214,224,0.1);
+}
+.quiz-q.correct .quiz-options label.selected::before{
+  border-color: var(--line-green);
+  background: var(--line-green);
+  box-shadow: 0 0 0 3px rgba(111,214,224,0.22);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.2l2.8 2.8 6.2-6.2' stroke='%23111111' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 13px;
+}
+.quiz-q.wrong .quiz-options label.selected{
+  border-color: rgba(224,101,79,0.55);
+  background: rgba(224,101,79,0.1);
+}
+.quiz-q.wrong .quiz-options label.selected::before{
+  border-color: var(--error);
+  background: var(--error);
+  box-shadow: 0 0 0 3px rgba(224,101,79,0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 4l8 8M12 4L4 12' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px;
+}
+.quiz-q .quiz-feedback{ font-size:0.86rem; margin-top:10px; display:none; font-weight:600; }
 .quiz-q.correct .quiz-feedback, .quiz-q.wrong .quiz-feedback{ display:block; }
 .quiz-q.correct .quiz-feedback{ color: var(--line-green); }
 .quiz-q.wrong .quiz-feedback{ color: var(--error); }
 .quiz-result{ font-size:1rem; font-weight:700; margin-top:6px; display:none; }
 .quiz-result.show{ display:block; }
+
+@media (max-width: 640px){
+  .quiz{ padding: 16px; }
+  .quiz-options label{ padding: 12px; gap: 12px; font-size: 0.92rem; }
+  .quiz-options label::before{ width: 22px; height: 22px; border-radius: 6px; }
+}
 
 /* ====== Checklist — مربعات اختيار مصقولة ====== */
 

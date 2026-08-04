@@ -433,6 +433,8 @@ html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   font-size: 18px;
+  scroll-padding-top: calc(var(--header-offset) + env(safe-area-inset-top, 0px));
+  overflow-x: clip;
 }
 
 body{
@@ -440,7 +442,7 @@ body{
   color: var(--text-hi);
   font-family: var(--font-body);
   line-height: var(--read-lh);
-  overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -509,9 +511,13 @@ summary:focus-visible, select:focus-visible, textarea:focus-visible{
 /* ====== شريط التنقل ====== */
 
 body > header{
-  position: sticky; top:0; z-index: 50;
-  background: var(--header-bg);
-  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  flex-shrink: 0;
+  /* خلفية صلبة عشان ما يطلع كلام الصفحة من ورا الشريط */
+  background: var(--ink);
+  backdrop-filter: none;
   border-bottom: 1px solid var(--ink-3);
   padding-top: env(safe-area-inset-top);
 }
@@ -3558,9 +3564,9 @@ body[data-theme="light"] .back-to-top{
     --section-y: 56px;
     --section-y-sm: 48px;
     --block-gap: 16px;
-    --header-offset: 64px;
+    --header-offset: 72px;
   }
-  .hero{ padding: 48px 0 40px; }
+  .hero{ padding: 36px 0 40px; }
   .hero-orbit .o1{ width: 280px; height: 280px; }
   .hero-orbit .o2, .hero-orbit .o3{ opacity: 0.5; }
   .wordmark{ font-size: clamp(2.6rem, 14vw, 4rem); }
@@ -3660,7 +3666,7 @@ body[data-theme="light"] .back-to-top{
   .admin-actions{ flex-direction: column; }
   .admin-actions button{ min-height: 40px; width: 100%; }
 
-  .lesson{ padding-top: 28px; }
+  .lesson{ padding-top: 36px; }
   .lesson-head{ margin-bottom: 36px; }
   footer{ padding: 24px 0 calc(24px + env(safe-area-inset-bottom)); }
   .footer-bottom{ gap: 6px; }
@@ -3682,7 +3688,8 @@ body[data-theme="light"] .back-to-top{
   }
   .greeting{ font-size: 0.82rem; min-height: 1.35em; }
   .hero-tag{ font-size: 0.75rem; padding: 5px 10px; max-width: 100%; line-height: 1.5; }
-  .hero{ padding: 40px 0 36px; }
+  .hero{ padding: 32px 0 36px; }
+  .lesson{ padding-top: 36px; }
   .section-pad, .problem, .stations-section{ padding-left: 0; padding-right: 0; }
   .book-card{ flex-direction: column; }
   .name-row{ grid-template-columns: 1fr; }

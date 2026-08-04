@@ -73,11 +73,26 @@ app.use(function maintenanceGate(req, res, next) {
   return res.redirect(302, '/maintenance.html');
 });
 
-/* robots/sitemap دائماً 200 عشان قوقل ما يعتبر الموقع محظور */
+/* robots أثناء الصيانة: قوقل يبقى على صفحة الصيانة فقط */
 app.get('/robots.txt', (_req, res) => {
   res.status(200);
   res.type('text/plain; charset=utf-8');
   res.set('Cache-Control', 'no-store');
+  if (MAINTENANCE_MODE) {
+    res.send(
+      [
+        'User-agent: *',
+        'Disallow: /',
+        'Allow: /maintenance.html',
+        '',
+        'User-agent: Googlebot',
+        'Disallow: /',
+        'Allow: /maintenance.html',
+        ''
+      ].join('\n')
+    );
+    return;
+  }
   res.send(
     [
       'User-agent: *',

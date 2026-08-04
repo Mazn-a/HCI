@@ -148,9 +148,8 @@ function markComplete(stageId, silent){
   var toastMsg = '';
 
   // فتح المرحلة التالية في السلسلة
-  // ملاحظة: الترميز ما ينفتح من إكمال الأساسيات alone — لازم اختبار 3/4
   var next = STAGE_META[stageId] && STAGE_META[stageId].unlocks;
-  if (next && next !== 'coding'){
+  if (next){
     if (!j.unlocked[next] && !j.done[next]){
       j.unlocked[next] = true;
       toastMsg = 'فتحت مرحلة جديدة: ' + STAGE_META[next].title + ' ✨';
@@ -192,26 +191,37 @@ function isUnlocked(stageId){
   // المدير والمتخصص: كل المسارات مفتوحة
   if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) return true;
 
-  // الأولى دائماً مفتوحة
   if (stageId === 'discover') return true;
 
   var j = getJourney();
   if (j.unlocked && j.unlocked[stageId]) return true;
   if (j.done && j.done[stageId]) return true;
 
-  // فتح ضمني: fundamentals بعد زيارة discover أو إكماله
-  if (stageId === 'fundamentals'){
-    return !!(j.visited && j.visited.discover) || !!(j.done && j.done.discover) || !!(j.unlocked && j.unlocked.fundamentals);
+  var idx = JOURNEY_ORDER.indexOf(stageId);
+  if (idx > 0){
+    var prev = JOURNEY_ORDER[idx - 1];
+    // إذا خلّص اللي قبلها أو زارها — المرحلة الحالية مفتوحة
+    if ((j.done && j.done[prev]) || (j.visited && j.visited[prev])) return true;
   }
 
-  // الترميز مفتوح بعد الأساسيات — بدون بوابة قفل مزعجة
-  if (stageId === 'coding'){
+  if (stageId === 'fundamentals'){
+    return !!(j.visited && j.visited.discover) || !!(j.done && j.done.discover);
+  }
+
+  // الترميز وما بعده: بدون بوابة قفل على الصفحات
+  if (stageId === 'coding' || stageId === 'courses' || stageId === 'books'){
     return true;
   }
 
-  // practice بعد fundamentals مفتوح أو مكتمل أو discover مكتمل
   if (stageId === 'practice'){
-    return !!(j.done && j.done.fundamentals) || !!(j.unlocked && j.unlocked.practice) || !!(j.done && j.done.discover);
+    return !!(j.done && j.done.fundamentals) || !!(j.unlocked && j.unlocked.practice) ||
+      !!(j.done && j.done.discover) || !!(j.visited && j.visited.discover) ||
+      !!(j.visited && j.visited.fundamentals);
+  }
+
+  if (stageId === 'contribute'){
+    var doneCount = Object.keys(j.done || {}).filter(function(k){ return j.done[k]; }).length;
+    return doneCount >= 4 || !!(j.unlocked && j.unlocked.contribute);
   }
 
   return false;
@@ -785,42 +795,10 @@ var lockGate = document.getElementById('lockGate');
 var pageStage = document.body.getAttribute('data-page-stage');
 
 function refreshPageLockGate(){
-  if (!pageStage || !lockGate) return;
-  // صفحة الترميز: ما نعرض قفل أبداً
-  if (pageStage === 'coding'){
-    lockGate.hidden = true;
-    var mainCoding = document.getElementById('main');
-    if (mainCoding) mainCoding.hidden = false;
-    return;
-  }
+  // ما نعرض صفحات قفل بعد الآن — المحتوى يظهر دائماً
   var mainContent = document.getElementById('main');
-  var unlocked = isUnlocked(pageStage);
-
-  if (!unlocked){
-    if (mainContent) mainContent.hidden = true;
-    lockGate.hidden = false;
-    var info = getLockInfo(pageStage);
-    var gateP = lockGate.querySelector('p');
-    if (gateP) gateP.textContent = info.reason;
-    var gateHint = lockGate.querySelector('.lock-reason-box');
-    if (!gateHint){
-      gateHint = document.createElement('div');
-      gateHint.className = 'lock-reason-box';
-      gateHint.setAttribute('role', 'alert');
-      var gateH = lockGate.querySelector('h1');
-      if (gateH && gateH.nextSibling) lockGate.insertBefore(gateHint, gateH.nextSibling);
-      else lockGate.appendChild(gateHint);
-    }
-    gateHint.innerHTML = '<strong>السبب:</strong> ' + info.reason;
-    var gateBtn = lockGate.querySelector('a.btn-primary');
-    if (gateBtn){
-      gateBtn.href = info.href;
-      gateBtn.textContent = info.cta;
-    }
-  } else {
-    lockGate.hidden = true;
-    if (mainContent) mainContent.hidden = false;
-  }
+  if (lockGate) lockGate.hidden = true;
+  if (mainContent) mainContent.hidden = false;
 }
 
 if (pageStage){
@@ -886,10 +864,12 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
       if (overallPct) overallPct.textContent = getOverallProgress() + '%';
     }
 
-    // ثانياً: هل المرحلة الهدف مفتوحة؟ (الترميز دائماً مفتوح)
-    if (targetStage && targetStage !== 'discover' && targetStage !== 'coding' && !isUnlocked(targetStage)){
-      e.preventDefault();
-      showStageLock(targetStage);
+    // فتح الهدف صراحة قبل الانتقال
+    if (targetStage){
+      var jGo = getJourney();
+      if (!jGo.unlocked) jGo.unlocked = {};
+      jGo.unlocked[targetStage] = true;
+      saveJourney(jGo);
     }
   });
 });

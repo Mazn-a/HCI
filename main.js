@@ -452,12 +452,20 @@ if (!navBackdrop && document.body){
   document.body.appendChild(navBackdrop);
 }
 
+function closeAccountMenu(){
+  var btn = document.getElementById('navUserMenuBtn');
+  var drop = document.getElementById('navDropdown');
+  if (drop) drop.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
 function setNavOpen(isOpen){
   if (!navLinks || !menuBtn) return;
   navLinks.classList.toggle('is-open', isOpen);
   menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   document.body.classList.toggle('nav-open', isOpen);
   if (navBackdrop) navBackdrop.classList.toggle('is-visible', isOpen);
+  if (isOpen) closeAccountMenu();
 }
 
 if (menuBtn && navLinks){
@@ -465,14 +473,18 @@ if (menuBtn && navLinks){
     e.stopPropagation();
     setNavOpen(!navLinks.classList.contains('is-open'));
   });
-  navLinks.querySelectorAll('a').forEach(function(link){
-    link.addEventListener('click', function(){ setNavOpen(false); });
+  navLinks.addEventListener('click', function(e){
+    var a = e.target && e.target.closest ? e.target.closest('a') : null;
+    if (a && navLinks.contains(a)) setNavOpen(false);
   });
   if (navBackdrop){
     navBackdrop.addEventListener('click', function(){ setNavOpen(false); });
   }
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape') setNavOpen(false);
+    if (e.key === 'Escape'){
+      setNavOpen(false);
+      closeAccountMenu();
+    }
   });
   window.addEventListener('resize', function(){
     if (window.innerWidth > 860) setNavOpen(false);
@@ -573,17 +585,30 @@ if (navCtaSlot && loggedInName){
 
   applyAvatarToEl(document.getElementById('navAvatarChip'), loggedInName);
 
+  /* على الجوال: خيارات الحساب داخل قائمة ☰ بدل تكديس ⋮ + أفاتار */
+  if (navLinks && !navLinks.querySelector('.nav-links-account')){
+    var accountBlock = document.createElement('div');
+    accountBlock.className = 'nav-links-account';
+    accountBlock.setAttribute('aria-label', 'الحساب');
+    accountBlock.innerHTML =
+      '<a href="profile.html">الملف الشخصي</a>' +
+      '<a href="settings.html">الإعدادات</a>' +
+      '<a href="#" id="switchAccountLinkMobile">تبديل الحساب</a>' +
+      '<a href="#" id="logoutLinkMobile" class="nav-dropdown-logout">تسجيل خروج</a>';
+    navLinks.appendChild(accountBlock);
+  }
+
   var navUserMenuBtn = document.getElementById('navUserMenuBtn');
   var navDropdown = document.getElementById('navDropdown');
   navUserMenuBtn.addEventListener('click', function(e){
     e.stopPropagation();
+    setNavOpen(false);
     var isOpen = navDropdown.classList.toggle('open');
     navUserMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   });
   document.addEventListener('click', function(event){
     if (!navUserMenuBtn.contains(event.target) && !navDropdown.contains(event.target)){
-      navDropdown.classList.remove('open');
-      navUserMenuBtn.setAttribute('aria-expanded', 'false');
+      closeAccountMenu();
     }
   });
 
@@ -601,6 +626,10 @@ if (navCtaSlot && loggedInName){
   if (logoutLink) logoutLink.addEventListener('click', doLogout);
   var switchAccountLink = document.getElementById('switchAccountLink');
   if (switchAccountLink) switchAccountLink.addEventListener('click', doSwitchAccount);
+  var logoutLinkMobile = document.getElementById('logoutLinkMobile');
+  if (logoutLinkMobile) logoutLinkMobile.addEventListener('click', doLogout);
+  var switchAccountLinkMobile = document.getElementById('switchAccountLinkMobile');
+  if (switchAccountLinkMobile) switchAccountLinkMobile.addEventListener('click', doSwitchAccount);
 }
 
 if (heroCta && loggedInName){

@@ -803,7 +803,7 @@ a.wordmark{
   border-color: var(--gold); color: var(--gold);
 }
 .nav-backdrop{
-  display:none; position:fixed; inset:0; z-index:48;
+  display:none; position:fixed; inset:0; z-index:850;
   background: var(--backdrop); border:0; padding:0; cursor:pointer;
 }
 .nav-backdrop.is-visible{ display:block; }
@@ -815,12 +815,12 @@ a.wordmark{
   bottom: auto;
   width: 100%;
   max-width: 100vw;
-  background: var(--nav-panel);
+  background: #000;
   padding: 12px clamp(18px, 5vw, 28px) calc(16px + env(safe-area-inset-bottom));
-  gap:4px; border-bottom: 1px solid var(--ink-3); z-index:55;
+  gap:4px; border-bottom: 1px solid var(--ink-3); z-index: 900;
   max-height: min(72dvh, 560px); overflow-y:auto; overflow-x:hidden;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.55);
   transform: none !important;
   animation: dropIn 0.22s var(--ease-out);
 }
@@ -834,6 +834,7 @@ a.wordmark{
 html[data-theme="light"] .nav-links.is-open a:hover,
 html[data-theme="light"] .nav-links.is-open a:active{ background: rgba(0,0,0,0.05); }
 .nav-links.is-open a::after{ display:none; }
+.nav-links-account{ display: none; }
 body.nav-open{ overflow: hidden; }
 @keyframes dropIn{
   from{ opacity:0; transform: translateY(-6px); }
@@ -3526,7 +3527,7 @@ body[data-theme="light"] .back-to-top{
   }
   .nav-brand .logo{ font-size: 1.45rem; letter-spacing: 0.12em; }
   .nav-auth{
-    gap: 0.2rem;
+    gap: 0.35rem;
     order: 2;
     margin-inline-start: auto;
     flex-shrink: 0;
@@ -3535,7 +3536,7 @@ body[data-theme="light"] .back-to-top{
   .nav-user-wrap{
     order: unset;
     margin-inline-start: 0;
-    gap: 0.15rem;
+    gap: 0;
     max-width: none;
     min-height: 2.5rem;
   }
@@ -3547,14 +3548,16 @@ body[data-theme="light"] .back-to-top{
     border-color: transparent;
     min-height: auto;
   }
-  .nav-user .chip-avatar{ width: 2.15rem; height: 2.15rem; font-size: 0.9rem; }
+  .nav-user .chip-avatar{ width: 2.25rem; height: 2.25rem; font-size: 0.9rem; }
   .nav-user-name{ display: none !important; }
   .nav-notif-btn{ width: 2.35rem; height: 2.35rem; }
-  .nav-user-menu-btn{ width: 2.15rem; height: 2.15rem; }
+  /* على الجوال: أخفِ ⋮ والقائمة المنسدلة — الحساب داخل ☰ */
+  .nav-user-menu-btn{ display: none !important; }
+  .nav-dropdown{ display: none !important; }
   .menu-btn{
     display: inline-flex;
     order: 3;
-    margin-inline-start: 0;
+    margin-inline-start: 0.15rem;
   }
   .nav-links{
     display: none !important;
@@ -3569,6 +3572,18 @@ body[data-theme="light"] .back-to-top{
     display: flex !important;
     visibility: visible;
     pointer-events: auto;
+  }
+  .nav-links.is-open .nav-links-account{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--ink-3);
+  }
+  .nav-links.is-open .nav-links-account .nav-dropdown-logout{
+    color: var(--error);
   }
   .nav-login{
     min-height: 2.4rem; padding: 0.45rem 0.65rem; font-size: 0.78rem;

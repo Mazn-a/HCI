@@ -1449,13 +1449,15 @@ body.nav-open{ overflow: hidden; }
   list-style: none;
   cursor: pointer;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
   flex-wrap: wrap;
   padding: 14px 4px;
   user-select: none;
-  text-align: center;
+  text-align: start;
+  direction: rtl;
 }
 .report-summary::-webkit-details-marker{ display: none; }
 .report-summary-title{
@@ -1466,18 +1468,21 @@ body.nav-open{ overflow: hidden; }
   border-bottom: 1px dashed rgba(201,162,75,0.45);
   padding-bottom: 1px;
   transition: color 0.15s;
+  order: 1;
 }
 .report-summary:hover .report-summary-title{ color: var(--gold); }
 .report-summary-hint{
   color: var(--text-mid);
   font-size: 0.84rem;
   opacity: 0.85;
+  order: 3;
 }
 .report-summary-chevron{
   color: var(--text-mid);
   font-size: 0.75rem;
   transition: transform 0.2s ease;
   opacity: 0.7;
+  order: 2;
 }
 .report-details[open] .report-summary-chevron{ transform: rotate(180deg); }
 .report-details[open] .report-summary{
@@ -1494,13 +1499,15 @@ body.nav-open{ overflow: hidden; }
   gap: 12px;
   padding: 8px 0 4px;
   max-width: 520px;
-  margin: 0 auto;
+  margin: 0;
+  direction: rtl;
+  text-align: start;
 }
 .report-lead{
   color: var(--text-mid);
   font-size: 0.88rem;
   margin: 0;
-  text-align: center;
+  text-align: start;
 }
 .report-fields{
   display: grid;
@@ -1524,13 +1531,13 @@ body.nav-open{ overflow: hidden; }
 .report-submit-row{
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 14px;
   flex-wrap: wrap;
 }
-.report-submit-row .status-msg{ margin: 0; text-align: right; }
+.report-submit-row .status-msg{ margin: 0; text-align: start; }
 .report-media{
-  display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;
+  display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap;
 }
 .report-media-btn{
   display:inline-flex; align-items:center;
@@ -2561,11 +2568,14 @@ footer{
 .footer-inner{
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0;
-  text-align: center;
+  text-align: start;
+  direction: rtl;
   max-width: 520px;
-  margin: 0 auto;
+  margin: 0;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
 }
 .footer-top{
   display: contents;
@@ -2573,6 +2583,7 @@ footer{
 .footer-brand{
   max-width: 420px;
   margin-bottom: 4px;
+  text-align: start;
 }
 .footer-logo{
   display: inline-flex;
@@ -2588,8 +2599,9 @@ footer{
   color: var(--text-mid);
   font-size: 0.82rem;
   line-height: 1.55;
-  margin: 0 auto;
-  max-width: 32ch;
+  margin: 0;
+  max-width: 36ch;
+  text-align: start;
 }
 .footer-nav{ display: none !important; }
 .footer-report-slot{
@@ -2601,7 +2613,7 @@ footer{
 .footer-bottom{
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   flex-wrap: wrap;
   width: 100%;
@@ -2610,6 +2622,7 @@ footer{
   border-top: 1px solid var(--ink-3);
   font-size: 0.78rem;
   color: var(--text-mid);
+  text-align: start;
 }
 .footer-bottom strong{
   color: var(--text-hi);
@@ -2619,8 +2632,9 @@ footer{
 .footer-bottom > span + span::before{ content: none; }
 
 .report-summary{
-  padding: 8px 4px;
+  padding: 8px 0;
   gap: 8px;
+  justify-content: flex-start;
 }
 .report-summary-title{
   font-size: 0.84rem;
@@ -2650,7 +2664,8 @@ body[data-theme="light"] footer{
 .back-to-top{
   position: fixed;
   bottom: max(20px, env(safe-area-inset-bottom));
-  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+  left: auto;
   z-index: 60;
   width: 42px;
   height: 42px;
@@ -2866,7 +2881,8 @@ body[data-theme="light"] .back-to-top{
 
   .back-to-top{
     bottom: max(18px, env(safe-area-inset-bottom));
-    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    left: auto;
     width: 42px; height: 42px;
   }
 

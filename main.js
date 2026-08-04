@@ -323,15 +323,7 @@ var savedAccent = localStorage.getItem('hci_accent_color');
   if (document.body) document.body.setAttribute('data-theme', theme);
   try { localStorage.setItem('hci_theme', theme); } catch (e) { /* */ }
 
-  /* الذهبي هو الافتراضي للجوال واللابتوب — ضبط مرة بعد تحديث الثيمات */
-  try {
-    if (!localStorage.getItem('hci_accent_default_gold_v1')) {
-      localStorage.setItem('hci_accent_color', DEFAULT_ACCENT_COLOR);
-      localStorage.setItem('hci_accent_default_gold_v1', '1');
-      savedAccent = DEFAULT_ACCENT_COLOR;
-    }
-  } catch (e) { /* */ }
-
+  /* الذهبي افتراضي فقط إن ما فيه لون محفوظ — اختيار المستخدم يبقى */
   applyAccentColor(savedAccent || DEFAULT_ACCENT_COLOR);
 })();
 

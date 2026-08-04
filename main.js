@@ -509,6 +509,21 @@ if (menuBtn && navLinks){
 // ----- حساب المستخدم -----
 var loggedInName = localStorage.getItem('hci_user_name');
 
+/* للزائر: اخفِ الرئيسية والمسارات — يظهران بعد تسجيل الدخول / إنشاء حساب */
+(function hideGuestNavLinks(){
+  var links = document.getElementById('navLinks');
+  if (!links) return;
+  var isLoggedIn = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  if (isLoggedIn) return;
+  Array.prototype.slice.call(links.querySelectorAll('a')).forEach(function(a){
+    var t = (a.textContent || '').replace(/\s+/g, ' ').trim();
+    if (t === 'الرئيسية' || t === 'المسارات') {
+      a.setAttribute('hidden', '');
+      a.style.display = 'none';
+    }
+  });
+})();
+
 var greetingEl = document.getElementById('greeting');
 if (greetingEl){
   var hour = new Date().getHours();

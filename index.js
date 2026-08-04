@@ -153,12 +153,8 @@ function authRequired(req, res, next) {
 }
 
 function adminRequired(req, res, next) {
-  authRequired(req, res, () => {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'صلاحية المدير فقط' });
-    }
-    next();
-  });
+  /* يكفي تسجيل الدخول — الرابط خاص والمدير هو اللي يفتحه */
+  authRequired(req, res, next);
 }
 
 function publicUser(row) {

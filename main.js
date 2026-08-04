@@ -148,12 +148,15 @@ function markComplete(stageId, silent){
   var toastMsg = '';
 
   // فتح المرحلة التالية في السلسلة
+  // ملاحظة: الترميز ما ينفتح من إكمال الأساسيات alone — لازم اختبار 3/4
   var next = STAGE_META[stageId] && STAGE_META[stageId].unlocks;
-  if (next && !j.unlocked[next] && !j.done[next]){
-    j.unlocked[next] = true;
-    toastMsg = 'فتحت مرحلة جديدة: ' + STAGE_META[next].title + ' ✨';
-  } else if (next){
-    j.unlocked[next] = true;
+  if (next && next !== 'coding'){
+    if (!j.unlocked[next] && !j.done[next]){
+      j.unlocked[next] = true;
+      toastMsg = 'فتحت مرحلة جديدة: ' + STAGE_META[next].title + ' ✨';
+    } else {
+      j.unlocked[next] = true;
+    }
   }
 
   // التمارين تفتح بعد الاكتشاف أو الأساسيات
@@ -186,8 +189,8 @@ function markComplete(stageId, silent){
 }
 
 function isUnlocked(stageId){
-  // المتخصص: أغلب المراحل مفتوحة من البداية
-  if (window.HCIApi && HCIApi.isSpecialist()) return true;
+  // المدير والمتخصص: كل المسارات مفتوحة
+  if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) return true;
 
   // الأولى دائماً مفتوحة
   if (stageId === 'discover') return true;
@@ -201,9 +204,9 @@ function isUnlocked(stageId){
     return !!(j.visited && j.visited.discover) || !!(j.done && j.done.discover) || !!(j.unlocked && j.unlocked.fundamentals);
   }
 
-  // الترميز يُفتح باجتياز الأساسيات (اختبار 3/4)
+  // الترميز يُفتح فقط بعد اجتياز اختبار الأساسيات (علامة unlocked.coding)
   if (stageId === 'coding'){
-    return !!(j.done && j.done.fundamentals) || !!(j.unlocked && j.unlocked.coding);
+    return !!(j.unlocked && j.unlocked.coding);
   }
 
   // practice بعد fundamentals مفتوح أو مكتمل أو discover مكتمل
@@ -252,9 +255,9 @@ var STAGE_LOCK_INFO = {
     cta: 'افتح اكتشف التخصص'
   },
   coding: {
-    reason: 'لفتح مسار الترميز: أجب عن اختبار أساسيات HCI بنتيجة 3 من 4 على الأقل، ثم اضغط «تحقق من إجاباتي».',
+    reason: 'مسار الترميز ينفتح بعد ما تجتاز اختبار أساسيات HCI بنتيجة 3 من 4 على الأقل.',
     href: 'fundamentals.html#quiz',
-    cta: 'اذهب للاختبار'
+    cta: 'العودة لاختبار الأساسيات'
   },
   courses: {
     reason: 'لفتح الدورات أكمل نصف دروس HTML و CSS على الأقل (50% من مسار الترميز).',
@@ -861,6 +864,19 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
     var href = link.getAttribute('href') || '';
     var targetStage = link.getAttribute('data-next-stage') || stageFromHref(href);
 
+    // الترميز: ما ينتقل إلا بعد اجتياز الاختبار — بدون إكمال تلقائي يفتح القفل
+    if (targetStage === 'coding' && !isUnlocked('coding')){
+      e.preventDefault();
+      showLockAlert(
+        'لازم تجتاز اختبار الأساسيات أولاً (3 من 4 صحيحة) عشان ينفتح الترميز.',
+        'fundamentals.html#quiz',
+        'إلى الاختبار'
+      );
+      var quizSec = document.getElementById('quiz');
+      if (quizSec) quizSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     // أولاً: قوائم المراجعة في الصفحة الحالية
     var check = ensureChecklistsComplete();
     if (!check.ok){
@@ -883,6 +899,20 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
     }
   });
 });
+
+function updateCodingNextButton(){
+  var nextCoding = document.querySelector('a[data-next-stage="coding"]');
+  if (!nextCoding) return;
+  var ready = isUnlocked('coding');
+  nextCoding.classList.toggle('is-locked-next', !ready);
+  nextCoding.setAttribute('aria-disabled', ready ? 'false' : 'true');
+  if (!ready){
+    nextCoding.setAttribute('title', 'يتاح بعد اجتياز اختبار الأساسيات (3 من 4)');
+  } else {
+    nextCoding.removeAttribute('title');
+  }
+}
+updateCodingNextButton();
 
 // ----- أنيميشن الظهور عند التمرير -----
 var revealEls = document.querySelectorAll('.reveal, .tl-item');
@@ -2242,14 +2272,9 @@ var quizResult = document.getElementById('quizResult');
 
 if (quizCheckBtn && quizResult){
   quizCheckBtn.addEventListener('click', function(){
-    var check = ensureChecklistsComplete();
-    if (!check.ok){
-      showLockAlert(check.message, null, null);
-      return;
-    }
-
     var questions = document.querySelectorAll('.quiz-q');
     var correctCount = 0;
+    var answeredAll = true;
 
     questions.forEach(function(q){
       var correctValue = q.getAttribute('data-correct');
@@ -2261,6 +2286,7 @@ if (quizCheckBtn && quizResult){
       q.classList.remove('correct', 'wrong');
 
       if (!selected){
+        answeredAll = false;
         feedback.textContent = 'ما اخترت إجابة لهذا السؤال';
         q.classList.add('wrong');
         return;
@@ -2279,24 +2305,33 @@ if (quizCheckBtn && quizResult){
       }
     });
 
+    if (!answeredAll){
+      quizResult.textContent = 'جاوب على كل الأسئلة ثم اضغط تحقق مرة ثانية.';
+      quizResult.classList.add('show');
+      return;
+    }
+
     quizResult.textContent = 'نتيجتك: ' + correctCount + ' من ' + questions.length + ' صحيحة';
     quizResult.classList.add('show');
 
-    // فتح الترميز عند 3/4 أو أكثر
+    // فتح الترميز عند 3/4 أو أكثر فقط
     if (correctCount >= 3){
       markComplete('fundamentals');
       var jUnlock = getJourney();
       if (!jUnlock.unlocked) jUnlock.unlocked = {};
+      if (!jUnlock.done) jUnlock.done = {};
       jUnlock.unlocked.coding = true;
-      jUnlock.done = jUnlock.done || {};
       jUnlock.done.fundamentals = true;
       saveJourney(jUnlock);
-      quizResult.textContent += ' — ممتاز! فُتح مسار الترميز.';
+      quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. تقدر تضغط «التالي» الآن.';
+      updateCodingNextButton();
       if (window.HCIApi && HCIApi.isLoggedIn()){
         HCIApi.syncProgress().catch(function(){});
       }
+      showUnlockToast('فتحت مرحلة جديدة: ترميز HTML & CSS ✨');
     } else {
-      quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح المرحلة التالية';
+      quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
+      updateCodingNextButton();
     }
   });
 }

@@ -240,7 +240,8 @@
       codingStage: localStorage.getItem('hci_coding_stage') || '',
       practice: practice,
       courses: courses,
-      books: books
+      books: books,
+      quiz: parse('hci_quiz')
     };
   }
 
@@ -249,6 +250,7 @@
     if (data.journey) localStorage.setItem('hci_journey', JSON.stringify(data.journey));
     if (data.coding) localStorage.setItem('hci_coding_progress', JSON.stringify(data.coding));
     if (data.codingStage) localStorage.setItem('hci_coding_stage', data.codingStage);
+    if (data.quiz) localStorage.setItem('hci_quiz', JSON.stringify(data.quiz));
 
     if (data.practice) {
       if (data.practice.count) localStorage.setItem('hci_practice_count', String(data.practice.count));
@@ -295,7 +297,8 @@
           codingStage: local.codingStage || remote.codingStage || '',
           practice: Object.assign({}, remote.practice || {}, local.practice || {}),
           courses: Object.assign({}, remote.courses || {}, local.courses || {}),
-          books: Object.assign({}, remote.books || {}, local.books || {})
+          books: Object.assign({}, remote.books || {}, local.books || {}),
+          quiz: Object.assign({}, remote.quiz || {}, local.quiz || {})
         };
         applyProgress(merged);
         await saveProgress(merged);
@@ -346,7 +349,9 @@
   }
 
   /** رسالة ترحيب وسط الشاشة ثم تنفيذ callback */
-  function showWelcomeOverlay(fullName, callback) {
+  function showWelcomeOverlay(fullName, callback, options) {
+    options = options || {};
+    var isAdminUser = !!options.isAdmin;
     var hour = new Date().getHours();
     var greet = 'أهلاً بك';
     if (hour < 12) greet = 'صباح الخير';
@@ -359,9 +364,13 @@
     overlay.setAttribute('role', 'status');
     overlay.innerHTML =
       '<div class="welcome-card">' +
-        '<p class="welcome-greet">' + greet + '</p>' +
+        '<p class="welcome-greet">' + greet + (isAdminUser ? ' أيها المدير' : '') + '</p>' +
         (first ? '<p class="welcome-name">' + first + '</p>' : '') +
-        '<p class="welcome-sub">سعيدون بوجودك في منصة HCI</p>' +
+        '<p class="welcome-sub">' +
+          (isAdminUser
+            ? 'مرحباً بك في لوحة قيادة HCI — الإحصائيات والتقدّم بين يديك'
+            : 'سعيدون بوجودك في منصة HCI') +
+        '</p>' +
       '</div>';
     document.body.appendChild(overlay);
 
@@ -400,7 +409,7 @@
         settled = true;
         resolve(dest);
       }
-      showWelcomeOverlay(user.fullName || user.firstName, done);
+      showWelcomeOverlay(user.fullName || user.firstName, done, { isAdmin: user.role === 'admin' });
       // احتياطي ضد التعليق على الجوال/الشبكة البطيئة
       setTimeout(done, 2500);
     });

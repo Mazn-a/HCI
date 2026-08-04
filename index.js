@@ -153,8 +153,12 @@ function authRequired(req, res, next) {
 }
 
 function adminRequired(req, res, next) {
-  /* يكفي تسجيل الدخول — الرابط خاص والمدير هو اللي يفتحه */
-  authRequired(req, res, next);
+  authRequired(req, res, () => {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'صلاحية المدير فقط' });
+    }
+    next();
+  });
 }
 
 function publicUser(row) {
@@ -477,7 +481,7 @@ app.get('/api/progress', authRequired, (req, res) => {
   if (!row) {
     return res.json({
       journey: {}, coding: {}, codingStage: '',
-      practice: {}, courses: {}, books: {}
+      practice: {}, courses: {}, books: {}, quiz: {}
     });
   }
   res.json({
@@ -487,6 +491,7 @@ app.get('/api/progress', authRequired, (req, res) => {
     practice: JSON.parse(row.practice_json || '{}'),
     courses: JSON.parse(row.courses_json || '{}'),
     books: JSON.parse(row.books_json || '{}'),
+    quiz: JSON.parse(row.quiz_json || '{}'),
     updatedAt: row.updated_at
   });
 });
@@ -499,7 +504,8 @@ app.put('/api/progress', authRequired, (req, res) => {
       coding_stage: String(req.body.codingStage || ''),
       practice_json: JSON.stringify(req.body.practice || {}),
       courses_json: JSON.stringify(req.body.courses || {}),
-      books_json: JSON.stringify(req.body.books || {})
+      books_json: JSON.stringify(req.body.books || {}),
+      quiz_json: JSON.stringify(req.body.quiz || {})
     });
     res.json({ ok: true });
   } catch (err) {
@@ -569,15 +575,91 @@ app.post('/api/notifications/read-all', authRequired, (req, res) => {
   res.json({ ok: true, unreadCount: 0 });
 });
 
+const STAGE_ORDER = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
+const STAGE_LABELS = {
+  discover: 'اكتشف التخصص',
+  fundamentals: 'أساسيات HCI',
+  coding: 'ترميز HTML & CSS',
+  courses: 'دورات متخصصة',
+  books: 'كتب ومراجع',
+  practice: 'تعلّم بالمرح',
+  contribute: 'أفد غيرك'
+};
+
+function journeyStopPoint(journey) {
+  const done = (journey && journey.done) || {};
+  const visited = (journey && journey.visited) || {};
+  for (const id of STAGE_ORDER) {
+    if (!done[id]) {
+      if (visited[id]) return { id, label: STAGE_LABELS[id], status: 'in_progress' };
+      return { id, label: STAGE_LABELS[id], status: 'next' };
+    }
+  }
+  return { id: 'done', label: 'أكمل الرحلة', status: 'completed' };
+}
+
+function parseJsonSafe(raw, fallback) {
+  try { return JSON.parse(raw || '') || fallback; } catch { return fallback; }
+}
+
 /* ---------- لوحة الإدارة ---------- */
 app.get('/api/admin/stats', adminRequired, (req, res) => {
+  const students = db.getUsers().filter((u) => u.role === 'student');
+  const missMap = {};
+  let quizAttempts = 0;
+  let quizPasses = 0;
+
+  students.forEach((u) => {
+    const p = db.getProgress(u.id);
+    const quiz = parseJsonSafe(p && p.quiz_json, {});
+    const fund = quiz.fundamentals;
+    if (!fund) return;
+    quizAttempts += 1;
+    if (fund.passed) quizPasses += 1;
+    (fund.answers || []).forEach((a) => {
+      if (!a || a.ok) return;
+      const key = a.qid || a.id || a.title || 'unknown';
+      if (!missMap[key]) {
+        missMap[key] = { qid: key, title: a.title || key, wrong: 0, total: 0 };
+      }
+      missMap[key].wrong += 1;
+    });
+    (fund.answers || []).forEach((a) => {
+      if (!a) return;
+      const key = a.qid || a.id || a.title || 'unknown';
+      if (!missMap[key]) {
+        missMap[key] = { qid: key, title: a.title || key, wrong: 0, total: 0 };
+      }
+      missMap[key].total += 1;
+    });
+  });
+
+  const mostMissed = Object.values(missMap)
+    .filter((q) => q.wrong > 0)
+    .sort((a, b) => b.wrong - a.wrong)[0] || null;
+
+  const recentLogins = students
+    .filter((u) => u.last_login)
+    .sort((a, b) => (a.last_login < b.last_login ? 1 : -1))
+    .slice(0, 8)
+    .map((u) => ({
+      id: u.id,
+      name: u.first_name + ' ' + u.last_name,
+      lastLogin: u.last_login
+    }));
+
   res.json({
     students: db.countStudents(),
     admins: db.countAdmins(),
     messages: db.countMessages(),
     reports: db.countReports(),
     contacts: db.countContacts(),
-    activeWeek: db.countActiveWeek()
+    activeWeek: db.countActiveWeek(),
+    quizAttempts,
+    quizPasses,
+    mostMissed,
+    recentLogins,
+    generatedAt: new Date().toISOString()
   });
 });
 
@@ -616,17 +698,60 @@ app.get('/api/admin/contacts', adminRequired, (req, res) => {
   res.json({
     contacts: db.getContacts().map((c) => {
       const u = c.user_id ? db.findUserById(c.user_id) : null;
+      let linkedUserId = c.user_id || null;
+      if (!linkedUserId && c.contact) {
+        const match = db.findUserByIdentifier(c.contact);
+        if (match) linkedUserId = match.id;
+      }
       return {
         id: c.id,
         name: c.name || (u ? u.first_name + ' ' + u.last_name : 'زائر'),
         contact: c.contact || (u ? (u.email || u.phone || '') : ''),
         message: c.message,
         status: c.status,
+        reply: c.reply || '',
+        repliedAt: c.replied_at || null,
+        userId: linkedUserId,
+        canNotify: !!linkedUserId,
         createdAt: c.created_at,
         doneAt: c.done_at || null
       };
     })
   });
+});
+
+app.post('/api/admin/contacts/:id/reply', adminRequired, (req, res) => {
+  const reply = String(req.body.reply || '').trim();
+  if (reply.length < 2) {
+    return res.status(400).json({ error: 'اكتب الرد (حرفين على الأقل)' });
+  }
+
+  const existing = db.getContacts().find((c) => c.id === Number(req.params.id));
+  if (!existing) return res.status(404).json({ error: 'الرسالة غير موجودة' });
+
+  let userId = existing.user_id || null;
+  if (!userId && existing.contact) {
+    const match = db.findUserByIdentifier(existing.contact);
+    if (match) userId = match.id;
+  }
+
+  const row = db.replyContact(req.params.id, reply);
+  if (!row) return res.status(404).json({ error: 'الرسالة غير موجودة' });
+
+  let notified = false;
+  if (userId) {
+    db.createNotification({
+      userId,
+      type: 'contact_reply',
+      title: 'رد على رسالتك',
+      body: reply.length > 200 ? reply.slice(0, 200) + '…' : reply,
+      link: 'profile.html#inbox',
+      refId: row.id
+    });
+    notified = true;
+  }
+
+  res.json({ ok: true, notified, reply: row.reply });
 });
 
 app.patch('/api/admin/contacts/:id/done', adminRequired, (req, res) => {
@@ -741,10 +866,12 @@ app.get('/api/admin/users', adminRequired, (req, res) => {
   res.json({
     users: students.map((u) => {
       const p = db.getProgress(u.id);
-      let journey = {};
-      try { journey = JSON.parse((p && p.journey_json) || '{}'); } catch { /* */ }
+      const journey = parseJsonSafe(p && p.journey_json, {});
+      const quiz = parseJsonSafe(p && p.quiz_json, {});
       const done = journey.done || {};
       const doneCount = Object.keys(done).filter((k) => done[k]).length;
+      const stop = journeyStopPoint(journey);
+      const fund = quiz.fundamentals || null;
       return {
         ...publicUser(u),
         notes: u.notes || '',
@@ -756,7 +883,16 @@ app.get('/api/admin/users', adminRequired, (req, res) => {
           : null,
         progressPercent: Math.round((doneCount / 7) * 100),
         doneStages: doneCount,
-        progressUpdated: p ? p.updated_at : null
+        progressUpdated: p ? p.updated_at : null,
+        stopPoint: stop.label,
+        stopStatus: stop.status,
+        stopId: stop.id,
+        quizPassed: fund ? !!fund.passed : null,
+        quizScore: fund ? (fund.score + '/' + fund.total) : null,
+        quizCorrect: fund ? Number(fund.score || 0) : null,
+        quizWrong: fund ? Math.max(0, Number(fund.total || 0) - Number(fund.score || 0)) : null,
+        createdAt: u.created_at,
+        lastLogin: u.last_login
       };
     })
   });
@@ -787,6 +923,7 @@ app.get('/api/admin/users/:id', adminRequired, (req, res) => {
       practice: JSON.parse(p.practice_json || '{}'),
       courses: JSON.parse(p.courses_json || '{}'),
       books: JSON.parse(p.books_json || '{}'),
+      quiz: JSON.parse(p.quiz_json || '{}'),
       updatedAt: p.updated_at
     } : null,
     messages: msgs

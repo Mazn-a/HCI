@@ -40,10 +40,21 @@
   HCIApi.setSession(HCIApi.getToken(), me.user);
   showContent();
 
+  if (me.user.role !== 'admin') {
+    location.href = 'index.html';
+    return;
+  }
+
+  var welcomeTitle = document.getElementById('adminWelcomeTitle');
+  if (welcomeTitle) {
+    welcomeTitle.textContent = 'أهلاً بك أيها المدير، ' + (me.user.firstName || me.user.fullName || '');
+  }
+
   var slot = document.getElementById('navCtaSlot');
   var user = me.user;
   if (slot && user) {
     slot.innerHTML =
+      '<a href="admin.html" class="nav-admin-btn" aria-current="page">الإدارة</a>' +
       '<span class="nav-user-wrap">' +
         '<a href="profile.html" class="nav-user" aria-label="حسابك"><span class="chip-avatar">' +
         user.firstName.charAt(0) + '</span><span class="nav-user-name">' + user.fullName + '</span></a>' +
@@ -53,6 +64,7 @@
           '</svg>' +
         '</button>' +
         '<div class="nav-dropdown" id="navDropdown">' +
+          '<a href="admin.html">لوحة الإدارة</a>' +
           '<a href="profile.html">الملف الشخصي</a>' +
           '<a href="index.html">الموقع</a>' +
           '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل الخروج</a>' +
@@ -99,6 +111,35 @@
     document.getElementById('statReports').textContent = s.reports;
     var contactsStat = document.getElementById('statContacts');
     if (contactsStat) contactsStat.textContent = s.contacts != null ? s.contacts : '—';
+    var qa = document.getElementById('statQuizAttempts');
+    var qp = document.getElementById('statQuizPasses');
+    if (qa) qa.textContent = s.quizAttempts != null ? s.quizAttempts : '—';
+    if (qp) qp.textContent = s.quizPasses != null ? s.quizPasses : '—';
+    var miss = document.getElementById('mostMissedQ');
+    if (miss) {
+      if (s.mostMissed && s.mostMissed.title) {
+        miss.textContent = s.mostMissed.title + ' — أُجيب خطأ ' + s.mostMissed.wrong + ' مرة';
+      } else {
+        miss.textContent = 'ما فيه بيانات اختبار بعد — لما الطلاب يحلّون الأساسيات تظهر هنا.';
+      }
+    }
+    var gen = document.getElementById('adminGeneratedAt');
+    if (gen) gen.textContent = s.generatedAt ? ('آخر تحديث للإحصائيات: ' + formatDate(s.generatedAt)) : '';
+
+    var loginList = document.getElementById('recentLoginsList');
+    if (loginList) {
+      loginList.innerHTML = '';
+      if (s.recentLogins && s.recentLogins.length) {
+        s.recentLogins.forEach(function (row) {
+          var li = document.createElement('li');
+          li.innerHTML = '<strong>' + escapeHtml(row.name) + '</strong>' +
+            '<span>' + formatDate(row.lastLogin) + '</span>';
+          loginList.appendChild(li);
+        });
+      } else {
+        loginList.innerHTML = '<li style="color:var(--text-mid)">ما فيه دخول مسجّل بعد.</li>';
+      }
+    }
   }
 
   function formatDate(iso) {
@@ -150,6 +191,10 @@
     data.users.forEach(function (u) {
       var contact = u.email || u.phone || '—';
       var pathLabel = u.pathType === 'specialist' ? 'متخصص' : (u.pathType === 'curious' ? 'مهتم' : '—');
+      var stopLabel = u.stopPoint || '—';
+      var quizLabel = u.quizScore
+        ? (u.quizPassed ? '✓ ' + u.quizScore : '✕ ' + u.quizScore)
+        : 'ما اختبر بعد';
       var actions =
         '<div class="admin-actions">' +
           '<button type="button" class="view-btn" data-id="' + u.id + '">تفاصيل</button>' +
@@ -160,11 +205,12 @@
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td><strong>' + u.fullName + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel +
-          (u.nameChanged ? ' · تغيّر الاسم' : '') + '</span></td>' +
-        '<td dir="ltr">' + contact + '</td>' +
-        '<td><span class="pct-pill" title="لا يمكن عرض النص الأصلي">' + (u.passwordStatus || 'مشفّرة') + '</span></td>' +
+          (u.nameChanged ? ' · تغيّر الاسم' : '') + '<br dir="ltr">' + contact + '</span></td>' +
+        '<td><span class="pct-pill">' + stopLabel + '</span></td>' +
         '<td><span class="pct-pill">' + u.progressPercent + '% · ' + u.doneStages + '/7</span></td>' +
+        '<td>' + quizLabel + (u.quizWrong != null && u.quizScore ? '<br><span style="font-size:0.72rem;color:var(--text-mid)">صح ' + u.quizCorrect + ' · خطأ ' + u.quizWrong + '</span>' : '') + '</td>' +
         '<td>' + formatDate(u.lastLogin) + '</td>' +
+        '<td>' + formatDate(u.progressUpdated) + '</td>' +
         '<td>' + actions + '</td>';
       body.appendChild(tr);
 
@@ -172,19 +218,16 @@
         var card = document.createElement('div');
         card.className = 'admin-user-card';
         card.innerHTML =
-          '<strong>' + u.fullName + '</strong>' +
-          '<div class="meta">' +
-            pathLabel + '<br dir="ltr">' + contact + '<br>' +
-            'كلمة المرور: ' + (u.passwordStatus || 'مشفّرة') + '<br>' +
-            'التقدم: ' + u.progressPercent + '% · ' + u.doneStages + '/7<br>' +
-            'آخر دخول: ' + formatDate(u.lastLogin) +
-          '</div>' + actions;
+          '<div class="admin-user-card-top"><strong>' + u.fullName + '</strong><span>' + u.progressPercent + '%</span></div>' +
+          '<p style="color:var(--text-mid);font-size:0.85rem;margin:6px 0;">توقف عند: ' + stopLabel + '</p>' +
+          '<p style="color:var(--text-mid);font-size:0.85rem;margin:0 0 6px;">اختبار: ' + quizLabel + '</p>' +
+          '<p style="color:var(--text-mid);font-size:0.8rem;margin:0 0 10px;">آخر دخول: ' + formatDate(u.lastLogin) + ' · تحديث: ' + formatDate(u.progressUpdated) + '</p>' +
+          actions;
         mobile.appendChild(card);
       }
     });
-
     bindUserActions(body);
-    bindUserActions(mobile);
+    if (mobile) bindUserActions(mobile);
   }
 
   async function loadMessages() {
@@ -321,21 +364,71 @@
 
     data.contacts.forEach(function (c) {
       var card = document.createElement('div');
-      card.style.cssText = 'border:1px solid var(--ink-3);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--ink)';
+      card.className = 'admin-contact-card';
+      card.setAttribute('data-id', String(c.id));
+
+      var replyBlock = '';
+      if (c.reply) {
+        replyBlock =
+          '<div class="admin-contact-reply-done">' +
+            '<strong>ردّك:</strong>' +
+            '<p>' + escapeHtml(c.reply) + '</p>' +
+            '<span>' + formatDate(c.repliedAt) + '</span>' +
+          '</div>';
+      } else {
+        replyBlock =
+          '<div class="admin-contact-reply-box">' +
+            '<label for="reply-' + c.id + '">اكتب ردك — يطلع تنبيه عند المرسل</label>' +
+            '<textarea id="reply-' + c.id + '" class="admin-contact-reply-input" rows="3" placeholder="مثال: تم استلام رسالتك وسأرد عليك قريباً…"></textarea>' +
+            '<div class="admin-contact-reply-actions">' +
+              '<button type="button" class="btn-primary reply-contact-btn" data-id="' + c.id + '">إرسال الرد</button>' +
+              (c.status === 'new'
+                ? '<button type="button" class="done-contact-btn" data-id="' + c.id + '">تم الاطلاع</button>'
+                : '') +
+            '</div>' +
+            (!c.canNotify
+              ? '<p class="admin-contact-hint">ما لقينا حساب مرتبط — الرد يُحفظ هنا، والتنبيه يوصل فقط لو كان مسجّل.</p>'
+              : '<p class="admin-contact-hint">التنبيه يوصل مباشرة لجرس الإشعارات عنده.</p>') +
+          '</div>';
+      }
+
       card.innerHTML =
-        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;">' +
+        '<div class="admin-contact-top">' +
           '<strong>' + escapeHtml(c.name) + '</strong>' +
-          '<span style="font-size:0.78rem;color:var(--text-mid)">' + formatDate(c.createdAt) +
+          '<span>' + formatDate(c.createdAt) +
             (c.status === 'done' ? ' · تم' : ' · جديد') + '</span>' +
         '</div>' +
-        '<div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:8px;" dir="ltr">' +
-          escapeHtml(c.contact || '—') +
-        '</div>' +
-        '<p style="margin:0 0 10px;line-height:1.65;white-space:pre-wrap;">' + escapeHtml(c.message) + '</p>' +
-        (c.status === 'new'
-          ? '<button type="button" class="done-contact-btn" data-id="' + c.id + '" style="font-size:0.78rem;padding:6px 14px;border-radius:16px;border:1px solid var(--line-green);background:none;color:var(--line-green);cursor:pointer;font-family:var(--font-body)">تم الاطلاع ✓</button>'
-          : '');
+        '<div class="admin-contact-meta" dir="ltr">' + escapeHtml(c.contact || '—') + '</div>' +
+        '<p class="admin-contact-msg">' + escapeHtml(c.message) + '</p>' +
+        replyBlock;
       list.appendChild(card);
+    });
+
+    list.querySelectorAll('.reply-contact-btn').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var id = b.getAttribute('data-id');
+        var ta = document.getElementById('reply-' + id);
+        var text = ta ? ta.value.trim() : '';
+        if (text.length < 2) {
+          alert('اكتب الرد أولاً');
+          return;
+        }
+        b.disabled = true;
+        try {
+          var res = await HCIApi.request('/api/admin/contacts/' + id + '/reply', {
+            method: 'POST',
+            body: { reply: text }
+          });
+          alert(res.notified
+            ? 'تم إرسال الرد — يطلع تنبيه عند المرسل ✓'
+            : 'تم حفظ الرد. المرسل ما عنده حساب مرتبط فما يوصله تنبيه داخل المنصة.');
+          await loadStats();
+          await loadContacts();
+        } catch (err) {
+          alert(err.message || 'تعذر إرسال الرد');
+          b.disabled = false;
+        }
+      });
     });
 
     list.querySelectorAll('.done-contact-btn').forEach(function (b) {
@@ -430,27 +523,136 @@
     currentDetailId = id;
     var data = await HCIApi.request('/api/admin/users/' + id);
     var u = data.user;
+    var p = data.progress;
     currentDetailName = u.fullName;
     document.getElementById('detailTitle').textContent = u.fullName;
     document.getElementById('detailSub').textContent =
       'معرّف #' + u.id + ' · انضم ' + formatDate(u.createdAt);
+
+    var journey = (p && p.journey) || {};
+    var done = journey.done || {};
+    var stageLabels = {
+      discover: 'اكتشف التخصص',
+      fundamentals: 'أساسيات HCI',
+      coding: 'ترميز HTML & CSS',
+      courses: 'دورات متخصصة',
+      books: 'كتب ومراجع',
+      practice: 'تعلّم بالمرح',
+      contribute: 'أفد غيرك'
+    };
+    var stageOrder = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
+    var stopLabel = 'أكمل الرحلة';
+    for (var i = 0; i < stageOrder.length; i++) {
+      if (!done[stageOrder[i]]) {
+        stopLabel = stageLabels[stageOrder[i]];
+        break;
+      }
+    }
+    var doneCount = stageOrder.filter(function (sid) { return !!done[sid]; }).length;
+
+    var fund = p && p.quiz && p.quiz.fundamentals ? p.quiz.fundamentals : null;
+    var quizHtml = '<strong>اختبار الأساسيات:</strong> ما اختبر بعد';
+    if (fund) {
+      quizHtml =
+        '<strong>اختبار الأساسيات:</strong> ' + fund.score + '/' + fund.total +
+        (fund.passed ? ' (اجتاز ✓)' : ' (لم يجتز)') +
+        '<br><strong>آخر محاولة:</strong> ' + formatDate(fund.updatedAt);
+      if (fund.answers && fund.answers.length) {
+        quizHtml += '<ul style="margin:8px 0 0; padding-inline-start:18px;">';
+        fund.answers.forEach(function (a) {
+          quizHtml +=
+            '<li style="margin-bottom:6px;">' +
+            (a.ok ? '✓ ' : '✕ ') +
+            escapeHtml(a.title || a.qid) +
+            (a.ok ? '' : ' <span style="color:var(--text-mid)">(اختار ' + escapeHtml(a.chosen) + ')</span>') +
+            '</li>';
+        });
+        quizHtml += '</ul>';
+      }
+    }
+
     document.getElementById('detailInfo').innerHTML =
-      '<strong>الاسم الحالي:</strong> ' + u.fullName + '<br>' +
+      '<strong>الاسم الحالي:</strong> ' + escapeHtml(u.fullName) + '<br>' +
       '<strong>البريد:</strong> ' + (u.email || '—') +
         (u.email ? ' · ' + (u.emailVerified ? '<span style="color:var(--line-green)">متحقق ✓</span>' : '<span style="color:var(--line-amber)">غير متحقق</span>') : '') + '<br>' +
       '<strong>الجوال:</strong> ' + (u.phone || '—') +
         (u.phone ? ' · ' + (u.phoneVerified ? '<span style="color:var(--line-green)">متحقق ✓</span>' : '<span style="color:var(--line-amber)">غير متحقق</span>') : '') + '<br>' +
       '<strong>المسار:</strong> ' + (u.pathType === 'specialist' ? 'متخصص' : (u.pathType === 'curious' ? 'مهتم' : 'لم يُختر')) + '<br>' +
       '<strong>آخر دخول:</strong> ' + formatDate(u.lastLogin) + '<br>' +
+      '<strong>آخر تحديث للتقدّم:</strong> ' + formatDate(p && p.updatedAt) + '<br>' +
+      '<strong>توقف عند:</strong> <span style="color:var(--gold)">' + stopLabel + '</span> · ' + doneCount + '/7 مراحل<br>' +
       '<strong>آخر تغيير لكلمة المرور:</strong> ' + formatDate(u.passwordChangedAt) + '<br>' +
       '<strong>حالة كلمة المرور:</strong> <span style="color:var(--gold)">' + (u.passwordStatus || 'مشفّرة') + '</span> — لا تُعرض كنص<br>' +
-      nameHistoryHtml(u.nameHistory);
+      nameHistoryHtml(u.nameHistory) +
+      '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--ink-3);">' + quizHtml + '</div>';
+
     document.getElementById('detailNotes').value = u.notes || '';
     document.getElementById('detailNewPass').value = '';
+    var prevEl = document.getElementById('detailPrevPass');
+    if (prevEl) {
+      prevEl.textContent = 'غير قابلة للعرض — محفوظة بشكل مشفّر' +
+        (u.passwordChangedAt ? ' · آخر تغيير: ' + formatDate(u.passwordChangedAt) : '');
+    }
+    var passResult = document.getElementById('detailPassResult');
+    if (passResult) {
+      passResult.hidden = true;
+      passResult.textContent = '';
+    }
     document.getElementById('detailProgress').textContent =
       JSON.stringify(data.progress, null, 2);
     detailModal.classList.add('open');
   }
+
+  function generateTempPassword() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    var out = '';
+    for (var i = 0; i < 10; i++) {
+      out += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return out;
+  }
+
+  function copyText(text) {
+    if (!text) return Promise.reject(new Error('فارغ'));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
+      ta.remove();
+    });
+  }
+
+  document.getElementById('detailGenPass').addEventListener('click', function () {
+    var pass = generateTempPassword();
+    document.getElementById('detailNewPass').value = pass;
+    var result = document.getElementById('detailPassResult');
+    result.hidden = false;
+    result.textContent = 'كلمة مولَّدة (ما انحفظت بعد): ' + pass;
+  });
+
+  document.getElementById('detailCopyPass').addEventListener('click', async function () {
+    var pass = document.getElementById('detailNewPass').value.trim();
+    if (!pass) {
+      alert('ما فيه كلمة لنسخها — ولّد أو اكتب أولاً');
+      return;
+    }
+    try {
+      await copyText(pass);
+      alert('تم النسخ ✓');
+    } catch (e) {
+      alert('تعذر النسخ — انسخها يدوياً:\n' + pass);
+    }
+  });
 
   function nameHistoryHtml(history) {
     if (!history || !history.length) {
@@ -479,15 +681,22 @@
       alert('كلمة المرور الجديدة لازم 8 أحرف على الأقل');
       return;
     }
-    if (!confirm('تعيين كلمة مرور جديدة لحساب «' + currentDetailName + '»؟')) return;
+    if (!confirm('تعيين كلمة مرور جديدة لحساب «' + currentDetailName + '»؟\n\nالكلمة القديمة تنمحي وما ترجع.')) return;
     try {
       var res = await HCIApi.request('/api/admin/users/' + currentDetailId + '/reset-password', {
         method: 'POST',
         body: { newPassword: pass }
       });
-      alert(res.message + '\n\nكلمة المرور الجديدة:\n' + res.temporaryPassword);
-      document.getElementById('detailNewPass').value = '';
+      var result = document.getElementById('detailPassResult');
+      result.hidden = false;
+      result.textContent = 'كلمة المرور الجديدة (احفظها الآن): ' + res.temporaryPassword;
+      try { await copyText(res.temporaryPassword); } catch (e) { /* */ }
+      alert('تم التعيين ✓\n\nالكلمة الجديدة:\n' + res.temporaryPassword + '\n\n(اننسخت للحافظة إن أمكن)');
       await openDetail(currentDetailId);
+      document.getElementById('detailNewPass').value = res.temporaryPassword;
+      result = document.getElementById('detailPassResult');
+      result.hidden = false;
+      result.textContent = 'كلمة المرور الجديدة (احفظها الآن): ' + res.temporaryPassword;
     } catch (err) {
       alert(err.message);
     }

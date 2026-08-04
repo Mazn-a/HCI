@@ -14,12 +14,23 @@
   } catch (e) {}
 </script>
 <style>
-  .admin-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:36px; }
+  .admin-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-bottom:22px; }
   .stat-box{
     border:1px solid var(--ink-3); border-radius:12px; padding:20px; background:var(--ink-2);
   }
   .stat-box .n{ font-family:var(--font-mono); font-size:1.8rem; color:var(--gold); font-weight:700; }
   .stat-box .l{ color:var(--text-mid); font-size:0.82rem; margin-top:4px; }
+  .admin-insight{ padding:18px 20px; }
+  .admin-insight-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:28px; }
+  .recent-logins-list{ list-style:none; margin:0; padding:0; }
+  .recent-logins-list li{
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    padding:8px 0; border-bottom:1px solid var(--ink-3); font-size:0.88rem;
+  }
+  .recent-logins-list li:last-child{ border-bottom:none; }
+  .recent-logins-list span{ color:var(--text-mid); font-size:0.8rem; }
+  .admin-user-card-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .admin-user-card-top span{ font-family:var(--font-mono); color:var(--gold); font-weight:700; }
   .admin-table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
   .admin-table th, .admin-table td{
     padding:12px 10px; text-align:right; border-bottom:1px solid var(--ink-3); vertical-align:middle;
@@ -39,7 +50,7 @@
   }
   .modal-backdrop.open{ display:flex; }
   .modal{
-    width:100%; max-width:480px; background:var(--ink-2); border:1px solid var(--ink-3);
+    width:100%; max-width:560px; background:var(--ink-2); border:1px solid var(--ink-3);
     border-radius:14px; padding:28px; max-height:90vh; overflow:auto;
   }
   .modal h3{ margin-bottom:8px; }
@@ -60,9 +71,81 @@
   .admin-tabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
   .detail-block{ margin-top:16px; padding:14px; border:1px solid var(--ink-3); border-radius:8px; background:var(--ink); font-size:0.85rem; color:var(--text-mid); white-space:pre-wrap; direction:ltr; text-align:left; max-height:200px; overflow:auto; }
   .admin-users-mobile{ display:none; }
-  @media(max-width:900px){ .admin-stats{ grid-template-columns:1fr 1fr; } }
+  .admin-contact-card{
+    border:1px solid var(--ink-3); border-radius:12px; padding:14px;
+    margin-bottom:12px; background:var(--ink);
+  }
+  .admin-contact-top{
+    display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;
+  }
+  .admin-contact-top span{ font-size:0.78rem; color:var(--text-mid); }
+  .admin-contact-meta{ font-size:0.82rem; color:var(--text-mid); margin-bottom:8px; }
+  .admin-contact-msg{ margin:0 0 12px; line-height:1.65; white-space:pre-wrap; }
+  .admin-contact-reply-box label{
+    display:block; font-size:0.82rem; color:var(--gold); font-weight:600; margin-bottom:8px;
+  }
+  .admin-contact-reply-input{
+    width:100%; min-height:88px; resize:vertical;
+    background:var(--ink-2); border:1px solid var(--ink-3); border-radius:10px;
+    padding:12px; color:var(--text-hi); font-family:var(--font-body); font-size:0.95rem;
+    margin-bottom:10px; outline:none;
+  }
+  .admin-contact-reply-input:focus{ border-color:var(--gold); }
+  .admin-contact-reply-actions{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  }
+  .admin-contact-reply-actions .btn-primary{
+    min-height:44px; padding:10px 18px; font-size:0.9rem;
+  }
+  .admin-contact-reply-actions .done-contact-btn{
+    font-size:0.8rem; padding:10px 14px; min-height:44px; border-radius:10px;
+    border:1px solid var(--ink-3); background:none; color:var(--text-mid);
+    cursor:pointer; font-family:var(--font-body);
+  }
+  .admin-contact-hint{
+    margin:10px 0 0; font-size:0.78rem; color:var(--text-mid); line-height:1.5;
+  }
+  .admin-contact-reply-done{
+    border-top:1px solid var(--ink-3); padding-top:12px; margin-top:4px;
+  }
+  .admin-contact-reply-done strong{ color:var(--gold); display:block; margin-bottom:6px; }
+  .admin-contact-reply-done p{ margin:0 0 6px; line-height:1.6; white-space:pre-wrap; }
+  .admin-contact-reply-done span{ font-size:0.75rem; color:var(--text-mid); }
+  .admin-pass-box{
+    border:1px solid var(--ink-3); border-radius:12px; padding:14px;
+    margin:0 0 16px; background:var(--ink);
+  }
+  .admin-pass-box h4{ margin:0 0 10px; color:var(--gold); font-size:0.95rem; }
+  .admin-pass-prev{
+    margin:0 0 8px; font-size:0.88rem; line-height:1.55;
+    padding:10px 12px; border-radius:8px; background:var(--ink-2);
+    border:1px solid var(--ink-3);
+  }
+  .admin-pass-prev span{ color:var(--text-mid); }
+  .admin-pass-hint{
+    margin:0 0 12px; font-size:0.8rem; color:var(--text-mid); line-height:1.55;
+  }
+  .admin-pass-row{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:stretch; margin-bottom:10px;
+  }
+  .admin-pass-row input{
+    flex:1 1 140px; margin-bottom:0 !important;
+    min-height:44px;
+  }
+  .admin-pass-row .btn-ghost{
+    min-height:44px; padding:0 14px; white-space:nowrap;
+  }
+  .admin-pass-result{
+    margin:12px 0 0; padding:12px; border-radius:8px;
+    background:rgba(201,162,75,0.1); border:1px solid rgba(201,162,75,0.35);
+    color:var(--gold); font-family:var(--font-mono); font-size:0.95rem;
+    direction:ltr; text-align:left; word-break:break-all;
+  }
+  @media(max-width:900px){
+    .admin-insight-grid{ grid-template-columns:1fr; }
+  }
   @media(max-width:560px){
-    .admin-stats{ grid-template-columns:1fr; }
+    .admin-stats{ grid-template-columns:1fr 1fr; }
     .admin-table{ display:none !important; }
     .admin-users-mobile{ display:flex; flex-direction:column; gap:12px; padding:12px; }
     .admin-user-card{
@@ -72,6 +155,8 @@
     .admin-user-card .meta{ color:var(--text-mid); font-size:0.82rem; line-height:1.65; margin-bottom:10px; }
     .admin-user-card .admin-actions button{ min-height:40px; }
     .admin-tabs .size-btn{ flex:1; min-height:42px; font-size:0.78rem; }
+    .admin-contact-reply-actions .btn-primary{ flex:1; width:100%; }
+    .admin-contact-reply-actions .done-contact-btn{ flex:1; }
   }
 </style>
 <script src="gate.js"></script>
@@ -95,17 +180,33 @@
     <div class="wrap">
       <div id="adminContent">
         <div class="lesson-head">
-          <span class="eyebrow">/// لوحة المصمم</span>
-          <h1>إدارة المستخدمين والتواصل</h1>
-          <p>عرض الحسابات ومعلوماتها، إدارة كلمات المرور عبر إعادة التعيين، ومتابعة الرسائل والبلاغات.</p>
+          <span class="eyebrow">/// لوحة المدير</span>
+          <h1 id="adminWelcomeTitle">أهلاً بك أيها المدير</h1>
+          <p id="adminWelcomeLead">هنا تشوف دخول الطلاب، وين وقفوا، ونتائج الاختبارات، والرسائل والبلاغات.</p>
         </div>
 
         <div class="admin-stats" id="adminStats">
           <div class="stat-box"><div class="n" id="statStudents">—</div><div class="l">طلاب مسجّلون</div></div>
           <div class="stat-box"><div class="n" id="statActive">—</div><div class="l">نشطون آخر 7 أيام</div></div>
+          <div class="stat-box"><div class="n" id="statQuizAttempts">—</div><div class="l">محاولات اختبار الأساسيات</div></div>
+          <div class="stat-box"><div class="n" id="statQuizPasses">—</div><div class="l">اجتازوا الاختبار</div></div>
           <div class="stat-box"><div class="n" id="statMessages">—</div><div class="l">رسائل مرسلة</div></div>
           <div class="stat-box"><div class="n" id="statReports">—</div><div class="l">بلاغات جديدة</div></div>
           <div class="stat-box"><div class="n" id="statContacts">—</div><div class="l">رسائل تواصل</div></div>
+        </div>
+
+        <div class="admin-insight-grid">
+          <div class="admin-insight profile-card" id="adminInsight" style="max-width:none; margin:0;">
+            <h3 style="margin-bottom:8px; color:var(--gold);">أبرز سؤال يُجاب عنه خطأ</h3>
+            <p id="mostMissedQ" style="color:var(--text-mid); margin:0;">ما فيه بيانات اختبار بعد — لما الطلاب يحلّون الأساسيات تظهر هنا.</p>
+            <p id="adminGeneratedAt" style="color:var(--text-mid); font-size:0.8rem; margin:10px 0 0;"></p>
+          </div>
+          <div class="admin-insight profile-card" style="max-width:none; margin:0;">
+            <h3 style="margin-bottom:8px; color:var(--gold);">آخر دخول للطلاب</h3>
+            <ul class="recent-logins-list" id="recentLoginsList">
+              <li style="color:var(--text-mid)">جاري التحميل…</li>
+            </ul>
+          </div>
         </div>
 
         <div class="admin-tabs">
@@ -121,10 +222,11 @@
               <thead>
                 <tr>
                   <th>الاسم</th>
-                  <th>التواصل</th>
-                  <th>كلمة المرور</th>
+                  <th>توقف عند</th>
                   <th>التقدم</th>
+                  <th>الاختبار</th>
                   <th>آخر دخول</th>
+                  <th>آخر تحديث</th>
                   <th>إجراءات</th>
                 </tr>
               </thead>
@@ -180,13 +282,23 @@
       <h3 id="detailTitle">تفاصيل المستخدم</h3>
       <p class="sub" id="detailSub"></p>
       <div class="detail-block" id="detailInfo" style="direction:rtl; text-align:right; white-space:normal; margin-bottom:14px;"></div>
-      <p style="font-size:0.85rem; color:var(--line-amber); margin-bottom:12px; line-height:1.55;">
-        خانة كلمات المرور: جميع كلمات المرور محفوظة بشكل مشفّر (bcrypt) ولا يمكن عرض النص الأصلي لأي مستخدم — حماية أمنية متعمّدة. استخدم «إعادة التعيين» أدناه لتعيين كلمة جديدة تظهر لك مرة واحدة فقط لإيصالها للطالب.
-      </p>
-      <label for="detailNewPass">إعادة تعيين كلمة المرور (خانة المدير)</label>
-      <input type="text" id="detailNewPass" dir="ltr" placeholder="كلمة مرور جديدة (8 أحرف فأكثر)" autocomplete="off">
-      <div class="modal-actions" style="justify-content:flex-start; margin-bottom:16px;">
-        <button type="button" class="btn-primary" id="detailResetPass">تعيين كلمة مرور جديدة</button>
+      <div class="admin-pass-box">
+        <h4>كلمة المرور</h4>
+        <p class="admin-pass-prev">
+          <strong>الكلمة السابقة:</strong>
+          <span id="detailPrevPass">غير قابلة للعرض — محفوظة بشكل مشفّر</span>
+        </p>
+        <p class="admin-pass-hint">
+          ما نقدر نرجع النص الأصلي لأي حساب (حماية أمنية). تقدر تولّد كلمة جديدة وتعيّنها للطالب.
+        </p>
+        <label for="detailNewPass">كلمة مرور جديدة</label>
+        <div class="admin-pass-row">
+          <input type="text" id="detailNewPass" dir="ltr" placeholder="8 أحرف فأكثر" autocomplete="off">
+          <button type="button" class="btn-ghost" id="detailGenPass">توليد</button>
+          <button type="button" class="btn-ghost" id="detailCopyPass">نسخ</button>
+        </div>
+        <button type="button" class="btn-primary" id="detailResetPass" style="width:100%; min-height:44px;">تعيين كلمة المرور الجديدة</button>
+        <p id="detailPassResult" class="admin-pass-result" hidden></p>
       </div>
       <label for="detailNotes">ملاحظاتك الخاصة (ما يشوفها الطالب)</label>
       <textarea id="detailNotes" placeholder="ملاحظات داخلية…"></textarea>

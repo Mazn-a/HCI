@@ -79,6 +79,9 @@ function migrate(cache) {
       changed = true;
     }
   });
+  (cache.progress || []).forEach(function (p) {
+    if (typeof p.quiz_json === 'undefined') { p.quiz_json = '{}'; changed = true; }
+  });
   return changed;
 }
 
@@ -204,6 +207,7 @@ const db = {
       practice_json: '{}',
       courses_json: '{}',
       books_json: '{}',
+      quiz_json: '{}',
       updated_at: new Date().toISOString()
     });
     persist();
@@ -268,6 +272,7 @@ const db = {
         practice_json: '{}',
         courses_json: '{}',
         books_json: '{}',
+        quiz_json: '{}',
         updated_at: new Date().toISOString()
       };
       cache.progress.push(row);
@@ -406,6 +411,17 @@ const db = {
       row.done_at = new Date().toISOString();
       persist();
     }
+    return row;
+  },
+
+  replyContact(id, replyText) {
+    const row = cache.contacts.find((x) => x.id === Number(id));
+    if (!row) return null;
+    row.reply = String(replyText || '').trim();
+    row.replied_at = new Date().toISOString();
+    row.status = 'done';
+    row.done_at = row.done_at || row.replied_at;
+    persist();
     return row;
   },
 

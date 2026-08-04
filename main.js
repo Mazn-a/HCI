@@ -517,8 +517,15 @@ if (greetingEl){
   else if (hour < 17) { greetingText = 'مساء الخير'; }
   else { greetingText = 'مساء النور'; }
 
-  if (loggedInName){ greetingText += '، ' + loggedInName; }
-  else { greetingText += ' — مرحباً بك في HCI'; }
+  var isAdminGreet = window.HCIApi && HCIApi.isAdmin();
+  if (isAdminGreet){
+    greetingText += loggedInName ? (' أيها المدير، ' + loggedInName) : ' أيها المدير';
+    greetingText += ' — لوحة القيادة جاهزة';
+  } else if (loggedInName){
+    greetingText += '، ' + loggedInName;
+  } else {
+    greetingText += ' — مرحباً بك في HCI';
+  }
 
   // حدّث النص فقط إذا تغيّر — يقلل القفز البصري
   var nextGreet = '/// ' + greetingText;
@@ -577,6 +584,9 @@ function compressImageFile(file, maxSize, quality, callback){
 }
 
 if (navCtaSlot && loggedInName){
+  var adminLinkHtml = (window.HCIApi && HCIApi.isAdmin())
+    ? '<a href="admin.html" class="nav-dropdown-admin">لوحة الإدارة</a>'
+    : '';
   navCtaSlot.innerHTML =
     '<span class="nav-user-wrap">' +
       '<a href="profile.html" class="nav-user" id="navUserProfileLink" aria-label="الملف الشخصي">' +
@@ -589,6 +599,7 @@ if (navCtaSlot && loggedInName){
         '</svg>' +
       '</button>' +
       '<div class="nav-dropdown" id="navDropdown">' +
+        adminLinkHtml +
         '<a href="profile.html">الملف الشخصي</a>' +
         '<a href="settings.html">الإعدادات</a>' +
         '<a href="#" id="switchAccountLink">تبديل الحساب</a>' +
@@ -596,6 +607,44 @@ if (navCtaSlot && loggedInName){
       '</div>' +
     '</span>';
 
+  function ensureAdminNavControls(){
+    if (!(window.HCIApi && HCIApi.isAdmin())) return;
+
+    /* رابط في شريط الروابط — ظاهر وسهل على الجوال */
+    var navLinks = document.getElementById('navLinks');
+    if (navLinks && !document.getElementById('navAdminLink')){
+      var link = document.createElement('a');
+      link.href = 'admin.html';
+      link.id = 'navAdminLink';
+      link.className = 'nav-admin-link';
+      link.textContent = 'الإدارة';
+      navLinks.appendChild(link);
+    }
+
+    /* زر ذهبي بجانب الأفاتار */
+    if (!document.getElementById('navAdminBtn')){
+      var adminBtn = document.createElement('a');
+      adminBtn.href = 'admin.html';
+      adminBtn.id = 'navAdminBtn';
+      adminBtn.className = 'nav-admin-btn';
+      adminBtn.textContent = 'إدارة';
+      adminBtn.setAttribute('aria-label', 'لوحة الإدارة');
+      navCtaSlot.insertBefore(adminBtn, navCtaSlot.firstChild);
+    }
+
+    /* زر عائم للجوال يرجّع للإدارة بسرعة */
+    if (!document.getElementById('adminFab')){
+      var fab = document.createElement('a');
+      fab.href = 'admin.html';
+      fab.id = 'adminFab';
+      fab.className = 'admin-fab';
+      fab.textContent = 'الإدارة';
+      fab.setAttribute('aria-label', 'العودة للوحة الإدارة');
+      document.body.appendChild(fab);
+    }
+  }
+  ensureAdminNavControls();
+  window.HCIEnsureAdminNav = ensureAdminNavControls;
   applyAvatarToEl(document.getElementById('navAvatarChip'), loggedInName);
 
   var navUserMenuBtn = document.getElementById('navUserMenuBtn');
@@ -1317,6 +1366,13 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 
 // مزامنة التقدم من السيرفر عند وجود جلسة + توجيه المسار الناقص
 if (window.HCIApi && HCIApi.isLoggedIn()){
+  HCIApi.request('/api/auth/me').then(function(me){
+    if (me && me.user){
+      HCIApi.setSession(HCIApi.getToken(), me.user);
+      if (typeof window.HCIEnsureAdminNav === 'function') window.HCIEnsureAdminNav();
+    }
+  }).catch(function(){});
+
   HCIApi.syncProgress().then(function(){
     // بعد المزامنة: أعد تقييم القفل (قد يكون الترميز مفتوحاً على السيرفر)
     if (typeof refreshPageLockGate === 'function') refreshPageLockGate();
@@ -1579,28 +1635,22 @@ if (inboxList){
     var existing = document.getElementById('adminMsgToast');
     if (existing) existing.remove();
     ensureUi();
-    var host = document.querySelector('.nav-notif-wrap');
     var toast = document.createElement('div');
     toast.id = 'adminMsgToast';
-    toast.className = host ? 'nav-notif-toast' : 'admin-msg-toast';
+    toast.className = 'nav-notif-toast';
     toast.setAttribute('role', 'status');
     var shortBody = body ? String(body) : '';
-    if (shortBody.length > 90) shortBody = shortBody.slice(0, 87) + '…';
+    if (shortBody.length > 80) shortBody = shortBody.slice(0, 77) + '…';
     toast.innerHTML =
       '<div class="nav-notif-toast-top">' +
-        '<span class="nav-notif-toast-label">تنبيه</span>' +
+        '<span class="nav-notif-toast-label">تنبيه جديد</span>' +
         '<button type="button" class="toast-close" aria-label="إغلاق">×</button>' +
       '</div>' +
       '<p class="nav-notif-toast-title">' + escapeHtml(title) + '</p>' +
       (shortBody ? '<p class="nav-notif-toast-body">' + escapeHtml(shortBody) + '</p>' : '') +
       (link ? '<a class="nav-notif-toast-link" href="' + escapeHtml(link) + '">عرض</a>' : '');
-    if (host){
-      var openPanel = document.getElementById('navNotifPanel');
-      var notifBtn = document.getElementById('navNotifBtn');
-      if (openPanel) openPanel.setAttribute('hidden', '');
-      if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
-      host.appendChild(toast);
-    } else document.body.appendChild(toast);
+    /* ثابت على الـ body عشان ما ينقصّ داخل الهيدر */
+    document.body.appendChild(toast);
     toast.querySelector('.toast-close').addEventListener('click', function(e){
       e.stopPropagation();
       toast.remove();
@@ -1610,14 +1660,24 @@ if (inboxList){
       if (e.target.closest('a')) return;
       if (link) location.href = link;
     });
-    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 4500);
+    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 5200);
   }
 
   function ensureUi(){
-    if (document.getElementById('navNotifBtn')) return true;
+    var existingBtn = document.getElementById('navNotifBtn');
+    var existingLayer = document.getElementById('navNotifLayer');
+    if (existingBtn && existingLayer) return true;
+    /* لو الجرس موجود واللوحة ضاعت — نبني اللوحة من جديد */
+    if (existingBtn && !existingLayer) {
+      var oldWrap = existingBtn.closest('.nav-notif-wrap');
+      if (oldWrap) oldWrap.remove();
+      else existingBtn.remove();
+    }
+
     var slot = document.getElementById('navCtaSlot');
     var userWrap = document.querySelector('.nav-user-wrap');
     if (!slot && !userWrap) return false;
+
     var wrap = document.createElement('span');
     wrap.className = 'nav-notif-wrap';
     wrap.innerHTML =
@@ -1626,16 +1686,27 @@ if (inboxList){
           '<path fill="currentColor" d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22zm7-6.2V11a7 7 0 1 0-14 0v4.8L3 17.8V19h18v-1.2l-2-1.8z"/>' +
         '</svg>' +
         '<span class="nav-notif-count" id="navNotifCount" hidden></span>' +
-      '</button>' +
-      '<div class="nav-notif-panel" id="navNotifPanel" hidden>' +
+      '</button>';
+
+    /* اللوحة على الـ body عشان تظهر كاملة وما تنقصّ بالهيدر */
+    var oldLayer = document.getElementById('navNotifLayer');
+    if (oldLayer) oldLayer.remove();
+    var layer = document.createElement('div');
+    layer.className = 'nav-notif-layer';
+    layer.id = 'navNotifLayer';
+    layer.hidden = true;
+    layer.innerHTML =
+      '<div class="nav-notif-backdrop" id="navNotifBackdrop"></div>' +
+      '<div class="nav-notif-panel" id="navNotifPanel" role="dialog" aria-label="التنبيهات">' +
         '<div class="nav-notif-head">' +
           '<strong>التنبيهات</strong>' +
           '<button type="button" class="nav-notif-markall" id="navNotifMarkAll">علم الكل مقروء</button>' +
         '</div>' +
         '<div class="nav-notif-list" id="navNotifList"><p class="progress-note">لا توجد تنبيهات</p></div>' +
-        '<a class="nav-notif-footer" href="profile.html#inbox">فتح صندوق الرسائل</a>' +
+        '<a class="nav-notif-footer" href="profile.html#inbox">عرض كل التنبيهات</a>' +
       '</div>';
-    /* ترتيب الشريط: … المعجم | جرس · أفاتار */
+    document.body.appendChild(layer);
+
     if (slot && userWrap && userWrap.parentNode === slot){
       slot.insertBefore(wrap, userWrap);
     } else if (userWrap){
@@ -1647,24 +1718,32 @@ if (inboxList){
     }
 
     var btn = document.getElementById('navNotifBtn');
-    var panel = document.getElementById('navNotifPanel');
+    var backdrop = document.getElementById('navNotifBackdrop');
+
+    function closePanel(){
+      layer.hidden = true;
+      layer.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('notif-open');
+    }
+    function openPanel(){
+      layer.hidden = false;
+      layer.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('notif-open');
+      refresh(true);
+    }
+
     btn.addEventListener('click', function(e){
       e.stopPropagation();
-      var open = panel.hasAttribute('hidden');
-      if (open){
-        panel.removeAttribute('hidden');
-        btn.setAttribute('aria-expanded', 'true');
-        refresh(true);
-      } else {
-        panel.setAttribute('hidden', '');
-        btn.setAttribute('aria-expanded', 'false');
-      }
+      if (layer.hidden) openPanel();
+      else closePanel();
     });
-    document.addEventListener('click', function(ev){
-      if (!wrap.contains(ev.target)){
-        panel.setAttribute('hidden', '');
-        btn.setAttribute('aria-expanded', 'false');
-      }
+    if (backdrop){
+      backdrop.addEventListener('click', function(){ closePanel(); });
+    }
+    document.addEventListener('keydown', function(ev){
+      if (ev.key === 'Escape' && !layer.hidden) closePanel();
     });
     document.getElementById('navNotifMarkAll').addEventListener('click', function(){
       var locals = readLocal().map(function(n){ n.read = true; return n; });
@@ -1690,6 +1769,7 @@ if (inboxList){
         });
         writeLocal(locals);
         refresh(true);
+        closePanel();
         location.href = link;
         return;
       }
@@ -1698,6 +1778,7 @@ if (inboxList){
         : HCIApi.markNotificationRead(nid);
       p.catch(function(){}).then(function(){
         refresh(true);
+        closePanel();
         location.href = link;
       });
     });
@@ -1775,11 +1856,13 @@ if (inboxList){
 
       if (renderList){
         var list = document.getElementById('navNotifList');
+        var markAll = document.getElementById('navNotifMarkAll');
+        if (markAll) markAll.hidden = unread.length === 0;
         if (list){
           if (!merged.length){
             list.innerHTML = '<p class="progress-note">لا توجد تنبيهات بعد</p>';
           } else {
-            list.innerHTML = merged.slice(0, 20).map(function(n){
+            list.innerHTML = merged.slice(0, 40).map(function(n){
               return '<button type="button" class="nav-notif-item' + (n.read ? '' : ' is-unread') + '" data-nid="' + escapeHtml(String(n.id)) + '" data-ntype="' + escapeHtml(n.ntype) + '" data-link="' + escapeHtml(n.link) + '">' +
                 '<span class="nav-notif-item-title">' + escapeHtml(n.title) + '</span>' +
                 '<span class="nav-notif-item-body">' + escapeHtml(n.body) + '</span>' +
@@ -1831,7 +1914,10 @@ if (inboxList){
     }, 150);
   }
   bootNotifUi();
-  setInterval(function(){ refresh(false); }, 30000);
+  setInterval(function(){ refresh(false); }, 12000);
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) refresh(false);
+  });
 
   window.HCINotifCenter = {
     refresh: function(quiet){ refresh(true, { quiet: !!quiet }); },
@@ -2327,6 +2413,37 @@ if (quizCheckBtn && quizResult){
       quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
       updateCodingNextButton();
     }
+
+    // حفظ إجابات الاختبار للإحصائيات في لوحة الإدارة
+    try {
+      var answers = [];
+      questions.forEach(function(q, idx){
+        var correctValue = q.getAttribute('data-correct');
+        var selected = q.querySelector('input[type="radio"]:checked');
+        var titleEl = q.querySelector('p:not(.quiz-feedback)');
+        var title = titleEl ? titleEl.textContent.trim().slice(0, 100) : ('سؤال ' + (idx + 1));
+        var qid = 'fundamentals-q' + (idx + 1);
+        var chosen = selected ? selected.value : '';
+        answers.push({
+          qid: qid,
+          title: title,
+          chosen: chosen,
+          correct: correctValue,
+          ok: !!(selected && selected.value === correctValue)
+        });
+      });
+      var quizStore = {};
+      try { quizStore = JSON.parse(localStorage.getItem('hci_quiz') || '{}'); } catch (e) { quizStore = {}; }
+      quizStore.fundamentals = {
+        score: correctCount,
+        total: questions.length,
+        passed: correctCount >= 3,
+        answers: answers,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('hci_quiz', JSON.stringify(quizStore));
+      if (window.HCIApi && HCIApi.isLoggedIn()) HCIApi.scheduleSync();
+    } catch (e) { /* */ }
   });
 }
 

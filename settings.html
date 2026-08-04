@@ -58,7 +58,12 @@
               <p>الاسم والصورة الظاهرة في الشهادة والشريط العلوي.</p>
             </div>
             <div class="settings-identity-row">
-              <span class="profile-avatar" id="settingsAvatarPreview">؟</span>
+              <label class="avatar-edit" for="settingsAvatarUpload" title="تغيير الصورة">
+                <span class="profile-avatar" id="settingsAvatarPreview">؟</span>
+                <span class="avatar-edit-shade" aria-hidden="true"></span>
+                <span class="avatar-edit-label">تغيير الصورة</span>
+              </label>
+              <input type="file" id="settingsAvatarUpload" accept="image/*" hidden>
               <div class="settings-identity-meta">
                 <div class="settings-fields settings-fields-2">
                   <div class="settings-field">
@@ -70,11 +75,7 @@
                     <input type="text" id="settingsLastName" class="settings-input" placeholder="اسم العائلة" autocomplete="family-name">
                   </div>
                 </div>
-                <div class="avatar-actions" id="settingsAvatarActions">
-                  <label class="btn-ghost avatar-upload-btn" for="settingsAvatarUpload">تغيير الصورة</label>
-                  <input type="file" id="settingsAvatarUpload" accept="image/*" hidden>
-                  <button type="button" class="avatar-remove-btn" id="settingsAvatarRemove" hidden>إزالة الصورة</button>
-                </div>
+                <button type="button" class="avatar-remove-btn" id="settingsAvatarRemove" hidden>إزالة الصورة</button>
               </div>
             </div>
           </section>

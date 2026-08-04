@@ -58,17 +58,18 @@
               <p>اسمك وصورتك الظاهرة في الشهادة والشريط العلوي.</p>
             </div>
             <div class="profile-name-row profile-name-row-panel">
-              <span class="profile-avatar" id="avatarLetter">؟</span>
+              <label class="avatar-edit" for="avatarUpload" title="تغيير الصورة">
+                <span class="profile-avatar" id="avatarLetter">؟</span>
+                <span class="avatar-edit-shade" aria-hidden="true"></span>
+                <span class="avatar-edit-label">تغيير الصورة</span>
+              </label>
+              <input type="file" id="avatarUpload" accept="image/*" hidden>
               <div class="profile-identity-meta">
                 <div class="profile-name-display" id="profileNameDisplay">ما سجلت بعد</div>
                 <p class="profile-name-hint" id="profileNameHint">
                   <a href="auth.html?tab=signup">أنشئ حساب</a> عشان يظهر اسمك هنا تلقائياً
                 </p>
-                <div class="avatar-actions" id="avatarActions">
-                  <label class="btn-ghost avatar-upload-btn" for="avatarUpload">تغيير الصورة</label>
-                  <input type="file" id="avatarUpload" accept="image/*" hidden>
-                  <button type="button" class="avatar-remove-btn" id="avatarRemove" hidden>إزالة الصورة</button>
-                </div>
+                <button type="button" class="avatar-remove-btn" id="avatarRemove" hidden>إزالة الصورة</button>
               </div>
             </div>
           </section>

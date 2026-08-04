@@ -2316,7 +2316,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   var trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.id = 'reportTrigger';
-  trigger.className = 'footer-contact-btn';
+  trigger.className = 'footer-contact-btn footer-report-btn';
   trigger.textContent = 'بلّغ عن مشكلة';
   window.__hciReportTrigger = trigger;
 
@@ -2534,7 +2534,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
 
   var reportBtn = window.__hciReportTrigger || document.getElementById('reportTrigger');
   if (reportBtn){
-    reportBtn.className = 'footer-contact-btn';
+    reportBtn.className = 'footer-contact-btn footer-report-btn';
     actions.appendChild(reportBtn);
   }
   inner.appendChild(actions);

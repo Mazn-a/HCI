@@ -3225,6 +3225,16 @@ footer{
   border-color: var(--line-cyan);
   color: var(--text-hi);
 }
+.footer-report-btn{
+  color: var(--error);
+  background: rgba(224,101,79,0.1);
+  border-color: rgba(224,101,79,0.45);
+}
+.footer-report-btn:hover{
+  background: rgba(224,101,79,0.16);
+  border-color: var(--error);
+  color: #ffb4a8;
+}
 .footer-report-link{ display: none !important; }
 .footer-bottom strong{
   color: inherit;

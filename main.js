@@ -2988,11 +2988,13 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
     trigger.id = 'reportTrigger';
     trigger.className = 'footer-text-link footer-link-report';
     trigger.textContent = 'بلّغ عن مشكلة';
+    var legalList = document.querySelector('.footer-legal ul');
     var supportList = document.querySelector('.footer-support ul');
-    if (supportList){
+    var targetList = legalList || supportList;
+    if (targetList){
       var li = document.createElement('li');
       li.appendChild(trigger);
-      supportList.appendChild(li);
+      targetList.appendChild(li);
     }
   } else {
     trigger.className = 'footer-text-link footer-link-report';

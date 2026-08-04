@@ -467,21 +467,70 @@ body.settings-page > header{
   min-width: 0;
   justify-self: start;
 }
-.nav-brand:hover .logo{ opacity: 0.9; }
-.nav-brand .logo{
+.nav-brand:hover .logo{ opacity: 0.95; }
+.nav-brand .logo,
+.footer-logo,
+.wordmark.logo-hci,
+a.wordmark{
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: clamp(1.55rem, 1.25rem + 0.7vw, 2rem);
   color: var(--gold);
-  display: inline-block;
+  line-height: 1;
+}
+.nav-brand .logo{
+  font-size: clamp(1.55rem, 1.25rem + 0.7vw, 2rem);
   letter-spacing: 0.14em;
   flex-shrink: 0;
-  line-height: 1;
-  transition: opacity 0.2s, letter-spacing 0.25s ease;
+  display: inline-flex;
+  direction: ltr;
   text-shadow: 0 0 24px rgba(201,162,75,0.18);
 }
-.nav-brand:hover .logo{ letter-spacing: 0.18em; }
 .nav-brand-sub{ display: none !important; }
+
+/* تفاعل شعار HCI — حرف H يضرب C ويرجع */
+.logo-hci{
+  display: inline-flex;
+  align-items: baseline;
+  direction: ltr;
+  unicode-bidi: isolate;
+  letter-spacing: 0.14em;
+}
+.logo-hci .logo-letter{
+  display: inline-block;
+  will-change: transform;
+}
+.logo-hci.is-bumping .logo-h{
+  animation: logoHBump 0.7s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+.logo-hci.is-bumping .logo-c{
+  animation: logoCBump 0.7s 0.05s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+.logo-hci.is-bumping .logo-i{
+  animation: logoIBump 0.7s 0.1s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+@keyframes logoHBump{
+  0%{ transform: translateX(0); }
+  28%{ transform: translateX(0.22em); }
+  42%{ transform: translateX(0.05em); }
+  58%{ transform: translateX(0.16em); }
+  100%{ transform: translateX(0); }
+}
+@keyframes logoCBump{
+  0%, 22%{ transform: translateX(0); }
+  34%{ transform: translateX(0.1em) rotate(4deg); }
+  50%{ transform: translateX(-0.03em) rotate(-2deg); }
+  100%{ transform: translateX(0) rotate(0deg); }
+}
+@keyframes logoIBump{
+  0%, 30%{ transform: translateX(0); }
+  42%{ transform: translateX(0.06em); }
+  100%{ transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .logo-hci.is-bumping .logo-h,
+  .logo-hci.is-bumping .logo-c,
+  .logo-hci.is-bumping .logo-i{ animation: none !important; }
+}
 .nav-links{
   display: flex;
   justify-content: center;
@@ -1062,8 +1111,10 @@ body.nav-open{ overflow: hidden; }
   font-weight:700;
   font-size: clamp(3.2rem, 9vw, 6rem); letter-spacing: -0.02em;
   color: var(--gold); line-height:1; margin-bottom: 16px;
+  display: inline-flex;
   animation: wordIn 0.9s var(--ease-out) both;
 }
+.wordmark.logo-hci{ letter-spacing: 0.02em; }
 @keyframes wordIn{
   from{ opacity:0; transform: translateY(20px) scale(0.96); letter-spacing: 0.08em; }
   to{ opacity:1; transform: translateY(0) scale(1); letter-spacing: -0.02em; }
@@ -2524,7 +2575,7 @@ footer{
   margin-bottom: 4px;
 }
 .footer-logo{
-  display: inline-block;
+  display: inline-flex;
   font-weight: 700;
   font-size: 1.15rem;
   color: var(--gold);
@@ -2532,7 +2583,7 @@ footer{
   margin-bottom: 6px;
   line-height: 1;
 }
-.footer-logo:hover{ opacity: 0.92; }
+.footer-logo:hover{ opacity: 1; }
 .footer-tagline{
   color: var(--text-mid);
   font-size: 0.82rem;

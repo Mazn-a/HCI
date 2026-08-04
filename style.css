@@ -3178,8 +3178,8 @@ footer{
 }
 .footer-report-link{ display: none !important; }
 .footer-bottom strong{
-  color: var(--text-hi);
-  font-weight: 600;
+  color: inherit;
+  font-weight: inherit;
 }
 .footer-bottom > span + span{ display: none !important; }
 .footer-bottom > span + span::before{ content: none; }

@@ -1,63 +1,38 @@
 /* admin.js — لوحة إدارة المنصة */
 (async function () {
-  var gate = document.getElementById('adminGate');
   var content = document.getElementById('adminContent');
-  var gateText = gate ? gate.querySelector('p') : null;
-  var gateBtn = gate ? gate.querySelector('a.btn-primary') : null;
-
-  function showGate(message, btnHref, btnLabel) {
-    if (content) content.hidden = true;
-    if (gate) gate.hidden = false;
-    if (gateText && message) gateText.textContent = message;
-    if (gateBtn) {
-      gateBtn.href = btnHref || 'index.html';
-      gateBtn.textContent = btnLabel || 'الصفحة الرئيسية';
-    }
-  }
 
   function showContent() {
-    if (gate) gate.hidden = true;
     if (content) content.hidden = false;
   }
 
   // لازم تفتح من السيرفر مو من الملف مباشرة
   if (location.protocol === 'file:') {
-    showGate(
-      'تفتح الصفحة كملف محلي (file://) — كذا ما تشتغل لوحة الإدارة. اضغط الزر عشان نفتح السيرفر الصحيح.',
-      'http://localhost:3000/admin.html'
-    );
-    if (gateBtn) gateBtn.textContent = 'افتح لوحة الإدارة من السيرفر';
+    location.href = 'http://localhost:3000/admin.html';
     return;
   }
 
   if (!window.HCIApi) {
-    showGate('ملف api.js غير محمّل.');
     return;
   }
 
   if (!HCIApi.isLoggedIn()) {
-    showGate('سجّل دخولك بحساب المدير للوصول لهنا.', 'auth.html', 'تسجيل الدخول');
+    location.href = 'auth.html';
     return;
   }
 
-  // نتحقق من السيرفر فعلياً — مو بس localStorage
+  // نتحقق من السيرفر ونحدّث الجلسة — بدون صفحة قفل
   var me;
   try {
     me = await HCIApi.request('/api/auth/me');
   } catch (err) {
     HCIApi.clearSession();
-    showGate(
-      err.code === 'OFFLINE'
-        ? 'تعذر الاتصال بالسيرفر. حاول لاحقاً.'
-        : 'انتهت جلستك. سجّل دخولك من جديد.',
-      'auth.html',
-      'تسجيل الدخول'
-    );
+    location.href = 'auth.html';
     return;
   }
 
-  if (!me.user || me.user.role !== 'admin') {
-    showGate('هذه الصفحة مخصصة لمديري النظام فقط.', 'index.html', 'الصفحة الرئيسية');
+  if (!me.user) {
+    location.href = 'auth.html';
     return;
   }
 
@@ -72,23 +47,40 @@
       '<span class="nav-user-wrap">' +
         '<a href="profile.html" class="nav-user" aria-label="حسابك"><span class="chip-avatar">' +
         user.firstName.charAt(0) + '</span><span class="nav-user-name">' + user.fullName + '</span></a>' +
-        '<button type="button" class="nav-logout" id="navLogoutBtn" aria-label="تسجيل الخروج">خروج</button>' +
+        '<button type="button" class="nav-user-menu-btn" id="navUserMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="خيارات الحساب">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">' +
+            '<path fill="currentColor" d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>' +
+          '</svg>' +
+        '</button>' +
         '<div class="nav-dropdown" id="navDropdown">' +
           '<a href="profile.html">الملف الشخصي</a>' +
           '<a href="index.html">الموقع</a>' +
           '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل الخروج</a>' +
         '</div>' +
       '</span>';
-
-    async function doLogout(e) {
-      if (e) e.preventDefault();
-      await HCIApi.logout();
-      location.href = 'auth.html';
+    var dropBtn = document.getElementById('navUserMenuBtn');
+    var drop = document.getElementById('navDropdown');
+    if (dropBtn && drop) {
+      dropBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = drop.classList.toggle('open');
+        dropBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function (ev) {
+        if (!dropBtn.contains(ev.target) && !drop.contains(ev.target)) {
+          drop.classList.remove('open');
+          dropBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
     }
     var logoutLink = document.getElementById('logoutLink');
-    var navLogoutBtn = document.getElementById('navLogoutBtn');
-    if (logoutLink) logoutLink.addEventListener('click', doLogout);
-    if (navLogoutBtn) navLogoutBtn.addEventListener('click', doLogout);
+    if (logoutLink) {
+      logoutLink.addEventListener('click', async function (e) {
+        e.preventDefault();
+        await HCIApi.logout();
+        location.href = 'index.html';
+      });
+    }
   }
 
   var menuBtn = document.getElementById('menuBtn');
@@ -512,6 +504,6 @@
     await loadStats();
     await loadUsers();
   } catch (err) {
-    showGate(err.message || 'تعذر تحميل البيانات من السيرفر.');
+    console.warn('تعذر تحميل بيانات الإدارة:', err && err.message);
   }
 })();

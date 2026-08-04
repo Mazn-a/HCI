@@ -204,9 +204,9 @@ function isUnlocked(stageId){
     return !!(j.visited && j.visited.discover) || !!(j.done && j.done.discover) || !!(j.unlocked && j.unlocked.fundamentals);
   }
 
-  // الترميز يُفتح فقط بعد اجتياز اختبار الأساسيات (علامة unlocked.coding)
+  // الترميز مفتوح بعد الأساسيات — بدون بوابة قفل مزعجة
   if (stageId === 'coding'){
-    return !!(j.unlocked && j.unlocked.coding);
+    return true;
   }
 
   // practice بعد fundamentals مفتوح أو مكتمل أو discover مكتمل
@@ -786,6 +786,13 @@ var pageStage = document.body.getAttribute('data-page-stage');
 
 function refreshPageLockGate(){
   if (!pageStage || !lockGate) return;
+  // صفحة الترميز: ما نعرض قفل أبداً
+  if (pageStage === 'coding'){
+    lockGate.hidden = true;
+    var mainCoding = document.getElementById('main');
+    if (mainCoding) mainCoding.hidden = false;
+    return;
+  }
   var mainContent = document.getElementById('main');
   var unlocked = isUnlocked(pageStage);
 
@@ -864,19 +871,6 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
     var href = link.getAttribute('href') || '';
     var targetStage = link.getAttribute('data-next-stage') || stageFromHref(href);
 
-    // الترميز: ما ينتقل إلا بعد اجتياز الاختبار — بدون إكمال تلقائي يفتح القفل
-    if (targetStage === 'coding' && !isUnlocked('coding')){
-      e.preventDefault();
-      showLockAlert(
-        'لازم تجتاز اختبار الأساسيات أولاً (3 من 4 صحيحة) عشان ينفتح الترميز.',
-        'fundamentals.html#quiz',
-        'إلى الاختبار'
-      );
-      var quizSec = document.getElementById('quiz');
-      if (quizSec) quizSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
     // أولاً: قوائم المراجعة في الصفحة الحالية
     var check = ensureChecklistsComplete();
     if (!check.ok){
@@ -892,8 +886,8 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
       if (overallPct) overallPct.textContent = getOverallProgress() + '%';
     }
 
-    // ثانياً: هل المرحلة الهدف مفتوحة؟
-    if (targetStage && targetStage !== 'discover' && !isUnlocked(targetStage)){
+    // ثانياً: هل المرحلة الهدف مفتوحة؟ (الترميز دائماً مفتوح)
+    if (targetStage && targetStage !== 'discover' && targetStage !== 'coding' && !isUnlocked(targetStage)){
       e.preventDefault();
       showStageLock(targetStage);
     }
@@ -903,14 +897,9 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
 function updateCodingNextButton(){
   var nextCoding = document.querySelector('a[data-next-stage="coding"]');
   if (!nextCoding) return;
-  var ready = isUnlocked('coding');
-  nextCoding.classList.toggle('is-locked-next', !ready);
-  nextCoding.setAttribute('aria-disabled', ready ? 'false' : 'true');
-  if (!ready){
-    nextCoding.setAttribute('title', 'يتاح بعد اجتياز اختبار الأساسيات (3 من 4)');
-  } else {
-    nextCoding.removeAttribute('title');
-  }
+  nextCoding.classList.remove('is-locked-next');
+  nextCoding.setAttribute('aria-disabled', 'false');
+  nextCoding.removeAttribute('title');
 }
 updateCodingNextButton();
 

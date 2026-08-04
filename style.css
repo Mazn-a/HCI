@@ -308,8 +308,12 @@ html[data-theme="light"] .footer-tagline,
 body[data-theme="light"] .footer-tagline,
 html[data-theme="light"] .footer-col-title,
 body[data-theme="light"] .footer-col-title,
+html[data-theme="light"] .footer-about-label,
+body[data-theme="light"] .footer-about-label,
 html[data-theme="light"] .footer-bottom strong,
-body[data-theme="light"] .footer-bottom strong{
+body[data-theme="light"] .footer-bottom strong,
+html[data-theme="light"] .footer-about strong,
+body[data-theme="light"] .footer-about strong{
   color: #18181B;
 }
 html[data-theme="light"] .footer-bottom,
@@ -3639,12 +3643,24 @@ footer{
   max-width: 36ch;
   text-align: start;
 }
+.footer-about-label{
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  margin: 0 0 8px;
+  letter-spacing: 0.02em;
+}
 .footer-about{
   color: var(--text-mid);
   font-size: 0.84rem;
   line-height: 1.75;
   margin: 0;
   max-width: 42ch;
+  scroll-margin-top: 88px;
+}
+.footer-about strong{
+  color: var(--text-hi);
+  font-weight: 600;
 }
 .footer-nav{
   grid-area: nav;
@@ -3767,7 +3783,21 @@ footer{
     gap: 16px;
   }
   .footer-brand{ max-width: none; }
-  .footer-about{ display: none; }
+  .footer-about-label{
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-mid);
+    letter-spacing: 0.06em;
+  }
+  .footer-about{
+    display: block;
+    max-width: none;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    margin: 0 0 2px;
+  }
   .footer-tagline{
     font-size: 0.8rem;
     font-weight: 500;
@@ -3787,6 +3817,7 @@ footer{
     grid-template-columns: 1fr 1fr;
     grid-area: cols;
     gap: 14px 20px;
+    padding-top: 4px;
   }
   .footer-nav,
   .footer-support{
@@ -3808,14 +3839,14 @@ footer{
     line-height: 1.4;
   }
 
-  /* الخصوصية/الشروط جنب الحقوق — زي المواقع العالمية على الجوال */
-  .footer-bottom{ padding-top: 12px; }
+  /* شريط سفلي أوضح: إعداد + حقوق، ثم الخصوصية/الشروط تحتها */
+  .footer-bottom{ padding-top: 14px; margin-top: 2px; }
   .footer-credit-block{
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 10px;
-    justify-content: flex-start;
+    gap: 6px 12px;
+    justify-content: space-between;
   }
   .footer-meta-links{
     display: flex;
@@ -3889,12 +3920,16 @@ footer{
     margin: 0 auto 12px;
     max-width: 28ch;
   }
+  .footer-about-label{
+    text-align: center;
+    margin: 0 auto 8px;
+  }
   .footer-about{
     text-align: center;
     font-size: 0.88rem;
     line-height: 1.8;
     margin: 0 auto;
-    max-width: 34ch;
+    max-width: 44ch;
   }
   .footer-col-title{
     font-size: 0.75rem;

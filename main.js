@@ -42,26 +42,39 @@ var LIGHT_THEME_AVAILABLE = false;
 var LIGHT_ACCENT_MAP = {
   '#C9A24B': '#A9843A',
   '#c9a24b': '#A9843A',
-  '#8FC15C': '#1E4A6E',
-  '#8fc15c': '#1E4A6E',
+  '#8FC15C': '#3E7CB0',
+  '#8fc15c': '#3E7CB0',
   '#6FD6E0': '#57534E',
   '#6fd6e0': '#57534E',
   '#6B9FE8': '#57534E',
   '#6b9fe8': '#57534E',
-  '#6ECF84': '#1E4A6E',
-  '#6ecf84': '#1E4A6E',
+  '#6ECF84': '#3E7CB0',
+  '#6ecf84': '#3E7CB0',
   '#B79CE0': '#7C6A9A',
   '#b79ce0': '#7C6A9A',
   '#4A6B78': '#57534E',
   '#4a6b78': '#57534E',
-  '#3F3F46': '#1E4A6E',
-  '#3f3f46': '#1E4A6E'
+  '#3F3F46': '#3E7CB0',
+  '#3f3f46': '#3E7CB0',
+  '#1E4A6E': '#3E7CB0',
+  '#1e4a6e': '#3E7CB0'
 };
+
+function hexToRgbChannels(hex){
+  var h = String(hex || '').replace('#', '').trim();
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (h.length !== 6) return [201, 162, 75];
+  var n = parseInt(h, 16);
+  if (isNaN(n)) return [201, 162, 75];
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
 
 function resolveAccentForTheme(theme, color){
   if (!color) return theme === 'light' ? '#A9843A' : '#C9A24B';
-  // الفحمي القديم استُبدل بالكحلي
-  if (color === '#3F3F46' || color === '#3f3f46') color = '#1E4A6E';
+  // ترحيل الألوان القديمة إلى الكحلي الحالي
+  if (color === '#3F3F46' || color === '#3f3f46' || color === '#1E4A6E' || color === '#1e4a6e'){
+    color = '#3E7CB0';
+  }
   if (theme === 'light' && LIGHT_ACCENT_MAP[color]) return LIGHT_ACCENT_MAP[color];
   return color;
 }
@@ -69,7 +82,20 @@ function resolveAccentForTheme(theme, color){
 function applyAccentColor(color){
   var theme = document.documentElement.getAttribute('data-theme') || 'dark';
   var resolved = resolveAccentForTheme(theme, color);
-  document.documentElement.style.setProperty('--gold', resolved);
+  var rgb = hexToRgbChannels(resolved);
+  var lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+  var ink = lum > 0.55 ? '#111111' : '#F4F8FC';
+  var root = document.documentElement.style;
+  root.setProperty('--gold', resolved);
+  root.setProperty('--accent-rgb', rgb[0] + ', ' + rgb[1] + ', ' + rgb[2]);
+  root.setProperty('--accent-ink', ink);
+  root.setProperty('--badge-bg', 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.14)');
+  root.setProperty('--card-border-hover', 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.5)');
+  try {
+    if (color === '#3F3F46' || color === '#3f3f46' || color === '#1E4A6E' || color === '#1e4a6e'){
+      localStorage.setItem('hci_accent_color', '#3E7CB0');
+    }
+  } catch (e) { /* */ }
 }
 
 var savedAccent = localStorage.getItem('hci_accent_color');

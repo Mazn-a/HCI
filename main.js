@@ -3,23 +3,64 @@
    ============================================ */
 
 // ----- تفضيلات المظهر -----
-var savedFontSize = localStorage.getItem('hci_font_size') || '18px';
+var ALLOWED_FONT_SIZES = { '16px': 1, '18px': 1, '20px': 1 };
+function normalizeFontSize(size){
+  if (ALLOWED_FONT_SIZES[size]) return size;
+  if (size === '22px' || size === '24px') return '20px';
+  return '18px';
+}
+var savedFontSize = normalizeFontSize(localStorage.getItem('hci_font_size') || '18px');
 document.documentElement.style.fontSize = savedFontSize;
+try { localStorage.setItem('hci_font_size', savedFontSize); } catch (e) { /* */ }
+
+/* الوضع الفاتح تحت الصيانة — يُجبر الداكن دائماً */
+var LIGHT_THEME_AVAILABLE = false;
+
+/* ألوان التمييز الصارخة تُستبدل في الوضع الفاتح بهوية هادئة */
+var LIGHT_ACCENT_MAP = {
+  '#C9A24B': '#A9843A',
+  '#c9a24b': '#A9843A',
+  '#8FC15C': '#3F3F46',
+  '#8fc15c': '#3F3F46',
+  '#6FD6E0': '#57534E',
+  '#6fd6e0': '#57534E',
+  '#6B9FE8': '#57534E',
+  '#6b9fe8': '#57534E',
+  '#B79CE0': '#7C6A9A',
+  '#b79ce0': '#7C6A9A',
+  '#4A6B78': '#57534E',
+  '#4a6b78': '#57534E'
+};
+
+function resolveAccentForTheme(theme, color){
+  if (!color) return theme === 'light' ? '#A9843A' : '#C9A24B';
+  if (theme === 'light' && LIGHT_ACCENT_MAP[color]) return LIGHT_ACCENT_MAP[color];
+  return color;
+}
+
+function applyAccentColor(color){
+  var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  var resolved = resolveAccentForTheme(theme, color);
+  document.documentElement.style.setProperty('--gold', resolved);
+}
 
 var savedAccent = localStorage.getItem('hci_accent_color');
-if (savedAccent){ document.documentElement.style.setProperty('--gold', savedAccent); }
-
 (function applyThemeEarly(){
   var theme = localStorage.getItem('hci_theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', theme);
-  if (document.body) document.body.setAttribute('data-theme', theme);
-})();
-
-function setTheme(theme){
-  theme = theme === 'light' ? 'light' : 'dark';
+  if (!LIGHT_THEME_AVAILABLE || theme !== 'light') theme = 'dark';
   document.documentElement.setAttribute('data-theme', theme);
   if (document.body) document.body.setAttribute('data-theme', theme);
   try { localStorage.setItem('hci_theme', theme); } catch (e) { /* */ }
+  applyAccentColor(savedAccent);
+})();
+
+function setTheme(theme){
+  if (!LIGHT_THEME_AVAILABLE || theme !== 'light') theme = 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  if (document.body) document.body.setAttribute('data-theme', theme);
+  try { localStorage.setItem('hci_theme', theme); } catch (e) { /* */ }
+  applyAccentColor(localStorage.getItem('hci_accent_color'));
+  return theme;
 }
 
 // ----- نظام الرحلة (فتح تدريجي) -----
@@ -467,11 +508,12 @@ if (navCtaSlot && loggedInName){
         '<span class="chip-avatar" id="navAvatarChip">' + loggedInName.charAt(0) + '</span>' +
         '<span class="nav-user-name">' + loggedInName + '</span>' +
       '</button>' +
+      '<button type="button" class="nav-logout" id="navLogoutBtn" aria-label="تسجيل الخروج">خروج</button>' +
       '<div class="nav-dropdown" id="navDropdown">' +
         '<a href="profile.html">الملف الشخصي</a>' +
         '<a href="settings.html">الإعدادات</a>' +
         adminLink +
-        '<a href="#" id="logoutLink">تسجيل الخروج</a>' +
+        '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل الخروج</a>' +
       '</div>' +
     '</span>';
 
@@ -491,15 +533,15 @@ if (navCtaSlot && loggedInName){
     }
   });
 
-  var logoutLink = document.getElementById('logoutLink');
-  if (logoutLink && window.HCIApi){
-    logoutLink.addEventListener('click', async function(e){
-      e.preventDefault();
-      await HCIApi.logout();
-      window.location.href = 'index.html';
-    });
+  async function doLogout(e){
+    if (e) e.preventDefault();
+    if (window.HCIApi) await HCIApi.logout();
+    window.location.href = 'index.html';
   }
-
+  var logoutLink = document.getElementById('logoutLink');
+  var navLogoutBtn = document.getElementById('navLogoutBtn');
+  if (logoutLink) logoutLink.addEventListener('click', doLogout);
+  if (navLogoutBtn) navLogoutBtn.addEventListener('click', doLogout);
 }
 
 if (heroCta && loggedInName){
@@ -1324,67 +1366,6 @@ if (journeyMap){
   if (certBox) certBox.hidden = p < 100;
 }
 
-// تفصيل مسار الترميز — من الدروس الفعلية (مو اختيار يدوي منفصل)
-var codingMiniMap = document.getElementById('codingMiniMap');
-if (codingMiniMap){
-  var codingLessons = [
-    { id: 'html-intro', title: 'مقدمة HTML' },
-    { id: 'html-elements', title: 'العناصر والوسوم' },
-    { id: 'html-links', title: 'الروابط' },
-    { id: 'html-images', title: 'الصور' },
-    { id: 'html-lists', title: 'القوائم' },
-    { id: 'html-forms', title: 'الفورمات' },
-    { id: 'css-intro', title: 'مقدمة CSS' },
-    { id: 'css-box-model', title: 'Box Model' }
-  ];
-
-  var codingProg = {};
-  try { codingProg = JSON.parse(localStorage.getItem('hci_coding_progress') || '{}'); } catch (e) { codingProg = {}; }
-
-  var doneCoding = 0;
-  var nextTitle = null;
-  var miniHtml = '';
-  codingLessons.forEach(function(lesson, index){
-    var doneL = !!codingProg[lesson.id];
-    if (doneL) doneCoding++;
-    var prevDone = index === 0 || !!codingProg[codingLessons[index - 1].id];
-    var cls = 'locked';
-    var state = 'قريباً';
-    if (doneL){ cls = 'done'; state = 'تم'; }
-    else if (prevDone){ cls = 'current'; state = 'التالي'; if (!nextTitle) nextTitle = lesson.title; }
-    miniHtml += '<div class="jm-row ' + cls + '">' +
-      '<span class="jm-dot"></span>' +
-      '<span>' + (index + 1 < 10 ? '0' : '') + (index + 1) + ' — ' + lesson.title + '</span>' +
-      '<span class="jm-state">' + state + '</span>' +
-    '</div>';
-  });
-  codingMiniMap.innerHTML = miniHtml;
-
-  var codingFill = document.getElementById('codingProfileFill');
-  var codingNote = document.getElementById('codingProfileNote');
-  var codingLink = document.getElementById('codingContinueLink');
-  var codingPct = Math.round((doneCoding / codingLessons.length) * 100);
-  if (codingFill) codingFill.style.width = codingPct + '%';
-  if (codingNote){
-    if (doneCoding === 0) codingNote.textContent = 'ما بدأت بعد — ابدأ من أول درس بمسار الترميز';
-    else if (doneCoding === codingLessons.length) codingNote.textContent = 'أكملت كل دروس الترميز (' + doneCoding + '/' + codingLessons.length + ')';
-    else codingNote.textContent = 'أكملت ' + doneCoding + ' من ' + codingLessons.length + ' — التالي: ' + (nextTitle || '—');
-  }
-  if (codingLink){
-    if (!isUnlocked('coding')){
-      codingLink.textContent = 'كيف أفتحه؟';
-      codingLink.href = '#';
-      codingLink.addEventListener('click', function(e){
-        e.preventDefault();
-        showStageLock('coding');
-      });
-    } else if (doneCoding === codingLessons.length){
-      codingLink.textContent = 'انتقل للدورات ←';
-      codingLink.href = 'courses.html';
-    }
-  }
-}
-
 // ----- مسار الترميز -----
 var lessonList = document.getElementById('lessonList');
 var codingProgressFill = document.getElementById('codingProgressFill');
@@ -1509,11 +1490,24 @@ if (settingsFirstName && settingsLastName){
 
 if (settingsThemeRow){
   var themeButtons = settingsThemeRow.querySelectorAll('.size-btn');
-  var currentTheme = localStorage.getItem('hci_theme') || 'dark';
+  var themeNote = document.getElementById('settingsThemeNote');
+  var currentTheme = LIGHT_THEME_AVAILABLE ? (localStorage.getItem('hci_theme') || 'dark') : 'dark';
   themeButtons.forEach(function(btn){
+    var isLight = btn.getAttribute('data-theme') === 'light';
     btn.classList.toggle('active', btn.getAttribute('data-theme') === currentTheme);
+    if (isLight && !LIGHT_THEME_AVAILABLE){
+      btn.classList.add('is-disabled');
+      btn.setAttribute('aria-disabled', 'true');
+    }
     btn.addEventListener('click', function(){
       var theme = btn.getAttribute('data-theme');
+      if (theme === 'light' && !LIGHT_THEME_AVAILABLE){
+        if (themeNote){
+          themeNote.textContent = 'الوضع الفاتح تحت الصيانة — ماتقدر تفعّله حالياً.';
+          themeNote.hidden = false;
+        }
+        return;
+      }
       setTheme(theme);
       themeButtons.forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
@@ -1523,12 +1517,12 @@ if (settingsThemeRow){
 
 if (settingsSizeRow){
   var sizeButtons = settingsSizeRow.querySelectorAll('.size-btn');
-  var storedSize = localStorage.getItem('hci_font_size') || '18px';
+  var storedSize = normalizeFontSize(localStorage.getItem('hci_font_size') || '18px');
 
   sizeButtons.forEach(function(btn){
     btn.classList.toggle('active', btn.getAttribute('data-size') === storedSize);
     btn.addEventListener('click', function(){
-      var size = btn.getAttribute('data-size');
+      var size = normalizeFontSize(btn.getAttribute('data-size'));
       document.documentElement.style.fontSize = size;
       localStorage.setItem('hci_font_size', size);
       sizeButtons.forEach(function(b){ b.classList.remove('active'); });
@@ -1540,13 +1534,16 @@ if (settingsSizeRow){
 if (settingsSwatchRow){
   var swatchButtons = settingsSwatchRow.querySelectorAll('.swatch-btn');
   var storedAccent = localStorage.getItem('hci_accent_color') || '#C9A24B';
+  var themeNow = localStorage.getItem('hci_theme') || 'dark';
+  var resolvedStored = resolveAccentForTheme(themeNow, storedAccent);
 
   swatchButtons.forEach(function(btn){
-    btn.classList.toggle('active', btn.getAttribute('data-color') === storedAccent);
+    var c = btn.getAttribute('data-color');
+    btn.classList.toggle('active', c === storedAccent || c === resolvedStored);
     btn.addEventListener('click', function(){
       var color = btn.getAttribute('data-color');
-      document.documentElement.style.setProperty('--gold', color);
       localStorage.setItem('hci_accent_color', color);
+      applyAccentColor(color);
       swatchButtons.forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
     });
@@ -1564,13 +1561,14 @@ if (settingsSaveAll){
 
     // ثبّت المظهر/الحجم/اللون من الاختيار الحالي
     if (settingsThemeRow){
-      var activeTheme = settingsThemeRow.querySelector('.size-btn.active');
-      if (activeTheme) setTheme(activeTheme.getAttribute('data-theme'));
+      var activeTheme = settingsThemeRow.querySelector('.size-btn.active:not([data-theme="light"]), .size-btn[data-theme="dark"].active');
+      if (!activeTheme) activeTheme = settingsThemeRow.querySelector('.size-btn[data-theme="dark"]');
+      setTheme(activeTheme ? activeTheme.getAttribute('data-theme') : 'dark');
     }
     if (settingsSizeRow){
       var activeSize = settingsSizeRow.querySelector('.size-btn.active');
       if (activeSize){
-        var size = activeSize.getAttribute('data-size');
+        var size = normalizeFontSize(activeSize.getAttribute('data-size'));
         document.documentElement.style.fontSize = size;
         localStorage.setItem('hci_font_size', size);
       }
@@ -1579,8 +1577,8 @@ if (settingsSaveAll){
       var activeSwatch = settingsSwatchRow.querySelector('.swatch-btn.active');
       if (activeSwatch){
         var color = activeSwatch.getAttribute('data-color');
-        document.documentElement.style.setProperty('--gold', color);
         localStorage.setItem('hci_accent_color', color);
+        applyAccentColor(color);
       }
     }
 
@@ -1995,4 +1993,68 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
       submitBtn.textContent = 'إرسال البلاغ';
     }
   });
+})();
+
+/* تبويبات الإعدادات / الملف — أزرار واضحة + تمرير دقيق تحت الهيدر */
+(function initSettingsSideNav(){
+  var side = document.querySelector('.settings-page .settings-side');
+  if (!side) return;
+  var links = Array.prototype.slice.call(side.querySelectorAll('.settings-side-link[data-target]'));
+  if (!links.length) return;
+
+  var lockUntil = 0;
+
+  function headerOffset(){
+    var header = document.querySelector('body > header');
+    var h = header ? header.getBoundingClientRect().height : 72;
+    return Math.round(h + 16);
+  }
+
+  function setActive(id){
+    links.forEach(function(link){
+      var on = link.getAttribute('data-target') === id;
+      link.classList.toggle('is-active', on);
+      if (on) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
+  function scrollToSection(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    lockUntil = Date.now() + 900;
+    setActive(id);
+    var top = el.getBoundingClientRect().top + window.pageYOffset - headerOffset();
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    try { history.replaceState(null, '', '#' + id); } catch (e) { /* */ }
+  }
+
+  links.forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      scrollToSection(link.getAttribute('data-target'));
+    });
+  });
+
+  var sections = links.map(function(link){
+    return document.getElementById(link.getAttribute('data-target'));
+  }).filter(Boolean);
+
+  if ('IntersectionObserver' in window && sections.length){
+    var io = new IntersectionObserver(function(entries){
+      if (Date.now() < lockUntil) return;
+      var visible = entries
+        .filter(function(en){ return en.isIntersecting; })
+        .sort(function(a, b){ return b.intersectionRatio - a.intersectionRatio; });
+      if (visible[0] && visible[0].target.id) setActive(visible[0].target.id);
+    }, { rootMargin: '-22% 0px -52% 0px', threshold: [0.15, 0.4, 0.7] });
+    sections.forEach(function(sec){ io.observe(sec); });
+  }
+
+  if (location.hash){
+    var hashId = location.hash.replace(/^#/, '');
+    if (document.getElementById(hashId)){
+      setTimeout(function(){ scrollToSection(hashId); }, 60);
+    }
+  }
 })();

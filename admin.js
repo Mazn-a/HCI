@@ -70,26 +70,25 @@
   if (slot && user) {
     slot.innerHTML =
       '<span class="nav-user-wrap">' +
-        '<a href="profile.html" class="nav-user"><span class="chip-avatar">' +
+        '<a href="profile.html" class="nav-user" aria-label="حسابك"><span class="chip-avatar">' +
         user.firstName.charAt(0) + '</span><span class="nav-user-name">' + user.fullName + '</span></a>' +
-        '<button type="button" class="nav-user-menu-btn" id="navUserMenuBtn" aria-expanded="false">≡</button>' +
+        '<button type="button" class="nav-logout" id="navLogoutBtn" aria-label="تسجيل الخروج">خروج</button>' +
         '<div class="nav-dropdown" id="navDropdown">' +
           '<a href="profile.html">الملف الشخصي</a>' +
           '<a href="index.html">الموقع</a>' +
-          '<a href="#" id="logoutLink">تسجيل الخروج</a>' +
+          '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل الخروج</a>' +
         '</div>' +
       '</span>';
 
-    var btn = document.getElementById('navUserMenuBtn');
-    var dd = document.getElementById('navDropdown');
-    btn.addEventListener('click', function () {
-      dd.classList.toggle('open');
-    });
-    document.getElementById('logoutLink').addEventListener('click', async function (e) {
-      e.preventDefault();
+    async function doLogout(e) {
+      if (e) e.preventDefault();
       await HCIApi.logout();
-      location.href = 'http://localhost:3000/auth.html';
-    });
+      location.href = 'auth.html';
+    }
+    var logoutLink = document.getElementById('logoutLink');
+    var navLogoutBtn = document.getElementById('navLogoutBtn');
+    if (logoutLink) logoutLink.addEventListener('click', doLogout);
+    if (navLogoutBtn) navLogoutBtn.addEventListener('click', doLogout);
   }
 
   var menuBtn = document.getElementById('menuBtn');

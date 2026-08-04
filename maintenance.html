@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>تحت الصيانة — HCI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .maint-page{
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(32px, env(safe-area-inset-top)) 20px max(40px, env(safe-area-inset-bottom));
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .maint-page::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(201,162,75,0.12), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(107,159,232,0.07), transparent 50%);
+  }
+  .maint-card{
+    position: relative;
+    z-index: 1;
+    width: min(100%, 460px);
+    padding: clamp(36px, 6vw, 48px) clamp(24px, 5vw, 40px);
+    background: var(--ink-2);
+    border: 1px solid var(--ink-3);
+    border-radius: 16px;
+  }
+  .maint-logo{
+    display: inline-block;
+    font-weight: 700;
+    font-size: clamp(2.8rem, 10vw, 3.6rem);
+    letter-spacing: -0.02em;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 12px;
+    text-decoration: none;
+  }
+  .maint-rule{
+    width: 72px;
+    height: 2px;
+    background: var(--gold);
+    margin: 0 auto 28px;
+  }
+  .maint-badge{
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gold);
+    border: 1px solid rgba(201,162,75,0.35);
+    background: rgba(201,162,75,0.08);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .maint-card h1{
+    font-size: clamp(1.35rem, 3.5vw, 1.65rem);
+    font-weight: 700;
+    line-height: 1.45;
+    margin: 0 0 14px;
+    color: var(--text-hi);
+  }
+  .maint-card p{
+    color: var(--text-mid);
+    font-size: 1.02rem;
+    line-height: 1.75;
+    margin: 0 0 12px;
+  }
+  .maint-card p:last-of-type{ margin-bottom: 0; }
+  .maint-foot{
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ink-3);
+    color: var(--text-mid);
+    font-size: 0.88rem;
+  }
+  .maint-foot strong{ color: var(--text-hi); font-weight: 600; }
+</style>
+<script src="gate.js"></script>
+</head>
+<body class="maint-page">
+  <main class="maint-card" role="main">
+    <a class="maint-logo" href="maintenance.html" aria-label="HCI">HCI</a>
+    <div class="maint-rule" aria-hidden="true"></div>
+    <span class="maint-badge">تحت الصيانة</span>
+    <h1>نعتذر… المنصة غير متاحة حالياً</h1>
+    <p>
+      نعمل على تحسين التجربة وتحديث المحتوى.
+      الموقع مغلق مؤقتاً ولن تتمكن من الدخول الآن.
+    </p>
+    <p>شكراً لتفهمك — نعود قريباً بإذن الله.</p>
+    <div class="maint-foot">
+      <span>إعداد <strong>مازن عطية</strong></span>
+    </div>
+  </main>
+</body>
+</html>

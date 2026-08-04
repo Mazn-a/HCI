@@ -10,12 +10,12 @@
 <link rel="stylesheet" href="style.css">
 <script src="gate.js"></script>
 </head>
-<body>
+<body class="settings-page profile-page">
   <a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
 
   <header>
     <div class="wrap nav">
-      <a href="index.html" class="logo">HCI</a>
+      <a href="index.html" class="nav-brand" aria-label="HCI — التخصص"><span class="logo">HCI</span><span class="nav-brand-sub">التخصص</span></a>
       <nav class="nav-links" id="navLinks">
         <a href="index.html">الرئيسية</a>
         <a href="index.html#paths">المسارات</a>
@@ -31,84 +31,109 @@
     </div>
   </header>
 
-  <main class="lesson" id="main">
+  <main class="settings-main" id="main">
     <div class="wrap">
-      <a href="index.html" class="page-back">← رجوع للرئيسية</a>
 
-      <div class="lesson-head reveal">
-        <span class="eyebrow">/// ملفك الشخصي</span>
+      <a href="index.html" class="page-back">← الرئيسية</a>
+
+      <div class="settings-page-header">
+        <p class="settings-kicker">الملف الشخصي</p>
         <h1>خريطة تقدمك الكاملة</h1>
-        <p>نفس رحلة الموقع — من الاكتشاف إلى إفادة الآخرين، مع تفصيل مسار الترميز من دروسك الفعلية.</p>
+        <p class="settings-lead">من الاكتشاف إلى إفادة الآخرين — حسابك وتقدمك ورسائلك في مكان واحد.</p>
       </div>
 
-      <div class="profile-card reveal">
-        <div class="profile-name-row">
-          <span class="profile-avatar" id="avatarLetter">؟</span>
-          <div>
-            <div class="profile-name-display" id="profileNameDisplay">ما سجلت بعد</div>
-            <p class="profile-name-hint" id="profileNameHint">
-              <a href="auth.html?tab=signup">أنشئ حساب</a> عشان يظهر اسمك هنا تلقائياً
-            </p>
-            <div class="avatar-actions" id="avatarActions">
-              <label class="btn-ghost avatar-upload-btn" for="avatarUpload">تغيير الصورة</label>
-              <input type="file" id="avatarUpload" accept="image/*" hidden>
-              <button type="button" class="avatar-remove-btn" id="avatarRemove" hidden>إزالة الصورة</button>
+      <div class="settings-layout">
+
+        <nav class="settings-side" id="profileSideNav" aria-label="أقسام الملف الشخصي">
+          <button type="button" class="settings-side-link is-active" data-target="sec-identity">الحساب</button>
+          <button type="button" class="settings-side-link" data-target="sec-journey">التقدم</button>
+          <button type="button" class="settings-side-link" data-target="sec-inbox">الرسائل</button>
+        </nav>
+
+        <div class="settings-shell">
+
+          <section class="settings-block" id="sec-identity">
+            <div class="settings-block-head">
+              <h2>الحساب</h2>
+              <p>اسمك وصورتك الظاهرة في الشهادة والشريط العلوي.</p>
             </div>
-          </div>
-        </div>
-
-        <h2 class="progress-title">تقدم الرحلة</h2>
-        <p class="progress-sub">المحطات السبع بنفس ترتيب الموقع</p>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="profileOverallFill"></div>
-        </div>
-        <p class="progress-note" id="profileOverallNote">ما بدأت بعد</p>
-
-        <div class="certificate-cta" id="certificateBox" hidden>
-          <p class="certificate-cta-title">أحسنت — أكملت رحلة HCI</p>
-          <p class="certificate-cta-sub">شهادتك التحفيزية جاهزة باسم المنصة واسمك.</p>
-          <a href="certificate.html" class="btn-primary">عرض الشهادة وطباعتها</a>
-        </div>
-
-        <div class="journey-map" id="journeyMap" aria-label="خريطة مراحل الرحلة"></div>
-
-        <div class="profile-coding-block" id="profileCodingBlock">
-          <div class="profile-coding-head">
-            <div>
-              <h2 class="progress-title">مسار الترميز داخل الرحلة</h2>
-              <p class="progress-sub">من دروس HTML &amp; CSS اللي كمّلتها بالموقع</p>
+            <div class="profile-name-row profile-name-row-panel">
+              <span class="profile-avatar" id="avatarLetter">؟</span>
+              <div class="profile-identity-meta">
+                <div class="profile-name-display" id="profileNameDisplay">ما سجلت بعد</div>
+                <p class="profile-name-hint" id="profileNameHint">
+                  <a href="auth.html?tab=signup">أنشئ حساب</a> عشان يظهر اسمك هنا تلقائياً
+                </p>
+                <div class="avatar-actions" id="avatarActions">
+                  <label class="btn-ghost avatar-upload-btn" for="avatarUpload">تغيير الصورة</label>
+                  <input type="file" id="avatarUpload" accept="image/*" hidden>
+                  <button type="button" class="avatar-remove-btn" id="avatarRemove" hidden>إزالة الصورة</button>
+                </div>
+              </div>
             </div>
-            <a href="coding.html" class="station-link" id="codingContinueLink">تابع الترميز ←</a>
+          </section>
+
+          <section class="settings-block" id="sec-journey">
+            <div class="settings-block-head">
+              <h2>تقدم الرحلة</h2>
+              <p>المحطات السبع بنفس ترتيب الموقع.</p>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="profileOverallFill"></div>
+            </div>
+            <p class="progress-note" id="profileOverallNote">ما بدأت بعد</p>
+
+            <div class="certificate-cta" id="certificateBox" hidden>
+              <p class="certificate-cta-title">أحسنت — أكملت رحلة HCI</p>
+              <p class="certificate-cta-sub">شهادتك التحفيزية جاهزة باسم المنصة واسمك.</p>
+              <a href="certificate.html" class="btn-primary">عرض الشهادة وطباعتها</a>
+            </div>
+
+            <div class="journey-map" id="journeyMap" aria-label="خريطة مراحل الرحلة"></div>
+          </section>
+
+          <section class="settings-block" id="sec-inbox">
+            <div class="settings-block-head settings-block-head-only">
+              <h2>رسائل الإدارة</h2>
+              <p>عند إرسال الإدارة ملاحظة أو تذكير يظهر تنبيه هنا وفي أعلى الصفحة.</p>
+            </div>
+            <div id="inboxList"><p class="progress-note">سجّل دخولك لعرض الرسائل</p></div>
+          </section>
+
+          <div class="settings-actions">
+            <a href="settings.html" class="settings-save settings-save-full" style="text-align:center; text-decoration:none;">الإعدادات</a>
           </div>
-          <div class="progress-bar-track">
-            <div class="progress-bar-fill" id="codingProfileFill"></div>
-          </div>
-          <p class="progress-note" id="codingProfileNote">ما بدأت دروس الترميز بعد</p>
-          <div class="coding-mini-map" id="codingMiniMap" aria-label="دروس الترميز"></div>
+
         </div>
-
-        <p style="margin-top:28px;"><a href="settings.html" class="btn-ghost" style="padding:10px 18px; font-size:0.85rem;">الإعدادات</a></p>
       </div>
 
-      <div class="profile-card reveal" style="margin-top:24px;" id="inbox">
-        <h2 class="progress-title">رسائل الإدارة</h2>
-        <p class="progress-sub">عند إرسال الإدارة ملاحظة أو تذكير يظهر تنبيه هنا وفي أعلى الصفحة</p>
-        <div id="inboxList"><p class="progress-note">سجّل دخولك لعرض الرسائل</p></div>
-      </div>
     </div>
   </main>
 
   <footer>
-    <div class="wrap">
-      <div class="title-list">
-        <div class="title-row"><span class="k">الصفحة</span><span class="v">الملف الشخصي</span></div>
-        <div class="title-row"><span class="k">إعداد</span><span class="v">مازن عطية</span></div>
+    <div class="wrap footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="index.html" class="footer-logo">HCI</a>
+          <p class="footer-tagline">خارطة طريق لتخصص تفاعل الإنسان والحاسوب</p>
+        </div>
+      <nav class="footer-nav" aria-label="روابط سريعة">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html#paths">المسارات</a>
+        <a href="courses.html">الدورات</a>
+        <a href="books.html">الكتب</a>
+        <a href="glossary.html">المعجم</a>
+      </nav>
+      </div>
+      <div class="footer-bottom">
+        <span>إعداد <strong>مازن عطية</strong></span>
+        <span>الملف الشخصي</span>
       </div>
     </div>
   </footer>
 
-  <button id="backToTop" class="back-to-top" aria-label="رجوع للأعلى">↑</button>
+  <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
   <script src="api.js"></script>
-<script src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

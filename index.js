@@ -36,6 +36,43 @@ const upload = multer({
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+/* ===== وضع الصيانة للموقع بالكامل =====
+   true = الزوار يُحوَّلون لصفحة الصيانة
+   للتجربة أنت: افتح أي صفحة مع ?open=1 (يحفظ كوكي تجاوز)
+   إلغاء التجاوز: ?open=0
+   لإعادة فتح الموقع للجميع: غيّر إلى false (ومعها gate.js)
+*/
+const MAINTENANCE_MODE = true;
+
+app.use(function maintenanceGate(req, res, next) {
+  if (!MAINTENANCE_MODE) return next();
+
+  const pathOnly = (req.path || '/').split('?')[0];
+  const isAsset = /\.(css|js|mjs|map|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf|mp4|webm|json)$/i.test(pathOnly);
+  const isApi = pathOnly === '/api' || pathOnly.indexOf('/api/') === 0;
+  const isUploads = pathOnly.indexOf('/uploads/') === 0;
+  const isMaintPage = pathOnly === '/maintenance.html' || pathOnly === '/maintenance';
+  const isSeo = pathOnly === '/robots.txt' || pathOnly === '/sitemap.xml';
+  const isGoogleVerify = /^\/google[a-z0-9]+\.html$/i.test(pathOnly);
+
+  if (isAsset || isApi || isUploads || isMaintPage || isSeo || isGoogleVerify) return next();
+
+  const open = String(req.query.open || '');
+  if (open === '1') {
+    res.setHeader('Set-Cookie', 'hci_maint_bypass=1; Path=/; Max-Age=2592000; SameSite=Lax');
+    return next();
+  }
+  if (open === '0') {
+    res.setHeader('Set-Cookie', 'hci_maint_bypass=; Path=/; Max-Age=0; SameSite=Lax');
+    return res.redirect(302, '/maintenance.html');
+  }
+
+  const cookie = req.headers.cookie || '';
+  if (/(?:^|;\s*)hci_maint_bypass=1(?:;|$)/.test(cookie)) return next();
+
+  return res.redirect(302, '/maintenance.html');
+});
+
 /* robots/sitemap دائماً 200 عشان قوقل ما يعتبر الموقع محظور */
 app.get('/robots.txt', (_req, res) => {
   res.status(200);

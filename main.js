@@ -3046,6 +3046,10 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
     document.body.style.overflow = '';
   }
   trigger.addEventListener('click', openReport);
+  document.querySelectorAll('[data-report-open]').forEach(function(el){
+    if (el === trigger) return;
+    el.addEventListener('click', openReport);
+  });
   document.getElementById('reportModalClose').addEventListener('click', closeReport);
   backdrop.addEventListener('click', function(e){
     if (e.target === backdrop) closeReport();
@@ -3200,7 +3204,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
     btn.type = 'button';
     btn.id = 'footerContactBtn';
     btn.className = 'footer-text-link footer-link-contact';
-    btn.textContent = 'تواصل معي';
+    btn.textContent = 'تواصل معنا';
     var supportList = document.querySelector('.footer-support ul');
     if (supportList){
       var li = document.createElement('li');
@@ -3226,7 +3230,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   backdrop.innerHTML =
     '<div class="site-modal">' +
       '<div class="site-modal-head">' +
-        '<h3 id="contactModalTitle">تواصل معي</h3>' +
+        '<h3 id="contactModalTitle">تواصل معنا</h3>' +
         '<button type="button" class="site-modal-close" id="contactModalClose" aria-label="إغلاق">×</button>' +
       '</div>' +
       '<form id="contactForm">' +
@@ -3255,6 +3259,10 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
     document.body.style.overflow = '';
   }
   btn.addEventListener('click', openContact);
+  document.querySelectorAll('[data-contact-open]').forEach(function(el){
+    if (el === btn) return;
+    el.addEventListener('click', openContact);
+  });
   document.getElementById('contactModalClose').addEventListener('click', closeContact);
   backdrop.addEventListener('click', function(e){
     if (e.target === backdrop) closeContact();
@@ -3377,7 +3385,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   }
 })();
 
-/* ====== نبذة عني — نافذة من زر التذييل ====== */
+/* ====== نبذة عنا — نافذة من زر التذييل ====== */
 (function initAboutModal(){
   if (document.getElementById('aboutModal')) return;
   var triggers = document.querySelectorAll('[data-about-open]');
@@ -3398,7 +3406,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   backdrop.innerHTML =
     '<div class="site-modal about-modal">' +
       '<div class="site-modal-head">' +
-        '<h3 id="aboutModalTitle">نبذة عني</h3>' +
+        '<h3 id="aboutModalTitle">نبذة عنا</h3>' +
         '<button type="button" class="site-modal-close" id="aboutModalClose" aria-label="إغلاق">×</button>' +
       '</div>' +
       '<div class="about-modal-body">' + aboutHtml + '</div>' +

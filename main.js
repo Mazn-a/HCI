@@ -234,7 +234,7 @@ function showUnlockToast(message){
 // أسباب القفل + رابط الخطوة المطلوبة لفتحها
 var STAGE_LOCK_INFO = {
   fundamentals: {
-    reason: 'لفتح «أساسيات HCI» أكمل أولاً محطة «اكتشف التخصص»، ثم اضغط «أكملت هالمرحلة».',
+    reason: 'لفتح «أساسيات HCI» أكمل أولاً محطة «اكتشف التخصص»، ثم اضغط «التالي».',
     href: 'discover.html',
     cta: 'افتح اكتشف التخصص'
   },
@@ -376,7 +376,7 @@ function annotateChecklists(){
     if (!list.querySelector('.checklist-hint')){
       var hint = document.createElement('p');
       hint.className = 'checklist-hint';
-      hint.innerHTML = 'حدّد كل البنود قبل ما تضغط <strong>أكملت</strong> أو <strong>التالي</strong>.';
+      hint.innerHTML = 'حدّد كل البنود، ثم اضغط <strong>التالي</strong> للمتابعة.';
       var h4 = list.querySelector('h4');
       if (h4) h4.insertAdjacentElement('afterend', hint);
       else list.insertBefore(hint, list.firstChild);
@@ -752,35 +752,45 @@ if (pageStage){
   refreshPageLockGate();
 }
 
-// تلميح قوائم المراجعة + شرط تحديد الكل قبل الإكمال/التالي
+// تلميح قوائم المراجعة + شرط تحديد الكل قبل التالي
 annotateChecklists();
 
-// زر إكمال مرحلة (discover / courses / books / contribute)
+// زر إكمال مرحلة (contribute وغيرها) — يكمل ويوجّه إن لزم
 var markCompleteBtn = document.getElementById('markCompleteBtn');
 if (markCompleteBtn && pageStage){
-  if (isDone(pageStage)){
+  if (isDone(pageStage) && markCompleteBtn.tagName === 'BUTTON'){
     markCompleteBtn.textContent = 'أكملت هالمرحلة ✓';
     markCompleteBtn.disabled = true;
     markCompleteBtn.style.opacity = '0.7';
   }
-  markCompleteBtn.addEventListener('click', function(){
+  markCompleteBtn.addEventListener('click', function(e){
     var check = ensureChecklistsComplete();
     if (!check.ok){
+      e.preventDefault();
       showLockAlert(check.message, null, null);
       return;
     }
     markComplete(pageStage);
-    markCompleteBtn.textContent = 'أكملت هالمرحلة ✓';
-    markCompleteBtn.disabled = true;
-    markCompleteBtn.style.opacity = '0.7';
-    // حدّث شريط التقدم لو موجود
     if (overallFill) overallFill.style.width = getOverallProgress() + '%';
     if (overallPct) overallPct.textContent = getOverallProgress() + '%';
+
+    var go = markCompleteBtn.getAttribute('data-complete-and-go');
+    if (go){
+      e.preventDefault();
+      window.location.href = go;
+      return;
+    }
+    if (markCompleteBtn.tagName === 'BUTTON'){
+      markCompleteBtn.textContent = 'أكملت هالمرحلة ✓';
+      markCompleteBtn.disabled = true;
+      markCompleteBtn.style.opacity = '0.7';
+    }
   });
 }
 
 // اعتراض أزرار «التالي» لو المرحلة اللي بعدها مقفولة أو المراجعة ناقصة
 document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary, .hero-actions a[href$=".html"]').forEach(function(link){
+  if (link.id === 'markCompleteBtn') return;
   link.addEventListener('click', function(e){
     var href = link.getAttribute('href') || '';
     var targetStage = link.getAttribute('data-next-stage') || stageFromHref(href);
@@ -791,6 +801,13 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
       e.preventDefault();
       showLockAlert(check.message, null, null);
       return;
+    }
+
+    // إكمال المرحلة الحالية تلقائياً عند الضغط على التالي
+    if (pageStage && !isDone(pageStage)){
+      markComplete(pageStage);
+      if (overallFill) overallFill.style.width = getOverallProgress() + '%';
+      if (overallPct) overallPct.textContent = getOverallProgress() + '%';
     }
 
     // ثانياً: هل المرحلة الهدف مفتوحة؟

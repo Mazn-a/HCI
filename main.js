@@ -517,7 +517,7 @@ var loggedInName = localStorage.getItem('hci_user_name');
   if (isLoggedIn) return;
   Array.prototype.slice.call(links.querySelectorAll('a')).forEach(function(a){
     var t = (a.textContent || '').replace(/\s+/g, ' ').trim();
-    if (t === 'الرئيسية' || t === 'المسارات') {
+    if (t === 'الرئيسية' || t === 'المسارات' || t === 'المعجم') {
       a.setAttribute('hidden', '');
       a.style.display = 'none';
     }

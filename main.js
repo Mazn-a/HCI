@@ -217,8 +217,8 @@ function applyAccentColor(color){
     var id = pack.id;
     if (id === 'rose') localStorage.setItem('hci_accent_color', '#E0A0B4');
     else if (id === 'green') localStorage.setItem('hci_accent_color', '#7A9E4A');
-    else if (id === 'gold') localStorage.setItem('hci_accent_color', '#C9A24B');
-    else localStorage.setItem('hci_accent_color', pack.accent);
+    else if (id === 'gold') localStorage.setItem('hci_accent_color', DEFAULT_ACCENT_COLOR);
+    else localStorage.setItem('hci_accent_color', pack.accent || DEFAULT_ACCENT_COLOR);
   } catch (e) { /* */ }
 }
 
@@ -313,6 +313,8 @@ if (!window.__hciAccentPaletteDocBound){
   });
 }
 
+var DEFAULT_ACCENT_COLOR = '#C9A24B';
+
 var savedAccent = localStorage.getItem('hci_accent_color');
 (function applyThemeEarly(){
   var theme = localStorage.getItem('hci_theme') || 'dark';
@@ -320,7 +322,17 @@ var savedAccent = localStorage.getItem('hci_accent_color');
   document.documentElement.setAttribute('data-theme', theme);
   if (document.body) document.body.setAttribute('data-theme', theme);
   try { localStorage.setItem('hci_theme', theme); } catch (e) { /* */ }
-  applyAccentColor(savedAccent);
+
+  /* الذهبي هو الافتراضي للجوال واللابتوب — ضبط مرة بعد تحديث الثيمات */
+  try {
+    if (!localStorage.getItem('hci_accent_default_gold_v1')) {
+      localStorage.setItem('hci_accent_color', DEFAULT_ACCENT_COLOR);
+      localStorage.setItem('hci_accent_default_gold_v1', '1');
+      savedAccent = DEFAULT_ACCENT_COLOR;
+    }
+  } catch (e) { /* */ }
+
+  applyAccentColor(savedAccent || DEFAULT_ACCENT_COLOR);
 })();
 
 function setTheme(theme){
@@ -328,7 +340,7 @@ function setTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   if (document.body) document.body.setAttribute('data-theme', theme);
   try { localStorage.setItem('hci_theme', theme); } catch (e) { /* */ }
-  applyAccentColor(localStorage.getItem('hci_accent_color'));
+  applyAccentColor(localStorage.getItem('hci_accent_color') || DEFAULT_ACCENT_COLOR);
   return theme;
 }
 

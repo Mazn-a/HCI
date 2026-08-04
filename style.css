@@ -3171,7 +3171,8 @@ body[data-theme="light"] .back-to-top{
   footer{ padding: 24px 0 calc(18px + env(safe-area-inset-bottom)); }
   .footer-bottom{ gap: 6px; }
   .report-fields{ grid-template-columns: 1fr; }
-  .report-summary-hint{ width: 100%; }
+  .report-summary{ flex-wrap: wrap; padding: 12px 14px; }
+  .report-summary-title{ white-space: normal; }
 }
 
 /* جوال ضيق */

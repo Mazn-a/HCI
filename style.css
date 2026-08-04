@@ -19,9 +19,10 @@
   --text-mid:   #9DB4C6;
   --error:      #E0654F;
   --success:    #6FD6E0;
-  --header-bg:  rgba(0,0,0,0.92);
+  --header-bg:  #000000;
   --nav-panel:  rgba(0,0,0,0.98);
   --backdrop:   rgba(0,0,0,0.55);
+  --header-bar-h: 3.6rem;
 
   --font-body: 'IBM Plex Sans Arabic', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
@@ -33,7 +34,7 @@
   --section-y-sm: clamp(52px, 7vw, 80px);
   --block-gap: clamp(22px, 3vw, 32px);
   --read-lh: 1.75;
-  --header-offset: 72px;
+  --header-offset: calc(var(--header-bar-h) + env(safe-area-inset-top, 0px));
   /* نظام بطاقات موحّد — اتساق بكل الموقع */
   --card-bg: rgba(0,0,0,0.28);
   --card-bg-panel: var(--ink-2);
@@ -433,8 +434,7 @@ html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   font-size: 18px;
-  scroll-padding-top: calc(var(--header-offset) + env(safe-area-inset-top, 0px));
-  overflow-x: clip;
+  scroll-padding-top: var(--header-offset);
 }
 
 body{
@@ -442,13 +442,16 @@ body{
   color: var(--text-hi);
   font-family: var(--font-body);
   line-height: var(--read-lh);
-  overflow-x: clip;
+  overflow-x: hidden;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   font-size: 1.05rem;
+}
+body:not(.auth-page):not(.cert-page):not(.path-choice-page){
+  padding-top: var(--header-offset);
 }
 
 /* لمس أفضل على الجوال والآيباد */
@@ -511,28 +514,49 @@ summary:focus-visible, select:focus-visible, textarea:focus-visible{
 /* ====== شريط التنقل ====== */
 
 body > header{
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 50;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
   flex-shrink: 0;
-  /* خلفية صلبة عشان ما يطلع كلام الصفحة من ورا الشريط */
-  background: var(--ink);
-  backdrop-filter: none;
+  /* طبقة معتمة بالكامل — ما يظهر كلام ولا زخرفة من تحت الشريط */
+  background: #000 !important;
+  background-color: #000 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   border-bottom: 1px solid var(--ink-3);
-  padding-top: env(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
+  isolation: isolate;
+  /* طبقة رسم مستقلة على iOS حتى ما يطلع المحتوى من ورا الشريط */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
-/* يمنع ظهور نصوص الصفحة من تحت الهيدر أثناء التمرير */
+body > header::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 0;
+  pointer-events: none;
+}
+body > header > *{
+  position: relative;
+  z-index: 1;
+}
 .settings-page > header,
 body.settings-page > header{
-  background: var(--ink);
-  backdrop-filter: none;
+  background: #000 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 .nav{
   display: flex;
   align-items: center;
   gap: clamp(0.7rem, 1.4vw, 1.6rem);
   padding: 0.7rem 0;
-  min-height: 3.6rem;
+  min-height: var(--header-bar-h);
   position: relative;
   width: 100%;
 }
@@ -786,7 +810,7 @@ a.wordmark{
 .nav-links.is-open{
   display:flex !important; flex-direction:column;
   position:fixed;
-  top: calc(3.6rem + env(safe-area-inset-top));
+  top: var(--header-offset);
   inset-inline: 0;
   bottom: auto;
   width: 100%;
@@ -1146,7 +1170,7 @@ body.nav-open{ overflow: hidden; }
 .admin-msg-toast{
   position: fixed;
   z-index: 120;
-  top: calc(var(--header-offset) + 10px + env(safe-area-inset-top));
+  top: calc(var(--header-offset) + 10px);
   inset-inline-end: 16px;
   inset-inline-start: auto;
   width: min(280px, calc(100vw - 32px));
@@ -1199,10 +1223,13 @@ body.nav-open{ overflow: hidden; }
   position:relative; padding: clamp(72px, 10vw, 112px) 0 clamp(56px, 7vw, 88px);
   border-bottom: 1px solid var(--ink-3);
   overflow:hidden;
+  z-index: 0;
+  isolation: isolate;
 }
 .hero-orbit{
-  position:absolute; inset:0; pointer-events:none; overflow:hidden;
+  position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index: 0;
 }
+.hero > .wrap{ position: relative; z-index: 1; }
 .hero-orbit span{
   position:absolute; border-radius:50%; border:1px solid rgba(201,162,75,0.15);
   animation: orbitPulse 8s ease-in-out infinite;
@@ -3453,7 +3480,6 @@ body[data-theme="light"] .back-to-top{
 
 /* لابتوب صغير / آيباد أفقي */
 @media (max-width: 1100px){
-  :root{ --header-offset: 68px; }
   .hero{ padding: clamp(64px, 8vw, 88px) 0 clamp(48px, 6vw, 68px); }
   .section-pad,
   .problem,
@@ -3491,7 +3517,7 @@ body[data-theme="light"] .back-to-top{
     gap: 0.4rem;
     align-items: center;
     position: relative;
-    min-height: 3.25rem;
+    min-height: var(--header-bar-h);
   }
   .nav-brand{
     order: 1;
@@ -3564,9 +3590,10 @@ body[data-theme="light"] .back-to-top{
     --section-y: 56px;
     --section-y-sm: 48px;
     --block-gap: 16px;
-    --header-offset: 72px;
+    --header-bar-h: 3.25rem;
   }
-  .hero{ padding: 36px 0 40px; }
+  .hero{ padding: 28px 0 40px; }
+  .nav{ padding: 0.55rem 0; }
   .hero-orbit .o1{ width: 280px; height: 280px; }
   .hero-orbit .o2, .hero-orbit .o3{ opacity: 0.5; }
   .wordmark{ font-size: clamp(2.6rem, 14vw, 4rem); }

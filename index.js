@@ -124,7 +124,13 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/uploads', express.static(uploadsDir));
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+  setHeaders: function (res, filePath) {
+    if (/\.(css|js)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
 function signToken(user) {
   return jwt.sign(

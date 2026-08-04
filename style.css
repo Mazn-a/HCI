@@ -946,23 +946,24 @@ body.nav-open{ overflow: hidden; }
 .nav-notif-backdrop{
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: transparent;
 }
+/* لابتوب: قائمة منسدلة كلاسيكية تحت الجرس */
 .nav-notif-panel{
   position: absolute;
   top: calc(var(--header-offset) + 8px);
-  left: max(12px, env(safe-area-inset-left, 0px));
-  right: max(12px, env(safe-area-inset-right, 0px));
-  width: auto;
-  max-width: 380px;
-  max-height: calc(100dvh - var(--header-offset) - 24px);
+  left: auto;
+  right: auto;
+  width: 320px;
+  max-width: min(320px, calc(100vw - 24px));
+  max-height: min(70vh, 420px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--ink-2);
   border: 1px solid var(--ink-3);
   border-radius: 14px;
-  box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
   padding: 0;
   pointer-events: auto;
 }
@@ -971,23 +972,23 @@ body.nav-open{ overflow: hidden; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--ink-3);
   flex-shrink: 0;
   background: var(--ink-2);
 }
-.nav-notif-head strong{ font-size: 0.95rem; }
+.nav-notif-head strong{ font-size: 0.9rem; }
 .nav-notif-markall{
   background: none;
   border: 0;
   color: var(--text-mid);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 8px;
-  min-height: 36px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  min-height: 32px;
 }
 .nav-notif-markall:hover{ color: var(--gold); background: rgba(201,162,75,0.08); }
 .nav-notif-list{
@@ -1003,9 +1004,9 @@ body.nav-open{ overflow: hidden; }
 }
 .nav-notif-list .progress-note{
   margin: 0;
-  padding: 28px 12px;
+  padding: 22px 12px;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 .nav-notif-item{
   display: flex;
@@ -1014,7 +1015,7 @@ body.nav-open{ overflow: hidden; }
   gap: 4px;
   text-align: right;
   width: 100%;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
@@ -1027,13 +1028,17 @@ body.nav-open{ overflow: hidden; }
   border-color: rgba(201,162,75,0.28);
   background: rgba(201,162,75,0.06);
 }
-.nav-notif-item-title{ font-weight: 700; font-size: 0.9rem; color: var(--text-hi); line-height: 1.4; }
+.nav-notif-item-title{ font-weight: 700; font-size: 0.88rem; color: var(--text-hi); line-height: 1.4; }
 .nav-notif-item-body{
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--text-mid);
-  line-height: 1.55;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .nav-notif-item-time{ font-size: 0.72rem; color: var(--text-mid); }
 .nav-notif-footer{
@@ -1041,31 +1046,41 @@ body.nav-open{ overflow: hidden; }
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-top: 1px solid var(--ink-3);
   color: var(--gold);
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   text-decoration: none;
   flex-shrink: 0;
   background: var(--ink-2);
-  min-height: 48px;
+  min-height: 44px;
 }
-body.notif-open{ overflow: hidden; }
 .nav-notif-footer:hover{ color: #e0c078; }
 
+/* جوال فقط: لوحة من الأسفل (الشكل الحالي) */
 @media (max-width: 860px){
+  body.notif-open{ overflow: hidden; }
+  .nav-notif-backdrop{ background: rgba(0,0,0,0.45); }
   .nav-notif-panel{
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-width: none;
-    width: 100%;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
     max-height: min(78dvh, 560px);
     border-radius: 16px 16px 0 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  .nav-notif-item-body{
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  .nav-notif-head{ padding: 12px 14px; }
+  .nav-notif-head strong{ font-size: 0.95rem; }
+  .nav-notif-footer{ min-height: 48px; padding: 12px 14px; }
 }
 
 .inbox-toolbar{

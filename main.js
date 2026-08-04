@@ -1718,7 +1718,33 @@ if (inboxList){
     }
 
     var btn = document.getElementById('navNotifBtn');
+    var panel = document.getElementById('navNotifPanel');
     var backdrop = document.getElementById('navNotifBackdrop');
+
+    function isMobileNotif(){
+      return window.matchMedia('(max-width: 860px)').matches;
+    }
+
+    function placeDesktopPanel(){
+      if (!panel || !btn || isMobileNotif()){
+        if (panel){
+          panel.style.top = '';
+          panel.style.left = '';
+          panel.style.right = '';
+          panel.style.bottom = '';
+        }
+        return;
+      }
+      var rect = btn.getBoundingClientRect();
+      var width = Math.min(320, window.innerWidth - 24);
+      var left = rect.left + rect.width / 2 - width / 2;
+      left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+      panel.style.top = Math.round(rect.bottom + 10) + 'px';
+      panel.style.left = Math.round(left) + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+      panel.style.width = width + 'px';
+    }
 
     function closePanel(){
       layer.hidden = true;
@@ -1727,10 +1753,12 @@ if (inboxList){
       document.body.classList.remove('notif-open');
     }
     function openPanel(){
+      placeDesktopPanel();
       layer.hidden = false;
       layer.classList.add('is-open');
       btn.setAttribute('aria-expanded', 'true');
-      document.body.classList.add('notif-open');
+      if (isMobileNotif()) document.body.classList.add('notif-open');
+      else document.body.classList.remove('notif-open');
       refresh(true);
     }
 
@@ -1742,6 +1770,9 @@ if (inboxList){
     if (backdrop){
       backdrop.addEventListener('click', function(){ closePanel(); });
     }
+    window.addEventListener('resize', function(){
+      if (!layer.hidden) placeDesktopPanel();
+    });
     document.addEventListener('keydown', function(ev){
       if (ev.key === 'Escape' && !layer.hidden) closePanel();
     });

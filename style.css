@@ -442,6 +442,8 @@ body{
   line-height: var(--read-lh);
   overflow-x: hidden;
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   font-size: 1.05rem;
@@ -3124,9 +3126,11 @@ body[data-theme="light"] .settings-side-link{
 
 footer{
   border-top: 1px solid var(--ink-3);
-  padding: 28px 0 calc(24px + env(safe-area-inset-bottom, 0px));
-  margin-top: 48px;
+  padding: 48px 0 calc(24px + env(safe-area-inset-bottom, 0px));
+  margin-top: auto;
   background: transparent;
+  width: 100%;
+  flex-shrink: 0;
 }
 .footer-inner{
   display: grid;
@@ -3135,9 +3139,9 @@ footer{
   gap: 14px 24px;
   text-align: start;
   direction: rtl;
-  max-width: none;
+  max-width: 1240px;
   width: 100%;
-  margin: 0;
+  margin-inline: auto;
 }
 .footer-top{ display: contents; }
 .footer-brand{

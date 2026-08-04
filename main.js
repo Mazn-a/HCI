@@ -234,7 +234,7 @@ function showUnlockToast(message){
 // أسباب القفل + رابط الخطوة المطلوبة لفتحها
 var STAGE_LOCK_INFO = {
   fundamentals: {
-    reason: 'لفتح «أساسيات HCI» أكمل أولاً محطة «اكتشف التخصص»، ثم اضغط «التالي».',
+    reason: 'لفتح «أساسيات HCI» أكمل أولاً مسار «اكتشف التخصص»، ثم اضغط «التالي».',
     href: 'discover.html',
     cta: 'افتح اكتشف التخصص'
   },
@@ -254,12 +254,12 @@ var STAGE_LOCK_INFO = {
     cta: 'تصفح الدورات'
   },
   practice: {
-    reason: 'لفتح التمارين أكمل أولاً محطة «اكتشف التخصص».',
+    reason: 'لفتح التمارين أكمل أولاً مسار «اكتشف التخصص».',
     href: 'discover.html',
     cta: 'افتح اكتشف التخصص'
   },
   contribute: {
-    reason: 'لفتح «أفد غيرك» أكمل 4 محطات على الأقل من رحلتك التعليمية.',
+    reason: 'لفتح «أفد غيرك» أكمل 4 مسارات على الأقل من رحلتك التعليمية.',
     href: 'index.html#paths',
     cta: 'عرض المسارات'
   }
@@ -267,7 +267,7 @@ var STAGE_LOCK_INFO = {
 
 function getLockReason(stageId){
   return (STAGE_LOCK_INFO[stageId] && STAGE_LOCK_INFO[stageId].reason) ||
-    'لفتح هالمرحلة أكمل المحطة السابقة أولاً.';
+    'لفتح هالمرحلة أكمل المسار السابق أولاً.';
 }
 
 function getLockInfo(stageId){
@@ -674,7 +674,7 @@ if (stationsRoot){
       if (statusEl){ statusEl.textContent = 'مكتمل ✓'; statusEl.className = 'station-status done'; }
       if (link){
         link.classList.remove('disabled');
-        link.textContent = 'راجع المحطة ←';
+        link.textContent = 'راجع المسار ←';
       }
     } else if (!currentAssigned){
       station.setAttribute('aria-current', 'step');
@@ -704,21 +704,21 @@ if (stationsRoot){
     if (doneCount >= JOURNEY_ORDER.length){
       if (guideKicker) guideKicker.textContent = 'أحسنت';
       guideTitle.textContent = 'أكملت الرحلة كاملة';
-      if (guideHint) guideHint.textContent = 'تقدر ترجع لأي محطة للمراجعة، أو تطبع شهادتك من الملف الشخصي.';
+      if (guideHint) guideHint.textContent = 'تقدر ترجع لأي مسار للمراجعة، أو تطبع شهادتك من الملف الشخصي.';
       guideCta.textContent = 'عرض الشهادة ←';
       guideCta.setAttribute('href', 'certificate.html');
     } else {
       var sid = currentStageId || 'discover';
       var title = (STAGE_META[sid] && STAGE_META[sid].title) || sid;
       var num = STAGE_ORDER_LABEL[sid] || '';
-      if (guideKicker) guideKicker.textContent = 'خطوتك التالية · المحطة ' + num + ' من 7';
+      if (guideKicker) guideKicker.textContent = 'خطوتك التالية · المسار ' + num + ' من 7';
       guideTitle.textContent = title;
       if (guideHint){
         guideHint.textContent = doneCount === 0
-          ? 'ابدأ من هنا بالترتيب. بعد ما تكمّل المحطة تُفتح اللي بعدها تلقائياً.'
-          : ('أنجزت ' + doneCount + ' من 7. كمّل المحطة الذهبية أدناه — هذي مرحلتك الحالية.');
+          ? 'ابدأ من هنا بالترتيب. بعد ما تكمّل المسار تُفتح اللي بعده تلقائياً.'
+          : ('أنجزت ' + doneCount + ' من 7. كمّل المسار الذهبي أدناه — هذي مرحلتك الحالية.');
       }
-      guideCta.textContent = 'ادخل محطتك الآن ←';
+      guideCta.textContent = 'ادخل مسارك الآن ←';
       guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
     }
   }
@@ -729,7 +729,7 @@ if (stationsRoot){
       heroCta.textContent = 'عرض شهادتك ←';
       heroCta.setAttribute('href', 'certificate.html');
     } else {
-      heroCta.textContent = loggedInName ? 'كمّل محطتك ←' : 'ابدأ من المحطة 1 ←';
+      heroCta.textContent = loggedInName ? 'كمّل مسارك ←' : 'ابدأ من المسار 1 ←';
       heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
     }
   }

@@ -506,30 +506,30 @@ a.wordmark{
   will-change: transform;
 }
 .logo-hci.is-bumping .logo-h{
-  animation: logoHBump 1.45s cubic-bezier(0.33, 0.9, 0.4, 1) both;
+  animation: logoHBump 1.05s cubic-bezier(0.33, 0.95, 0.4, 1) both;
 }
 .logo-hci.is-bumping .logo-c{
-  animation: logoCBump 1.45s 0.1s cubic-bezier(0.33, 0.9, 0.4, 1) both;
+  animation: logoCBump 1.05s 0.08s cubic-bezier(0.33, 0.95, 0.4, 1) both;
 }
 .logo-hci.is-bumping .logo-i{
-  animation: logoIBump 1.45s 0.18s cubic-bezier(0.33, 0.9, 0.4, 1) both;
+  animation: logoIBump 1.05s 0.14s cubic-bezier(0.33, 0.95, 0.4, 1) both;
 }
 @keyframes logoHBump{
   0%{ transform: translateX(0); }
-  32%{ transform: translateX(0.22em); }
-  48%{ transform: translateX(0.05em); }
-  66%{ transform: translateX(0.14em); }
+  30%{ transform: translateX(0.22em); }
+  46%{ transform: translateX(0.05em); }
+  64%{ transform: translateX(0.14em); }
   100%{ transform: translateX(0); }
 }
 @keyframes logoCBump{
-  0%, 26%{ transform: translateX(0); }
-  38%{ transform: translateX(0.1em) rotate(4deg); }
-  55%{ transform: translateX(-0.03em) rotate(-2deg); }
+  0%, 24%{ transform: translateX(0); }
+  36%{ transform: translateX(0.1em) rotate(4deg); }
+  52%{ transform: translateX(-0.03em) rotate(-2deg); }
   100%{ transform: translateX(0) rotate(0deg); }
 }
 @keyframes logoIBump{
-  0%, 34%{ transform: translateX(0); }
-  48%{ transform: translateX(0.06em); }
+  0%, 32%{ transform: translateX(0); }
+  46%{ transform: translateX(0.06em); }
   100%{ transform: translateX(0); }
 }
 @media (prefers-reduced-motion: reduce){

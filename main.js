@@ -2,33 +2,26 @@
    main.js — محرك المنصة: تقدم، فتح مراحل، تفاعل
    ============================================ */
 
-// ----- شعار HCI التفاعلي (H يضرب C) -----
+// ----- شعار HCI التفاعلي (الهيرو فقط — H يضرب C) -----
 (function initLogoBump(){
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  function enhance(el){
-    if (!el || el.querySelector('.logo-letter')) return;
-    var text = String(el.textContent || '').replace(/\s+/g, '').trim().toUpperCase();
-    if (text !== 'HCI') return;
-    el.classList.add('logo-hci');
-    el.innerHTML =
-      '<span class="logo-letter logo-h" aria-hidden="true">H</span>' +
-      '<span class="logo-letter logo-c" aria-hidden="true">C</span>' +
-      '<span class="logo-letter logo-i" aria-hidden="true">I</span>';
-    function bump(){
-      el.classList.remove('is-bumping');
-      void el.offsetWidth;
-      el.classList.add('is-bumping');
-    }
-    el.addEventListener('mouseenter', bump);
-    el.addEventListener('focusin', bump);
-    el.addEventListener('animationend', function(ev){
-      if (ev.animationName === 'logoIBump' || ev.animationName === 'logoHBump'){
-        /* يُزال بعد انتهاء حركة H تقريباً */
-      }
-    });
-    setTimeout(bump, el.classList.contains('wordmark') ? 650 : 320);
+  var el = document.querySelector('a.wordmark, .wordmark');
+  if (!el || el.querySelector('.logo-letter')) return;
+  var text = String(el.textContent || '').replace(/\s+/g, '').trim().toUpperCase();
+  if (text !== 'HCI') return;
+  el.classList.add('logo-hci');
+  el.innerHTML =
+    '<span class="logo-letter logo-h" aria-hidden="true">H</span>' +
+    '<span class="logo-letter logo-c" aria-hidden="true">C</span>' +
+    '<span class="logo-letter logo-i" aria-hidden="true">I</span>';
+  function bump(){
+    el.classList.remove('is-bumping');
+    void el.offsetWidth;
+    el.classList.add('is-bumping');
   }
-  document.querySelectorAll('.nav-brand .logo, .footer-logo, a.wordmark').forEach(enhance);
+  el.addEventListener('mouseenter', bump);
+  el.addEventListener('focusin', bump);
+  setTimeout(bump, 480);
 })();
 
 // ----- تفضيلات المظهر -----

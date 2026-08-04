@@ -133,15 +133,31 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow">/// رحلتك الكاملة</span>
-        <h2>سبع محطات… من الفضول إلى الإفادة</h2>
-        <p>اتبع الترتيب أو ارجع لأي مرحلة مفتوحة. المحطات القادمة توضّح لك الخطوة المطلوبة لفتحها.</p>
+        <h2>سبع محطات بالترتيب — من الفضول إلى الإفادة</h2>
+        <p>لا تتخيّر عشوائياً: ابدأ من البطاقة الذهبية «خطوتك التالية»، ثم أكمل بالترتيب من 1 إلى 7.</p>
       </div>
 
-      <ol class="stations" id="stationsList" aria-label="مسارات التعلم بالترتيب">
+      <div class="path-guide reveal" id="pathGuide" aria-live="polite">
+        <p class="path-guide-kicker" id="pathGuideKicker">خطوتك التالية</p>
+        <h3 class="path-guide-title" id="pathGuideTitle">ابدأ من المحطة الأولى</h3>
+        <p class="path-guide-hint" id="pathGuideHint">اضغط الزر الذهبي للدخول مباشرة لمرحلتك الحالية.</p>
+        <div class="path-guide-actions">
+          <a href="discover.html" class="btn-primary" id="pathGuideCta">ابدأ من هنا ←</a>
+          <a href="profile.html" class="btn-ghost" id="pathGuideProfile">خريطة تقدمك</a>
+        </div>
+        <ul class="path-guide-meta" aria-label="مفتاح الألوان">
+          <li><span class="path-guide-dot now" aria-hidden="true"></span>ذهبي = أنت هنا الآن</li>
+          <li><span class="path-guide-dot done" aria-hidden="true"></span>أخضر = مكتمل</li>
+          <li><span class="path-guide-dot open" aria-hidden="true"></span>سماوي = مفتوح</li>
+          <li><span class="path-guide-dot lock" aria-hidden="true"></span>رمادي = مقفل للآن</li>
+        </ul>
+      </div>
+
+      <ol class="stations" id="stationsList" aria-label="مسارات التعلم بالترتيب من 1 إلى 7">
 
         <li class="station s1 reveal" data-stage="discover">
           <div class="station-meta">
-            <span class="station-num">00</span>
+            <span class="station-num">1</span>
             <span class="station-status open">مفتوح</span>
           </div>
           <h3>اكتشف التخصص</h3>
@@ -155,7 +171,7 @@
 
         <li class="station s2 reveal reveal-delay-1" data-stage="fundamentals">
           <div class="station-meta">
-            <span class="station-num">01</span>
+            <span class="station-num">2</span>
             <span class="station-status">—</span>
           </div>
           <h3>أساسيات HCI</h3>
@@ -169,7 +185,7 @@
 
         <li class="station s3 reveal reveal-delay-2" data-stage="coding">
           <div class="station-meta">
-            <span class="station-num">02</span>
+            <span class="station-num">3</span>
             <span class="station-status">—</span>
           </div>
           <h3>ترميز HTML &amp; CSS</h3>
@@ -183,7 +199,7 @@
 
         <li class="station s4 reveal" data-stage="courses">
           <div class="station-meta">
-            <span class="station-num">03</span>
+            <span class="station-num">4</span>
             <span class="station-status">—</span>
           </div>
           <h3>دورات متخصصة</h3>
@@ -197,7 +213,7 @@
 
         <li class="station s5 reveal reveal-delay-1" data-stage="books">
           <div class="station-meta">
-            <span class="station-num">04</span>
+            <span class="station-num">5</span>
             <span class="station-status">—</span>
           </div>
           <h3>كتب ومراجع</h3>
@@ -211,7 +227,7 @@
 
         <li class="station s6 reveal reveal-delay-2" data-stage="practice">
           <div class="station-meta">
-            <span class="station-num">05</span>
+            <span class="station-num">6</span>
             <span class="station-status">—</span>
           </div>
           <h3>تعلّم بالمرح</h3>
@@ -225,7 +241,7 @@
 
         <li class="station s1 reveal" data-stage="contribute" style="grid-column: 1 / -1; max-width: 480px;">
           <div class="station-meta">
-            <span class="station-num">06</span>
+            <span class="station-num">7</span>
             <span class="station-status">—</span>
           </div>
           <h3>أفد غيرك</h3>

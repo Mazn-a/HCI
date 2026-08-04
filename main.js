@@ -561,10 +561,44 @@ if (overallFill || overallPct){
 }
 
 // ----- تحديث محطات المسار على الصفحة الرئيسية -----
+var STAGE_HREFS = {
+  discover: 'discover.html',
+  fundamentals: 'fundamentals.html',
+  coding: 'coding.html',
+  courses: 'courses.html',
+  books: 'books.html',
+  practice: 'practice.html',
+  contribute: 'contribute.html'
+};
+var STAGE_ORDER_LABEL = {
+  discover: '1',
+  fundamentals: '2',
+  coding: '3',
+  courses: '4',
+  books: '5',
+  practice: '6',
+  contribute: '7'
+};
+
+function getCurrentStageId(){
+  var current = null;
+  JOURNEY_ORDER.forEach(function(id){
+    if (current) return;
+    if (isUnlocked(id) && !isDone(id)) current = id;
+  });
+  if (!current){
+    // الكل مكتمل أو لم يبدأ
+    if (JOURNEY_ORDER.every(isDone)) return null;
+    current = 'discover';
+  }
+  return current;
+}
+
 var stationsRoot = document.getElementById('stationsList');
 if (stationsRoot){
   var stations = stationsRoot.querySelectorAll('[data-stage]');
   var currentAssigned = false;
+  var currentStageId = null;
 
   stations.forEach(function(station){
     var id = station.getAttribute('data-stage');
@@ -578,7 +612,7 @@ if (stationsRoot){
 
     if (!unlocked){
       station.removeAttribute('aria-current');
-      if (statusEl){ statusEl.textContent = 'قريباً'; statusEl.className = 'station-status locked'; }
+      if (statusEl){ statusEl.textContent = 'مقفل'; statusEl.className = 'station-status locked'; }
       if (link){
         link.classList.add('disabled');
         link.classList.add('show-lock-reason');
@@ -594,18 +628,67 @@ if (stationsRoot){
     } else if (done){
       station.removeAttribute('aria-current');
       if (statusEl){ statusEl.textContent = 'مكتمل ✓'; statusEl.className = 'station-status done'; }
-      if (link){ link.classList.remove('disabled'); }
+      if (link){
+        link.classList.remove('disabled');
+        link.textContent = 'راجع المحطة ←';
+      }
     } else if (!currentAssigned){
       station.setAttribute('aria-current', 'step');
       currentAssigned = true;
-      if (statusEl){ statusEl.textContent = 'مرحلتك الحالية'; statusEl.className = 'station-status open'; }
-      if (link){ link.classList.remove('disabled'); }
+      currentStageId = id;
+      if (statusEl){ statusEl.textContent = 'أنت هنا'; statusEl.className = 'station-status open'; }
+      if (link){
+        link.classList.remove('disabled');
+        link.textContent = 'كمّل من هنا ←';
+      }
     } else {
       station.removeAttribute('aria-current');
       if (statusEl){ statusEl.textContent = 'مفتوح'; statusEl.className = 'station-status open'; }
       if (link){ link.classList.remove('disabled'); }
     }
   });
+
+  if (!currentStageId) currentStageId = getCurrentStageId();
+
+  var guideTitle = document.getElementById('pathGuideTitle');
+  var guideHint = document.getElementById('pathGuideHint');
+  var guideCta = document.getElementById('pathGuideCta');
+  var guideKicker = document.getElementById('pathGuideKicker');
+  var doneCount = JOURNEY_ORDER.filter(isDone).length;
+
+  if (guideTitle && guideCta){
+    if (doneCount >= JOURNEY_ORDER.length){
+      if (guideKicker) guideKicker.textContent = 'أحسنت';
+      guideTitle.textContent = 'أكملت الرحلة كاملة';
+      if (guideHint) guideHint.textContent = 'تقدر ترجع لأي محطة للمراجعة، أو تطبع شهادتك من الملف الشخصي.';
+      guideCta.textContent = 'عرض الشهادة ←';
+      guideCta.setAttribute('href', 'certificate.html');
+    } else {
+      var sid = currentStageId || 'discover';
+      var title = (STAGE_META[sid] && STAGE_META[sid].title) || sid;
+      var num = STAGE_ORDER_LABEL[sid] || '';
+      if (guideKicker) guideKicker.textContent = 'خطوتك التالية · المحطة ' + num + ' من 7';
+      guideTitle.textContent = title;
+      if (guideHint){
+        guideHint.textContent = doneCount === 0
+          ? 'ابدأ من هنا بالترتيب. بعد ما تكمّل المحطة تُفتح اللي بعدها تلقائياً.'
+          : ('أنجزت ' + doneCount + ' من 7. كمّل المحطة الذهبية أدناه — هذي مرحلتك الحالية.');
+      }
+      guideCta.textContent = 'ادخل محطتك الآن ←';
+      guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
+    }
+  }
+
+  if (heroCta){
+    var hs = currentStageId || getCurrentStageId() || 'discover';
+    if (doneCount >= JOURNEY_ORDER.length){
+      heroCta.textContent = 'عرض شهادتك ←';
+      heroCta.setAttribute('href', 'certificate.html');
+    } else {
+      heroCta.textContent = loggedInName ? 'كمّل محطتك ←' : 'ابدأ من المحطة 1 ←';
+      heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
+    }
+  }
 }
 
 // ----- بوابة القفل للصفحات -----

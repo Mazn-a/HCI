@@ -551,6 +551,8 @@ if (navCtaSlot && loggedInName){
         '</svg>' +
       '</button>' +
       '<div class="nav-dropdown" id="navDropdown">' +
+        '<a href="profile.html">الملف الشخصي</a>' +
+        '<a href="settings.html">الإعدادات</a>' +
         '<a href="#" id="switchAccountLink">تبديل الحساب</a>' +
         '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل خروج</a>' +
       '</div>' +

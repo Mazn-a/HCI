@@ -2278,9 +2278,9 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   });
 });
 
-// ----- بلّغ عن مشكلة — زر عائم + نموذج منبثق -----
+// ----- بلّغ عن مشكلة — رابط هادئ في التذييل + نموذج منبثق -----
 (function injectReportSection(){
-  if (document.getElementById('reportFab') || document.getElementById('reportSection')) return;
+  if (document.getElementById('reportTrigger') || document.getElementById('reportSection')) return;
 
   var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
   var skipPages = ['admin.html', 'auth.html', 'path-choice.html', 'certificate.html', 'maintenance.html'];
@@ -2289,13 +2289,20 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   if (document.body.classList.contains('path-choice-page')) return;
   if (document.body.classList.contains('cert-page')) return;
 
-  var fab = document.createElement('button');
-  fab.type = 'button';
-  fab.id = 'reportFab';
-  fab.className = 'report-fab';
-  fab.setAttribute('aria-label', 'بلّغ عن مشكلة');
-  fab.setAttribute('title', 'بلّغ عن مشكلة');
-  fab.innerHTML = '<span aria-hidden="true">!</span>';
+  var trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.id = 'reportTrigger';
+  trigger.className = 'footer-report-link';
+  trigger.textContent = 'بلّغ عن مشكلة';
+
+  var brand = document.querySelector('footer .footer-brand');
+  if (brand){
+    brand.appendChild(trigger);
+  } else {
+    var footer = document.querySelector('footer .footer-inner') || document.querySelector('footer');
+    if (footer) footer.appendChild(trigger);
+    else return;
+  }
 
   var backdrop = document.createElement('div');
   backdrop.id = 'reportSection';
@@ -2331,7 +2338,6 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
       '</form>' +
     '</div>';
 
-  document.body.appendChild(fab);
   document.body.appendChild(backdrop);
 
   function openReport(){
@@ -2344,7 +2350,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
     backdrop.hidden = true;
     document.body.style.overflow = '';
   }
-  fab.addEventListener('click', openReport);
+  trigger.addEventListener('click', openReport);
   document.getElementById('reportModalClose').addEventListener('click', closeReport);
   backdrop.addEventListener('click', function(e){
     if (e.target === backdrop) closeReport();

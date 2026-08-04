@@ -2247,7 +2247,7 @@ body.nav-open{ overflow: hidden; }
 }
 .lesson-section > p{ color: var(--text-mid); margin-bottom: 14px; }
 
-.principle-grid{ display:grid; grid-template-columns: 1fr; gap: var(--block-gap); max-width: 720px; }
+.principle-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: var(--block-gap); }
 .principle-card{
   display: flex;
   flex-direction: column;
@@ -2312,7 +2312,11 @@ body.nav-open{ overflow: hidden; }
 }
 .example-box b{ color: var(--example-color, var(--line-cyan)); font-weight:700; }
 
+@media (max-width: 900px){
+  .principle-grid{ grid-template-columns: 1fr 1fr; gap: 14px; }
+}
 @media (max-width: 640px){
+  .principle-grid{ grid-template-columns: 1fr; }
   .principle-card{ padding: 16px; }
 }
 

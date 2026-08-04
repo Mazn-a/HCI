@@ -508,10 +508,11 @@ body.settings-page > header{
 .nav-auth{
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.65rem;
   flex-shrink: 0;
   min-height: 2.5rem;
   min-width: 0;
+  justify-self: end;
 }
 .nav-login{
   color: var(--text-hi);
@@ -548,26 +549,32 @@ body.settings-page > header{
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 .nav-user, button.nav-user{
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--ink-2);
-  border: 1px solid var(--ink-3);
+  gap: 0.55rem;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0.28rem 0.75rem 0.28rem 0.28rem;
-  font-size: 0.86rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.2rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-hi);
   cursor: pointer;
   font-family: var(--font-body);
-  max-width: 12.5rem;
+  max-width: 11.5rem;
   min-height: 2.4rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+.nav-user:hover,
+.nav-user[aria-expanded="true"]{
+  background: var(--ink-2);
+  border-color: var(--ink-3);
 }
 .nav-user .chip-avatar{
-  width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  width: 1.85rem; height: 1.85rem; border-radius: 50%;
   background: var(--gold); color: #111;
   display: flex; align-items: center; justify-content: center;
   font-size: 0.78rem; font-weight: 700; flex-shrink: 0;
@@ -578,30 +585,10 @@ body.settings-page > header{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 8rem;
+  max-width: 7.5rem;
 }
 .nav-user-menu-btn{ display: none; }
-.nav-logout{
-  appearance: none;
-  -webkit-appearance: none;
-  border: 1px solid var(--ink-3);
-  background: var(--ink-2);
-  color: var(--text-mid);
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  min-height: 2.4rem;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-.nav-logout:hover{
-  color: var(--error);
-  border-color: rgba(224,101,79,0.45);
-  background: rgba(224,101,79,0.08);
-}
+.nav-logout{ display: none !important; }
 .nav-dropdown{
   opacity:0; visibility:hidden; pointer-events:none;
   position:absolute; top:calc(100% + 10px); inset-inline-end:0; min-width:200px;
@@ -675,72 +662,76 @@ body.nav-open{ overflow: hidden; }
   text-decoration: none; margin-inline-start: 6px; flex-shrink: 0;
 }
 
-/* مركز التنبيهات */
+/* مركز التنبيهات — جرس أيقوني نظيف */
 .nav-notif-wrap{
   position: relative;
   display: inline-flex;
   align-items: center;
-  margin-inline-end: 8px;
   flex-shrink: 0;
 }
 .nav-notif-btn{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--ink-3);
-  background: var(--ink-2);
-  color: var(--text-hi);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.nav-notif-btn:hover{ border-color: rgba(201,162,75,0.55); color: var(--gold); }
-.nav-notif-icon{
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 0 3px rgba(201,162,75,0.2);
-  flex-shrink: 0;
-}
-.nav-notif-btn:hover .nav-notif-icon{ background: var(--line-cyan); box-shadow: 0 0 0 3px rgba(111,214,224,0.22); }
-.nav-notif-count{
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.nav-notif-btn:hover,
+.nav-notif-btn[aria-expanded="true"]{
+  color: var(--gold);
+  background: rgba(201,162,75,0.08);
+  border-color: rgba(201,162,75,0.28);
+}
+.nav-notif-svg{ display: block; }
+.nav-notif-label{ display: none !important; }
+.nav-notif-icon{ display: none !important; }
+.nav-notif-count{
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 4px;
   border-radius: 999px;
   background: var(--gold);
   color: #111;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 700;
+  line-height: 1;
+  border: 1.5px solid var(--ink);
 }
+.nav-notif-count[hidden]{ display: none !important; }
 .nav-notif-panel{
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   inset-inline-end: 0;
-  width: min(360px, calc(100vw - 24px));
-  max-height: min(70vh, 480px);
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(68vh, 440px);
   overflow: auto;
   background: var(--ink-2);
   border: 1px solid var(--ink-3);
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
   z-index: 70;
-  padding: 10px;
+  padding: 12px;
 }
 .nav-notif-head{
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 6px 8px 10px;
+  padding: 4px 4px 12px;
   border-bottom: 1px solid var(--ink-3);
   margin-bottom: 8px;
 }
@@ -748,14 +739,16 @@ body.nav-open{ overflow: hidden; }
 .nav-notif-markall{
   background: none;
   border: 0;
-  color: var(--line-cyan);
+  color: var(--text-mid);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
 }
-.nav-notif-list{ display: flex; flex-direction: column; gap: 6px; }
+.nav-notif-markall:hover{ color: var(--gold); background: rgba(201,162,75,0.08); }
+.nav-notif-list{ display: flex; flex-direction: column; gap: 4px; }
 .nav-notif-item{
   display: flex;
   flex-direction: column;
@@ -763,7 +756,7 @@ body.nav-open{ overflow: hidden; }
   gap: 4px;
   text-align: right;
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 12px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
@@ -771,10 +764,10 @@ body.nav-open{ overflow: hidden; }
   font: inherit;
   cursor: pointer;
 }
-.nav-notif-item:hover{ background: rgba(201,162,75,0.08); }
+.nav-notif-item:hover{ background: rgba(255,255,255,0.04); }
 .nav-notif-item.is-unread{
-  border-color: rgba(201,162,75,0.35);
-  background: rgba(201,162,75,0.07);
+  border-color: rgba(201,162,75,0.28);
+  background: rgba(201,162,75,0.06);
 }
 .nav-notif-item-title{ font-weight: 700; font-size: 0.9rem; color: var(--text-hi); }
 .nav-notif-item-body{
@@ -791,18 +784,39 @@ body.nav-open{ overflow: hidden; }
   display: block;
   text-align: center;
   margin-top: 8px;
-  padding: 10px;
+  padding: 11px;
   border-top: 1px solid var(--ink-3);
   color: var(--gold);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 
 .inbox-toolbar{
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ink-3);
+}
+.inbox-action{
+  appearance: none;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--ink-3);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.inbox-action:hover{
+  color: var(--gold);
+  border-color: rgba(201,162,75,0.45);
+  background: rgba(201,162,75,0.06);
 }
 .inbox-list{ display: flex; flex-direction: column; gap: 12px; }
 .inbox-card{
@@ -824,7 +838,7 @@ body.nav-open{ overflow: hidden; }
 .inbox-card-type{
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--line-cyan);
+  color: var(--gold);
 }
 .inbox-card-state{
   font-size: 0.78rem;
@@ -866,21 +880,25 @@ body.nav-open{ overflow: hidden; }
 .inbox-open-btn{
   appearance: none;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
   min-height: 42px;
   padding: 8px 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--gold);
-  background: rgba(201,162,75,0.12);
-  color: var(--gold);
+  background: var(--gold);
+  color: #111;
   cursor: pointer;
+  transition: filter 0.15s;
 }
-.inbox-open-btn:hover{ background: var(--gold); color: #111; }
+.inbox-open-btn:hover{ filter: brightness(1.05); }
 
 @media (max-width: 860px){
-  .nav-notif-label{ display: none; }
-  .nav-notif-panel{ inset-inline-end: -40px; }
+  .nav-notif-panel{
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+    width: min(320px, calc(100vw - 20px));
+  }
 }
 
 .admin-msg-toast{
@@ -2579,7 +2597,7 @@ body[data-theme="light"] .back-to-top{
   }
   .nav-brand .logo{ font-size: 1.45rem; letter-spacing: 0.12em; }
   .nav-auth{
-    gap: 0.4rem;
+    gap: 0.35rem;
     order: 2;
     margin-inline-start: auto;
     flex-shrink: 0;
@@ -2588,25 +2606,21 @@ body[data-theme="light"] .back-to-top{
   .nav-user-wrap{
     order: unset;
     margin-inline-start: 0;
-    gap: 0.4rem;
+    gap: 0.3rem;
     max-width: none;
     min-height: 2.5rem;
   }
   .nav-user{
-    padding: 0.2rem;
+    padding: 0.15rem;
     border-radius: 50%;
     font-size: 0;
     max-width: none;
-    border-color: rgba(201,162,75,0.45);
+    border-color: transparent;
     min-height: auto;
   }
   .nav-user .chip-avatar{ width: 2.15rem; height: 2.15rem; font-size: 0.9rem; }
   .nav-user-name{ display: none !important; }
-  .nav-logout{
-    padding: 0.4rem 0.65rem;
-    font-size: 0.78rem;
-    min-height: 2.35rem;
-  }
+  .nav-notif-btn{ width: 2.35rem; height: 2.35rem; }
   .menu-btn{
     display: inline-flex;
     order: 3;
@@ -2637,7 +2651,7 @@ body[data-theme="light"] .back-to-top{
 }
 
 @media (max-width: 380px){
-  .nav-logout{ padding: 0.35rem 0.55rem; font-size: 0.74rem; }
+  .nav-notif-btn{ width: 2.2rem; height: 2.2rem; }
 }
 
 /* آيباد عمودي / جوال عريض — محتوى الصفحة */

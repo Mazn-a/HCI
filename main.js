@@ -510,10 +510,10 @@ if (navCtaSlot && loggedInName){
         '<span class="chip-avatar" id="navAvatarChip">' + loggedInName.charAt(0) + '</span>' +
         '<span class="nav-user-name">' + loggedInName + '</span>' +
       '</button>' +
-      '<button type="button" class="nav-logout" id="navLogoutBtn" aria-label="تسجيل الخروج">خروج</button>' +
       '<div class="nav-dropdown" id="navDropdown">' +
         '<a href="profile.html">الملف الشخصي</a>' +
         '<a href="settings.html">الإعدادات</a>' +
+        '<a href="profile.html#inbox">الرسائل والتنبيهات</a>' +
         adminLink +
         '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل الخروج</a>' +
       '</div>' +
@@ -541,9 +541,7 @@ if (navCtaSlot && loggedInName){
     window.location.href = 'index.html';
   }
   var logoutLink = document.getElementById('logoutLink');
-  var navLogoutBtn = document.getElementById('navLogoutBtn');
   if (logoutLink) logoutLink.addEventListener('click', doLogout);
-  if (navLogoutBtn) navLogoutBtn.addEventListener('click', doLogout);
 }
 
 if (heroCta && loggedInName){
@@ -1501,17 +1499,18 @@ if (inboxList){
     wrap.className = 'nav-notif-wrap';
     wrap.innerHTML =
       '<button type="button" class="nav-notif-btn" id="navNotifBtn" aria-haspopup="true" aria-expanded="false" aria-label="التنبيهات">' +
-        '<span class="nav-notif-icon" aria-hidden="true"></span>' +
-        '<span class="nav-notif-label">تنبيهات</span>' +
-        '<span class="nav-notif-count" id="navNotifCount" hidden>0</span>' +
+        '<svg class="nav-notif-svg" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">' +
+          '<path fill="currentColor" d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22zm7-6.2V11a7 7 0 1 0-14 0v4.8L3 17.8V19h18v-1.2l-2-1.8z"/>' +
+        '</svg>' +
+        '<span class="nav-notif-count" id="navNotifCount" hidden></span>' +
       '</button>' +
       '<div class="nav-notif-panel" id="navNotifPanel" hidden>' +
         '<div class="nav-notif-head">' +
           '<strong>التنبيهات</strong>' +
-          '<button type="button" class="nav-notif-markall" id="navNotifMarkAll">تعليم الكل مقروء</button>' +
+          '<button type="button" class="nav-notif-markall" id="navNotifMarkAll">علم الكل مقروء</button>' +
         '</div>' +
         '<div class="nav-notif-list" id="navNotifList"><p class="progress-note">لا توجد تنبيهات</p></div>' +
-        '<a class="nav-notif-footer" href="profile.html#inbox">صندوق الرسائل الكامل</a>' +
+        '<a class="nav-notif-footer" href="profile.html#inbox">فتح صندوق الرسائل</a>' +
       '</div>';
     slot.insertBefore(wrap, slot.firstChild);
 
@@ -1577,9 +1576,12 @@ if (inboxList){
     if (!el) return;
     if (count > 0){
       el.hidden = false;
+      el.removeAttribute('hidden');
       el.textContent = count > 99 ? '99+' : String(count);
     } else {
       el.hidden = true;
+      el.setAttribute('hidden', '');
+      el.textContent = '';
     }
   }
 

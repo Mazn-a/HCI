@@ -2278,33 +2278,40 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   });
 });
 
-// ----- بلّغ عن مشكلة — أسفل الصفحات المحتوى فقط (مو صفحات الدخول) -----
+// ----- بلّغ عن مشكلة — زر عائم + نموذج منبثق -----
 (function injectReportSection(){
-  if (document.getElementById('reportSection')) return;
+  if (document.getElementById('reportFab') || document.getElementById('reportSection')) return;
 
   var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
-  var skipPages = ['admin.html', 'auth.html', 'path-choice.html', 'certificate.html'];
+  var skipPages = ['admin.html', 'auth.html', 'path-choice.html', 'certificate.html', 'maintenance.html'];
   if (skipPages.indexOf(pageName) !== -1) return;
   if (document.body.classList.contains('auth-page')) return;
   if (document.body.classList.contains('path-choice-page')) return;
   if (document.body.classList.contains('cert-page')) return;
 
-  var section = document.createElement('section');
-  section.id = 'reportSection';
-  section.className = 'report-section';
-  section.setAttribute('aria-label', 'بلّغ عن مشكلة');
-  section.innerHTML =
-    '<details class="report-details">' +
-      '<summary class="report-summary">' +
-        '<span class="report-summary-icon" aria-hidden="true">!</span>' +
-        '<span class="report-summary-copy">' +
-          '<span class="report-summary-title">بلّغ عن مشكلة</span>' +
-          '<span class="report-summary-hint">شفت خطأ أو شي مو واضح؟ اضغط هنا وافتح النموذج</span>' +
-        '</span>' +
-        '<span class="report-summary-chevron" aria-hidden="true">▾</span>' +
-      '</summary>' +
+  var fab = document.createElement('button');
+  fab.type = 'button';
+  fab.id = 'reportFab';
+  fab.className = 'report-fab';
+  fab.setAttribute('aria-label', 'بلّغ عن مشكلة');
+  fab.setAttribute('title', 'بلّغ عن مشكلة');
+  fab.innerHTML = '<span aria-hidden="true">!</span>';
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'reportSection';
+  backdrop.className = 'site-modal-backdrop';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-labelledby', 'reportModalTitle');
+  backdrop.hidden = true;
+  backdrop.innerHTML =
+    '<div class="site-modal report-modal">' +
+      '<div class="site-modal-head">' +
+        '<h3 id="reportModalTitle">بلّغ عن مشكلة</h3>' +
+        '<button type="button" class="site-modal-close" id="reportModalClose" aria-label="إغلاق">×</button>' +
+      '</div>' +
+      '<p class="site-modal-lead">شفت خطأ أو شي مو واضح في الصفحة؟ اكتبها هنا.</p>' +
       '<form class="report-form" id="reportForm">' +
-        '<p class="report-lead">اكتب المشكلة باختصار — تقدر ترفق صورة أو فيديو قصير (حد أقصى ١٠ ثوانٍ).</p>' +
         '<div class="report-fields">' +
           '<input type="text" id="reportName" class="settings-input" placeholder="اسمك (اختياري)" autocomplete="name">' +
           '<input type="text" id="reportContact" class="settings-input" dir="ltr" placeholder="بريد أو جوال (اختياري)">' +
@@ -2322,21 +2329,26 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
           '<p class="status-msg" id="reportStatus"></p>' +
         '</div>' +
       '</form>' +
-    '</details>';
+    '</div>';
 
-  var footer = document.querySelector('footer');
-  var footerInner = footer && footer.querySelector('.footer-inner');
-  var footerBottom = footerInner && footerInner.querySelector('.footer-bottom');
-  if (footerInner && footerBottom){
-    var slot = document.createElement('div');
-    slot.className = 'footer-report-slot';
-    slot.appendChild(section);
-    footerInner.insertBefore(slot, footerBottom);
-  } else if (footer){
-    footer.appendChild(section);
-  } else {
-    document.body.appendChild(section);
+  document.body.appendChild(fab);
+  document.body.appendChild(backdrop);
+
+  function openReport(){
+    backdrop.hidden = false;
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
+  function closeReport(){
+    backdrop.classList.remove('open');
+    backdrop.hidden = true;
+    document.body.style.overflow = '';
+  }
+  fab.addEventListener('click', openReport);
+  document.getElementById('reportModalClose').addEventListener('click', closeReport);
+  backdrop.addEventListener('click', function(e){
+    if (e.target === backdrop) closeReport();
+  });
 
   var form = document.getElementById('reportForm');
   var status = document.getElementById('reportStatus');
@@ -2408,7 +2420,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   mediaClear.addEventListener('click', clearMedia);
 
   if (window.HCIApi && HCIApi.isLoggedIn()){
-    var u = HCIApi.currentUser();
+    var u = HCIApi.currentUser ? HCIApi.currentUser() : (HCIApi.getUser && HCIApi.getUser());
     if (u){
       var nameEl = document.getElementById('reportName');
       var contactEl = document.getElementById('reportContact');
@@ -2456,25 +2468,137 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
           'profile.html#inbox'
         );
         setTimeout(function(){ HCINotifCenter.refresh(true); }, 800);
-      } else {
-        /* زائر: تنبيه صغير أعلى الصفحة */
-        var guestToast = document.createElement('div');
-        guestToast.id = 'adminMsgToast';
-        guestToast.className = 'admin-msg-toast';
-        guestToast.innerHTML = '<div class="nav-notif-toast-top"><span class="nav-notif-toast-label">تنبيه</span><button type="button" class="toast-close" aria-label="إغلاق">×</button></div><p class="nav-notif-toast-title">تم إرسال بلاغك</p>';
-        document.body.appendChild(guestToast);
-        guestToast.querySelector('.toast-close').addEventListener('click', function(){ guestToast.remove(); });
-        setTimeout(function(){ if (guestToast.parentNode) guestToast.remove(); }, 4000);
       }
       setTimeout(function(){
+        closeReport();
         submitBtn.disabled = false;
         submitBtn.textContent = 'إرسال البلاغ';
-      }, 2000);
+        status.classList.remove('show');
+      }, 1200);
     } catch (err) {
       status.textContent = err.message;
       status.classList.add('show');
       submitBtn.disabled = false;
       submitBtn.textContent = 'إرسال البلاغ';
+    }
+  });
+})();
+
+// ----- تواصل معي — تحت الاسم في التذييل -----
+(function injectFooterContact(){
+  var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
+  if (['admin.html', 'auth.html', 'certificate.html', 'maintenance.html'].indexOf(pageName) !== -1) return;
+  if (document.body.classList.contains('auth-page')) return;
+
+  var bottom = document.querySelector('footer .footer-bottom');
+  if (!bottom || document.getElementById('footerContactBtn')) return;
+
+  var wrap = document.createElement('div');
+  wrap.className = 'footer-credit-block';
+  while (bottom.firstChild) wrap.appendChild(bottom.firstChild);
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'footerContactBtn';
+  btn.className = 'footer-contact-btn';
+  btn.textContent = 'تواصل معي';
+  wrap.appendChild(btn);
+  bottom.appendChild(wrap);
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'contactModal';
+  backdrop.className = 'site-modal-backdrop';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-labelledby', 'contactModalTitle');
+  backdrop.hidden = true;
+  backdrop.innerHTML =
+    '<div class="site-modal">' +
+      '<div class="site-modal-head">' +
+        '<h3 id="contactModalTitle">تواصل معي</h3>' +
+        '<button type="button" class="site-modal-close" id="contactModalClose" aria-label="إغلاق">×</button>' +
+      '</div>' +
+      '<form id="contactForm">' +
+        '<label class="site-modal-label" for="contactName">الاسم</label>' +
+        '<input type="text" id="contactName" class="settings-input" placeholder="اسمك" autocomplete="name">' +
+        '<label class="site-modal-label" for="contactReach">وسيلة تواصل</label>' +
+        '<input type="text" id="contactReach" class="settings-input" dir="ltr" placeholder="بريد أو جوال">' +
+        '<label class="site-modal-label" for="contactMessage">الرسالة</label>' +
+        '<textarea id="contactMessage" class="report-textarea" required placeholder="اكتب رسالتك…" rows="4"></textarea>' +
+        '<div class="report-submit-row">' +
+          '<button type="submit" class="btn-primary" id="contactSubmit">إرسال</button>' +
+          '<p class="status-msg" id="contactStatus"></p>' +
+        '</div>' +
+      '</form>' +
+    '</div>';
+  document.body.appendChild(backdrop);
+
+  function openContact(){
+    backdrop.hidden = false;
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeContact(){
+    backdrop.classList.remove('open');
+    backdrop.hidden = true;
+    document.body.style.overflow = '';
+  }
+  btn.addEventListener('click', openContact);
+  document.getElementById('contactModalClose').addEventListener('click', closeContact);
+  backdrop.addEventListener('click', function(e){
+    if (e.target === backdrop) closeContact();
+  });
+
+  if (window.HCIApi && HCIApi.isLoggedIn()){
+    var u = HCIApi.currentUser ? HCIApi.currentUser() : (HCIApi.getUser && HCIApi.getUser());
+    if (u){
+      var n = document.getElementById('contactName');
+      var r = document.getElementById('contactReach');
+      if (n) n.value = u.fullName || '';
+      if (r) r.value = u.email || u.phone || '';
+    }
+  }
+
+  document.getElementById('contactForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var statusEl = document.getElementById('contactStatus');
+    var submitBtn = document.getElementById('contactSubmit');
+    var message = document.getElementById('contactMessage').value.trim();
+    if (message.length < 5){
+      statusEl.textContent = 'اكتب الرسالة بوضوح';
+      statusEl.classList.add('show');
+      return;
+    }
+    if (!window.HCIApi){
+      statusEl.textContent = 'السيرفر غير متصل';
+      statusEl.classList.add('show');
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'جاري الإرسال…';
+    statusEl.classList.remove('show');
+    try {
+      await HCIApi.request('/api/contact', {
+        method: 'POST',
+        body: {
+          name: document.getElementById('contactName').value.trim(),
+          contact: document.getElementById('contactReach').value.trim(),
+          message: message
+        }
+      });
+      statusEl.textContent = 'وصلت رسالتك ✓';
+      statusEl.classList.add('show');
+      document.getElementById('contactMessage').value = '';
+      setTimeout(function(){
+        closeContact();
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'إرسال';
+        statusEl.classList.remove('show');
+      }, 1200);
+    } catch (err) {
+      statusEl.textContent = err.message || 'تعذر الإرسال';
+      statusEl.classList.add('show');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'إرسال';
     }
   });
 })();

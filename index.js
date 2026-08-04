@@ -559,8 +559,63 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
     admins: db.countAdmins(),
     messages: db.countMessages(),
     reports: db.countReports(),
+    contacts: db.countContacts(),
     activeWeek: db.countActiveWeek()
   });
+});
+
+/* ---------- تواصل مع المُعِد (عروض / وظائف / رسالة عامة) ---------- */
+app.post('/api/contact', (req, res) => {
+  try {
+    const message = String(req.body.message || '').trim();
+    if (message.length < 5) {
+      return res.status(400).json({ error: 'اكتب رسالتك بوضوح (٥ أحرف على الأقل)' });
+    }
+
+    let userId = null;
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (token) {
+      try {
+        userId = jwt.verify(token, JWT_SECRET).id;
+      } catch { /* زائر */ }
+    }
+
+    const row = db.createContact({
+      userId,
+      name: String(req.body.name || '').trim(),
+      contact: String(req.body.contact || '').trim(),
+      message
+    });
+
+    res.status(201).json({ ok: true, id: row.id });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر إرسال الرسالة' });
+  }
+});
+
+app.get('/api/admin/contacts', adminRequired, (req, res) => {
+  res.json({
+    contacts: db.getContacts().map((c) => {
+      const u = c.user_id ? db.findUserById(c.user_id) : null;
+      return {
+        id: c.id,
+        name: c.name || (u ? u.first_name + ' ' + u.last_name : 'زائر'),
+        contact: c.contact || (u ? (u.email || u.phone || '') : ''),
+        message: c.message,
+        status: c.status,
+        createdAt: c.created_at,
+        doneAt: c.done_at || null
+      };
+    })
+  });
+});
+
+app.patch('/api/admin/contacts/:id/done', adminRequired, (req, res) => {
+  const row = db.markContactDone(req.params.id);
+  if (!row) return res.status(404).json({ error: 'الرسالة غير موجودة' });
+  res.json({ ok: true });
 });
 
 /* ---------- بلاغات المشاكل (من أي زائر أو طالب) ---------- */

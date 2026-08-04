@@ -105,6 +105,8 @@
     document.getElementById('statActive').textContent = s.activeWeek;
     document.getElementById('statMessages').textContent = s.messages;
     document.getElementById('statReports').textContent = s.reports;
+    var contactsStat = document.getElementById('statContacts');
+    if (contactsStat) contactsStat.textContent = s.contacts != null ? s.contacts : '—';
   }
 
   function formatDate(iso) {
@@ -283,12 +285,15 @@
   }
 
   function setAdminTab(active) {
-    ['tabUsers', 'tabMessages', 'tabReports'].forEach(function (id) {
-      document.getElementById(id).classList.toggle('active', id === active);
+    ['tabUsers', 'tabMessages', 'tabReports', 'tabContacts'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('active', id === active);
     });
     document.getElementById('panelUsers').hidden = active !== 'tabUsers';
     document.getElementById('panelMessages').hidden = active !== 'tabMessages';
     document.getElementById('panelReports').hidden = active !== 'tabReports';
+    var panelContacts = document.getElementById('panelContacts');
+    if (panelContacts) panelContacts.hidden = active !== 'tabContacts';
   }
 
   document.getElementById('tabUsers').addEventListener('click', function () {
@@ -304,6 +309,51 @@
     setAdminTab('tabReports');
     loadReports().catch(function (e) { alert(e.message); });
   });
+
+  document.getElementById('tabContacts').addEventListener('click', function () {
+    setAdminTab('tabContacts');
+    loadContacts().catch(function (e) { alert(e.message); });
+  });
+
+  async function loadContacts() {
+    var data = await HCIApi.request('/api/admin/contacts');
+    var list = document.getElementById('contactsList');
+    var empty = document.getElementById('contactsEmpty');
+    list.innerHTML = '';
+
+    if (!data.contacts.length) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    data.contacts.forEach(function (c) {
+      var card = document.createElement('div');
+      card.style.cssText = 'border:1px solid var(--ink-3);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--ink)';
+      card.innerHTML =
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;">' +
+          '<strong>' + escapeHtml(c.name) + '</strong>' +
+          '<span style="font-size:0.78rem;color:var(--text-mid)">' + formatDate(c.createdAt) +
+            (c.status === 'done' ? ' · تم' : ' · جديد') + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:8px;" dir="ltr">' +
+          escapeHtml(c.contact || '—') +
+        '</div>' +
+        '<p style="margin:0 0 10px;line-height:1.65;white-space:pre-wrap;">' + escapeHtml(c.message) + '</p>' +
+        (c.status === 'new'
+          ? '<button type="button" class="done-contact-btn" data-id="' + c.id + '" style="font-size:0.78rem;padding:6px 14px;border-radius:16px;border:1px solid var(--line-green);background:none;color:var(--line-green);cursor:pointer;font-family:var(--font-body)">تم الاطلاع ✓</button>'
+          : '');
+      list.appendChild(card);
+    });
+
+    list.querySelectorAll('.done-contact-btn').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        await HCIApi.request('/api/admin/contacts/' + b.getAttribute('data-id') + '/done', { method: 'PATCH' });
+        await loadStats();
+        await loadContacts();
+      });
+    });
+  }
 
   async function loadReports() {
     var data = await HCIApi.request('/api/admin/reports');

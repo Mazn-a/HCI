@@ -112,12 +112,14 @@
           <div class="stat-box"><div class="n" id="statActive">—</div><div class="l">نشطون آخر 7 أيام</div></div>
           <div class="stat-box"><div class="n" id="statMessages">—</div><div class="l">رسائل مرسلة</div></div>
           <div class="stat-box"><div class="n" id="statReports">—</div><div class="l">بلاغات جديدة</div></div>
+          <div class="stat-box"><div class="n" id="statContacts">—</div><div class="l">رسائل تواصل</div></div>
         </div>
 
         <div class="admin-tabs">
           <button type="button" class="size-btn active" id="tabUsers">المستخدمون</button>
           <button type="button" class="size-btn" id="tabMessages">الرسائل</button>
           <button type="button" class="size-btn" id="tabReports">بلاغات المشاكل</button>
+          <button type="button" class="size-btn" id="tabContacts">التواصل معي</button>
         </div>
 
         <div id="panelUsers">
@@ -151,6 +153,13 @@
           <div class="profile-card" style="max-width:none;">
             <div id="reportsList"></div>
             <p id="reportsEmpty" style="color:var(--text-mid); display:none;">لا توجد بلاغات حالياً.</p>
+          </div>
+        </div>
+
+        <div id="panelContacts" hidden>
+          <div class="profile-card" style="max-width:none;">
+            <div id="contactsList"></div>
+            <p id="contactsEmpty" style="color:var(--text-mid); display:none;">لا توجد رسائل تواصل حالياً.</p>
           </div>
         </div>
       </div>

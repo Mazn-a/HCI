@@ -27,11 +27,13 @@ function defaultDb() {
     progress: [],
     messages: [],
     reports: [],
+    contacts: [],
     notifications: [],
     otps: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
+    nextContactId: 1,
     nextNotificationId: 1,
     nextOtpId: 1
   };
@@ -60,6 +62,8 @@ function migrate(cache) {
   var changed = false;
   if (!cache.reports) { cache.reports = []; changed = true; }
   if (!cache.nextReportId) { cache.nextReportId = 1; changed = true; }
+  if (!cache.contacts) { cache.contacts = []; changed = true; }
+  if (!cache.nextContactId) { cache.nextContactId = 1; changed = true; }
   if (!cache.notifications) { cache.notifications = []; changed = true; }
   if (!cache.nextNotificationId) { cache.nextNotificationId = 1; changed = true; }
   if (!cache.otps) { cache.otps = []; changed = true; }
@@ -372,6 +376,41 @@ const db = {
       persist();
     }
     return r;
+  },
+
+  createContact({ userId, name, contact, message }) {
+    const row = {
+      id: cache.nextContactId++,
+      user_id: userId || null,
+      name: name || '',
+      contact: contact || '',
+      message,
+      created_at: new Date().toISOString(),
+      status: 'new'
+    };
+    cache.contacts.push(row);
+    persist();
+    return row;
+  },
+
+  getContacts() {
+    return cache.contacts
+      .slice()
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+
+  markContactDone(id) {
+    const row = cache.contacts.find((x) => x.id === Number(id));
+    if (row) {
+      row.status = 'done';
+      row.done_at = new Date().toISOString();
+      persist();
+    }
+    return row;
+  },
+
+  countContacts() {
+    return cache.contacts.filter((c) => c.status === 'new').length;
   },
 
   createNotification({ userId, type, title, body, link, refId }) {

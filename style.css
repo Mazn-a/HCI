@@ -686,8 +686,10 @@ a.wordmark{
   font-family: var(--font-body);
   max-width: 11.5rem;
   min-height: 2.4rem;
+  text-decoration: none;
   transition: background 0.15s, border-color 0.15s;
 }
+.nav-user::after{ display: none !important; }
 .nav-user:hover,
 .nav-user[aria-expanded="true"]{
   background: var(--ink-2);

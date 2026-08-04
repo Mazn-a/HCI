@@ -376,7 +376,7 @@ function annotateChecklists(){
     if (!list.querySelector('.checklist-hint')){
       var hint = document.createElement('p');
       hint.className = 'checklist-hint';
-      hint.textContent = 'مهم: لازم تحدد ✓ على كل البنود قبل ما تضغط «أكملت» أو «التالي».';
+      hint.innerHTML = 'حدّد كل البنود قبل ما تضغط <strong>أكملت</strong> أو <strong>التالي</strong>.';
       var h4 = list.querySelector('h4');
       if (h4) h4.insertAdjacentElement('afterend', hint);
       else list.insertBefore(hint, list.firstChild);

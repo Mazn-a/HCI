@@ -7,7 +7,7 @@
        للدخول أنت وأنت تجرب: أضف ?open=1 لأي رابط
        لإلغاء التجاوز: ?open=0
     */
-    var MAINTENANCE_MODE = true;
+    var MAINTENANCE_MODE = false;
 
     var theme = localStorage.getItem('hci_theme') || 'dark';
     /* الوضع الفاتح تحت الصيانة */

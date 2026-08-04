@@ -42,7 +42,7 @@ app.use(express.json({ limit: '1mb' }));
    إلغاء التجاوز: ?open=0
    لإعادة فتح الموقع للجميع: غيّر إلى false (ومعها gate.js)
 */
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 app.use(function maintenanceGate(req, res, next) {
   if (!MAINTENANCE_MODE) return next();

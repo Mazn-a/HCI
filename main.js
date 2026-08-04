@@ -38,47 +38,279 @@ try { localStorage.setItem('hci_font_size', savedFontSize); } catch (e) { /* */ 
 /* الوضع الفاتح تحت الصيانة — يُجبر الداكن دائماً */
 var LIGHT_THEME_AVAILABLE = false;
 
-/* ألوان التمييز الصارخة تُستبدل في الوضع الفاتح بهوية هادئة */
-var LIGHT_ACCENT_MAP = {
-  '#C9A24B': '#A9843A',
-  '#c9a24b': '#A9843A',
-  '#8FC15C': '#3E7CB0',
-  '#8fc15c': '#3E7CB0',
-  '#6FD6E0': '#57534E',
-  '#6fd6e0': '#57534E',
-  '#6B9FE8': '#57534E',
-  '#6b9fe8': '#57534E',
-  '#6ECF84': '#3E7CB0',
-  '#6ecf84': '#3E7CB0',
-  '#B79CE0': '#7C6A9A',
-  '#b79ce0': '#7C6A9A',
-  '#4A6B78': '#57534E',
-  '#4a6b78': '#57534E',
-  '#3F3F46': '#3E7CB0',
-  '#3f3f46': '#3E7CB0',
-  '#1E4A6E': '#3E7CB0',
-  '#1e4a6e': '#3E7CB0'
+/* ثيمات لون التمييز — خلفية سوداء + بطاقات محايدة + لون بارز */
+var ACCENT_SURFACE = {
+  ink2: '#121212',
+  ink3: '#2A2A2A',
+  inkSoft: '#1A1A1A',
+  cardBg: 'rgba(0,0,0,0.28)',
+  textHi: '#EAF3F6',
+  textMid: '#9DB4C6',
+  onAccent: '#111111',
+  onHighlight: '#000000',
+  highlight: '#6FD6E0',
+  cyanRgb: '111, 214, 224',
+  success: '#6FD6E0'
 };
 
-function resolveAccentForTheme(theme, color){
-  if (!color) return theme === 'light' ? '#A9843A' : '#C9A24B';
-  // الفحمي/الكحلي الغامق القديم → كحلي أوضح
-  if (color === '#3F3F46' || color === '#3f3f46' || color === '#1E4A6E' || color === '#1e4a6e'){
-    color = '#3E7CB0';
+var ACCENT_THEMES = {
+  gold: {
+    id: 'gold',
+    accent: '#C9A24B',
+    goldRgb: '201, 162, 75',
+    amber: '#F2A93B',
+    violet: '#B79CE0',
+    cardHover: 'rgba(201, 162, 75, 0.48)',
+    badgeBg: 'rgba(201, 162, 75, 0.12)'
+  },
+  rose: {
+    id: 'rose',
+    /* وردي فقط — بدون ثانوي */
+    accent: '#E0A0B4',
+    goldRgb: '224, 160, 180',
+    highlight: '#E0A0B4',
+    cyanRgb: '224, 160, 180',
+    amber: '#EBB4C4',
+    violet: '#D4A0C0',
+    cardHover: 'rgba(224, 160, 180, 0.48)',
+    badgeBg: 'rgba(224, 160, 180, 0.14)',
+    success: '#E0A0B4',
+    onAccent: '#1A0C10',
+    onHighlight: '#1A0C10'
+  },
+  green: {
+    id: 'green',
+    /* أخضر زيتوني بارز — بدون ثانوي */
+    accent: '#7A9E4A',
+    goldRgb: '122, 158, 74',
+    highlight: '#7A9E4A',
+    cyanRgb: '122, 158, 74',
+    amber: '#8FB055',
+    violet: '#6F9140',
+    cardHover: 'rgba(122, 158, 74, 0.48)',
+    badgeBg: 'rgba(122, 158, 74, 0.14)',
+    success: '#7A9E4A',
+    onAccent: '#0E1408',
+    onHighlight: '#0E1408'
   }
-  if (theme === 'light' && LIGHT_ACCENT_MAP[color]) return LIGHT_ACCENT_MAP[color];
-  return color;
+};
+
+function normalizeAccentHex(color){
+  var c = String(color || '').trim().toLowerCase();
+  if (!c) return '';
+  if (c.charAt(0) !== '#') c = '#' + c;
+  if (/^#[0-9a-f]{3}$/.test(c)){
+    c = '#' + c.charAt(1) + c.charAt(1) + c.charAt(2) + c.charAt(2) + c.charAt(3) + c.charAt(3);
+  }
+  if (!/^#[0-9a-f]{6}$/.test(c)) return '';
+  return c;
+}
+
+function hexToRgbParts(hex){
+  var c = normalizeAccentHex(hex);
+  if (!c) return null;
+  return {
+    r: parseInt(c.slice(1, 3), 16),
+    g: parseInt(c.slice(3, 5), 16),
+    b: parseInt(c.slice(5, 7), 16)
+  };
+}
+
+function buildCustomAccentPack(hex){
+  var accent = normalizeAccentHex(hex) || '#C9A24B';
+  var rgb = hexToRgbParts(accent) || { r: 201, g: 162, b: 75 };
+  var rgbStr = rgb.r + ', ' + rgb.g + ', ' + rgb.b;
+  var lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  var on = lum > 0.58 ? '#1A120C' : '#F5F0EB';
+  return {
+    id: 'custom',
+    accent: accent,
+    goldRgb: rgbStr,
+    highlight: accent,
+    cyanRgb: rgbStr,
+    amber: accent,
+    violet: accent,
+    cardHover: 'rgba(' + rgbStr + ', 0.48)',
+    badgeBg: 'rgba(' + rgbStr + ', 0.14)',
+    success: accent,
+    onAccent: on,
+    onHighlight: on
+  };
+}
+
+function getAccentPack(color){
+  var id = getAccentThemeId(color);
+  var base = id === 'custom'
+    ? buildCustomAccentPack(color)
+    : (ACCENT_THEMES[id] || ACCENT_THEMES.gold);
+  var pack = {};
+  var k;
+  for (k in ACCENT_SURFACE){ if (Object.prototype.hasOwnProperty.call(ACCENT_SURFACE, k)) pack[k] = ACCENT_SURFACE[k]; }
+  for (k in base){ if (Object.prototype.hasOwnProperty.call(base, k)) pack[k] = base[k]; }
+  return pack;
+}
+
+/* مطابقة ألوان السواتش / القيم القديمة → معرّف الثيم */
+function getAccentThemeId(color){
+  var c = normalizeAccentHex(color);
+  if (!c) return 'gold';
+  if (
+    c === '#e0a0b4' || c === '#e8a0b0' || c === '#d4a0b0' ||
+    c === '#e87888' || c === '#f05a6e'
+  ) return 'rose';
+  if (
+    c === '#7a9e4a' || c === '#719641' || c === '#6b8e3a' || c === '#8fb055'
+  ) return 'green';
+  if (
+    c === '#c9a24b' || c === '#e8c84a' || c === '#f0d060' ||
+    c === '#a9843a' || c === '#f2a93b'
+  ) return 'gold';
+  return 'custom';
+}
+
+function resolveAccentForTheme(theme, color){
+  var pack = getAccentPack(color);
+  if (theme === 'light'){
+    if (pack.id === 'gold') return '#A9843A';
+    return pack.accent;
+  }
+  return pack.accent;
 }
 
 function applyAccentColor(color){
   var theme = document.documentElement.getAttribute('data-theme') || 'dark';
-  var resolved = resolveAccentForTheme(theme, color);
-  document.documentElement.style.setProperty('--gold', resolved);
+  var pack = getAccentPack(color);
+  var root = document.documentElement;
+  var accent = theme === 'light' && pack.id === 'gold' ? '#A9843A' : pack.accent;
+
+  root.setAttribute('data-accent', pack.id);
+  if (document.body) document.body.setAttribute('data-accent', pack.id);
+
+  root.style.setProperty('--gold', accent);
+  root.style.setProperty('--gold-rgb', pack.goldRgb);
+  root.style.setProperty('--line-cyan', pack.highlight);
+  root.style.setProperty('--cyan-rgb', pack.cyanRgb);
+  root.style.setProperty('--line-amber', pack.amber);
+  root.style.setProperty('--line-green', pack.highlight);
+  root.style.setProperty('--line-violet', pack.violet);
+  root.style.setProperty('--success', pack.success);
+  root.style.setProperty('--on-accent', pack.onAccent);
+  root.style.setProperty('--on-highlight', pack.onHighlight);
+  root.style.setProperty('--text-hi', pack.textHi);
+  root.style.setProperty('--text-mid', pack.textMid);
+
+  if (theme !== 'light'){
+    root.style.setProperty('--ink', '#000000');
+    root.style.setProperty('--ink-2', pack.ink2);
+    root.style.setProperty('--ink-3', pack.ink3);
+    root.style.setProperty('--ink-soft', pack.inkSoft);
+    root.style.setProperty('--card-bg', pack.cardBg);
+    root.style.setProperty('--card-bg-panel', pack.ink2);
+    root.style.setProperty('--card-border', pack.ink3);
+    root.style.setProperty('--card-border-hover', pack.cardHover);
+    root.style.setProperty('--badge-bg', pack.badgeBg);
+    root.style.setProperty('--header-bg', '#000000');
+    root.style.setProperty('--nav-panel', 'rgba(0,0,0,0.98)');
+  }
+
   try {
-    if (color === '#3F3F46' || color === '#3f3f46' || color === '#1E4A6E' || color === '#1e4a6e'){
-      localStorage.setItem('hci_accent_color', '#3E7CB0');
-    }
+    var id = pack.id;
+    if (id === 'rose') localStorage.setItem('hci_accent_color', '#E0A0B4');
+    else if (id === 'green') localStorage.setItem('hci_accent_color', '#7A9E4A');
+    else if (id === 'gold') localStorage.setItem('hci_accent_color', '#C9A24B');
+    else localStorage.setItem('hci_accent_color', pack.accent);
   } catch (e) { /* */ }
+}
+
+/* علبة ألوان مخصصة — أزرق / أحمر / أخضر / أصفر فقط (بدون أبيض وأسود ورمادي) */
+var CUSTOM_ACCENT_PALETTE = {
+  red:    ['#8B1A1A', '#A93226', '#C0392B', '#E74C3C', '#EF5350', '#F07167', '#FF6B6B', '#FF8A80'],
+  yellow: ['#8B6914', '#A67C00', '#C9A227', '#D4AF37', '#E8C84A', '#F0D060', '#F5D76E', '#FFE066'],
+  green:  ['#145A32', '#1B6B3A', '#1E8449', '#27AE60', '#2ECC71', '#3DDC84', '#58D68D', '#7DCEA0'],
+  blue:   ['#1A5276', '#1F618D', '#2471A3', '#2980B9', '#3498DB', '#5DADE2', '#6FD6E0', '#85C1E9']
+};
+
+function closeAllAccentPalettes(){
+  document.querySelectorAll('.accent-palette.is-open').forEach(function(el){
+    el.classList.remove('is-open');
+    el.hidden = true;
+  });
+  document.querySelectorAll('.swatch-custom[aria-expanded="true"]').forEach(function(btn){
+    btn.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function syncAccentPaletteSelection(panel, color){
+  if (!panel) return;
+  var c = normalizeAccentHex(color);
+  panel.querySelectorAll('.accent-palette-swatch').forEach(function(btn){
+    btn.classList.toggle('active', normalizeAccentHex(btn.getAttribute('data-color')) === c);
+  });
+}
+
+function initAccentColorPicker(opts){
+  var btn = opts && opts.button;
+  var panel = opts && opts.panel;
+  var onPick = opts && opts.onPick;
+  if (!btn || !panel) return;
+
+  if (!panel.dataset.built){
+    var groups = [
+      { key: 'red', label: 'أحمر' },
+      { key: 'yellow', label: 'أصفر' },
+      { key: 'green', label: 'أخضر' },
+      { key: 'blue', label: 'أزرق' }
+    ];
+    panel.innerHTML = '';
+    groups.forEach(function(g){
+      var row = document.createElement('div');
+      row.className = 'accent-palette-row';
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', g.label);
+      (CUSTOM_ACCENT_PALETTE[g.key] || []).forEach(function(hex){
+        var sw = document.createElement('button');
+        sw.type = 'button';
+        sw.className = 'accent-palette-swatch';
+        sw.setAttribute('data-color', hex);
+        sw.setAttribute('aria-label', g.label + ' ' + hex);
+        sw.title = hex;
+        sw.style.background = hex;
+        sw.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof onPick === 'function') onPick(hex);
+          closeAllAccentPalettes();
+        });
+        row.appendChild(sw);
+      });
+      panel.appendChild(row);
+    });
+    panel.dataset.built = '1';
+  }
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var open = panel.classList.contains('is-open');
+    closeAllAccentPalettes();
+    if (!open){
+      panel.hidden = false;
+      panel.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      syncAccentPaletteSelection(panel, localStorage.getItem('hci_accent_color'));
+    }
+  });
+}
+
+if (!window.__hciAccentPaletteDocBound){
+  window.__hciAccentPaletteDocBound = true;
+  document.addEventListener('click', function(e){
+    if (e.target.closest('.swatch-custom-wrap')) return;
+    closeAllAccentPalettes();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeAllAccentPalettes();
+  });
 }
 
 var savedAccent = localStorage.getItem('hci_accent_color');
@@ -191,40 +423,16 @@ function isUnlocked(stageId){
   // المدير والمتخصص: كل المسارات مفتوحة
   if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) return true;
 
+  // الطالب: ترتيب صارم — المرحلة تنفتح فقط بعد إكمال اللي قبلها
   if (stageId === 'discover') return true;
 
   var j = getJourney();
-  if (j.unlocked && j.unlocked[stageId]) return true;
   if (j.done && j.done[stageId]) return true;
 
   var idx = JOURNEY_ORDER.indexOf(stageId);
-  if (idx > 0){
-    var prev = JOURNEY_ORDER[idx - 1];
-    // إذا خلّص اللي قبلها أو زارها — المرحلة الحالية مفتوحة
-    if ((j.done && j.done[prev]) || (j.visited && j.visited[prev])) return true;
-  }
-
-  if (stageId === 'fundamentals'){
-    return !!(j.visited && j.visited.discover) || !!(j.done && j.done.discover);
-  }
-
-  // الترميز وما بعده: بدون بوابة قفل على الصفحات
-  if (stageId === 'coding' || stageId === 'courses' || stageId === 'books'){
-    return true;
-  }
-
-  if (stageId === 'practice'){
-    return !!(j.done && j.done.fundamentals) || !!(j.unlocked && j.unlocked.practice) ||
-      !!(j.done && j.done.discover) || !!(j.visited && j.visited.discover) ||
-      !!(j.visited && j.visited.fundamentals);
-  }
-
-  if (stageId === 'contribute'){
-    var doneCount = Object.keys(j.done || {}).filter(function(k){ return j.done[k]; }).length;
-    return doneCount >= 4 || !!(j.unlocked && j.unlocked.contribute);
-  }
-
-  return false;
+  if (idx <= 0) return true;
+  var prev = JOURNEY_ORDER[idx - 1];
+  return !!(j.done && j.done[prev]);
 }
 
 function isDone(stageId){
@@ -322,7 +530,7 @@ function showLockAlert(message, href, ctaLabel){
       '<h3 id="lockDialogTitle">كيف تفتح هالمرحلة؟</h3>' +
       '<p class="lock-dialog-reason">' + message + '</p>' +
       '<div class="lock-dialog-actions">' +
-        '<button type="button" class="btn-ghost" id="lockDialogClose">لاحقاً</button>' +
+        '<button type="button" class="btn-ghost" id="lockDialogClose">فهمت</button>' +
         (href
           ? '<a href="' + href + '" class="btn-primary" id="lockDialogGo">' + (ctaLabel || 'الذهاب للخطوة المطلوبة') + '</a>'
           : '') +
@@ -539,7 +747,7 @@ if (greetingEl){
   } else if (loggedInName){
     greetingText += '، ' + loggedInName;
   } else {
-    greetingText += ' — مرحباً بك في HCI';
+    greetingText += ' — مرحباً بك';
   }
 
   // حدّث النص فقط إذا تغيّر — يقلل القفز البصري
@@ -699,10 +907,16 @@ if (heroCta && loggedInName){
   heroCta.setAttribute('href', '#paths');
 }
 
-// ----- شريط التقدم العام -----
+// ----- شريط التقدم العام (للمسجّلين فقط) -----
 var overallFill = document.getElementById('overallProgressFill');
 var overallPct = document.getElementById('overallProgressPct');
-if (overallFill || overallPct){
+var journeyStrip = document.getElementById('journeyStrip');
+var isLoggedInForProgress = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+if (journeyStrip){
+  if (isLoggedInForProgress) journeyStrip.removeAttribute('hidden');
+  else journeyStrip.setAttribute('hidden', '');
+}
+if (isLoggedInForProgress && (overallFill || overallPct)){
   var pct = getOverallProgress();
   if (overallFill) overallFill.style.width = pct + '%';
   if (overallPct) overallPct.textContent = pct + '%';
@@ -747,6 +961,30 @@ if (stationsRoot){
   var stations = stationsRoot.querySelectorAll('[data-stage]');
   var currentAssigned = false;
   var currentStageId = null;
+  var doneCountEarly = JOURNEY_ORDER.filter(isDone).length;
+
+  function stageTitle(id){
+    return (STAGE_META[id] && STAGE_META[id].title) || id;
+  }
+
+  function focusCurrentStationCta(){
+    var current = stationsRoot.querySelector('.station[aria-current="step"]');
+    if (!current){
+      current = stationsRoot.querySelector('.station:not(.is-locked):not(.is-done)');
+    }
+    if (!current) return;
+    current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    current.classList.remove('pulse-glow-card');
+    var link = current.querySelector('.station-link');
+    if (link) link.classList.remove('pulse-glow');
+    void current.offsetWidth;
+    current.classList.add('pulse-glow-card');
+    if (link) link.classList.add('pulse-glow');
+    setTimeout(function(){
+      current.classList.remove('pulse-glow-card');
+      if (link) link.classList.remove('pulse-glow');
+    }, 3200);
+  }
 
   stations.forEach(function(station){
     var id = station.getAttribute('data-stage');
@@ -754,6 +992,7 @@ if (stationsRoot){
     var link = station.querySelector('.station-link');
     var unlocked = isUnlocked(id);
     var done = isDone(id);
+    var title = stageTitle(id);
 
     station.classList.toggle('is-locked', !unlocked);
     station.classList.toggle('is-done', done);
@@ -765,12 +1004,12 @@ if (stationsRoot){
         link.classList.add('disabled');
         link.classList.add('show-lock-reason');
         link.setAttribute('aria-disabled', 'true');
-        link.setAttribute('href', '#');
-        link.textContent = 'كيف أفتحها؟';
-        link.title = getLockReason(id);
+        link.setAttribute('href', '#paths');
+        link.textContent = title;
+        link.title = 'أكمل المرحلة الحالية أولاً بالترتيب';
         link.addEventListener('click', function(e){
           e.preventDefault();
-          showStageLock(id);
+          focusCurrentStationCta();
         });
       }
     } else if (done){
@@ -778,7 +1017,9 @@ if (stationsRoot){
       if (statusEl){ statusEl.textContent = 'مكتمل ✓'; statusEl.className = 'station-status done'; }
       if (link){
         link.classList.remove('disabled');
-        link.textContent = 'راجع المسار ←';
+        link.classList.remove('show-lock-reason');
+        link.removeAttribute('aria-disabled');
+        link.textContent = title;
       }
     } else if (!currentAssigned){
       station.setAttribute('aria-current', 'step');
@@ -787,12 +1028,40 @@ if (stationsRoot){
       if (statusEl){ statusEl.textContent = 'أنت هنا'; statusEl.className = 'station-status open'; }
       if (link){
         link.classList.remove('disabled');
-        link.textContent = 'كمّل من هنا ←';
+        link.classList.remove('show-lock-reason');
+        link.removeAttribute('aria-disabled');
+        link.textContent = doneCountEarly === 0 ? 'ابدأ من هنا ←' : 'كمّل من هنا ←';
       }
     } else {
-      station.removeAttribute('aria-current');
-      if (statusEl){ statusEl.textContent = 'مفتوح'; statusEl.className = 'station-status open'; }
-      if (link){ link.classList.remove('disabled'); }
+      var bypassOrder = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
+      if (bypassOrder){
+        /* المدير / المتخصص: يقدرون يدخلون أي مرحلة */
+        station.removeAttribute('aria-current');
+        if (statusEl){ statusEl.textContent = 'متاح'; statusEl.className = 'station-status open'; }
+        if (link){
+          link.classList.remove('disabled');
+          link.classList.remove('show-lock-reason');
+          link.removeAttribute('aria-disabled');
+          link.textContent = title;
+        }
+      } else {
+        /* لاحقاً — ما نسمح بالدخول قبل الحالية */
+        station.classList.add('is-locked');
+        station.removeAttribute('aria-current');
+        if (statusEl){ statusEl.textContent = 'لاحقاً'; statusEl.className = 'station-status locked'; }
+        if (link){
+          link.classList.add('disabled');
+          link.classList.add('show-lock-reason');
+          link.setAttribute('aria-disabled', 'true');
+          link.setAttribute('href', '#paths');
+          link.textContent = title;
+          link.title = 'لازم تكمل المرحلة الحالية أولاً';
+          link.addEventListener('click', function(e){
+            e.preventDefault();
+            focusCurrentStationCta();
+          });
+        }
+      }
     }
   });
 
@@ -813,7 +1082,7 @@ if (stationsRoot){
       guideCta.setAttribute('href', 'certificate.html');
     } else {
       var sid = currentStageId || 'discover';
-      var title = (STAGE_META[sid] && STAGE_META[sid].title) || sid;
+      var title = stageTitle(sid);
       var num = STAGE_ORDER_LABEL[sid] || '';
       if (guideKicker) guideKicker.textContent = 'خطوتك التالية · المسار ' + num + ' من 7';
       guideTitle.textContent = title;
@@ -822,7 +1091,7 @@ if (stationsRoot){
           ? 'ابدأ من هنا بالترتيب. بعد ما تكمّل المسار تُفتح اللي بعده تلقائياً.'
           : ('أنجزت ' + doneCount + ' من 7. كمّل المسار الذهبي أدناه — هذي مرحلتك الحالية.');
       }
-      guideCta.textContent = 'ادخل مسارك الآن ←';
+      guideCta.textContent = doneCount === 0 ? 'ابدأ من هنا ←' : 'كمّل من هنا ←';
       guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
     }
   }
@@ -833,9 +1102,16 @@ if (stationsRoot){
       heroCta.textContent = 'عرض شهادتك ←';
       heroCta.setAttribute('href', 'certificate.html');
     } else {
-      heroCta.textContent = loggedInName ? 'كمّل مسارك ←' : 'ابدأ من المسار 1 ←';
+      heroCta.textContent = loggedInName
+        ? (doneCount === 0 ? 'ابدأ من هنا ←' : 'كمّل مسارك ←')
+        : 'ابدأ من المسار 1 ←';
       heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
     }
+  }
+
+  // لو الرابط فيه تنبيه ترتيب
+  if (/(?:\?|&)needOrder=1(?:&|$)/.test(location.search || '')){
+    setTimeout(focusCurrentStationCta, 350);
   }
 }
 
@@ -844,14 +1120,23 @@ var lockGate = document.getElementById('lockGate');
 var pageStage = document.body.getAttribute('data-page-stage');
 
 function refreshPageLockGate(){
-  // ما نعرض صفحات قفل بعد الآن — المحتوى يظهر دائماً
   var mainContent = document.getElementById('main');
+  var stage = document.body.getAttribute('data-page-stage');
+  var bypassOrder = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
+
+  if (stage && !bypassOrder && !isUnlocked(stage) && !isDone(stage)){
+    // أرجع للمسارات مع إشعاع على الخطوة الحالية
+    location.replace('index.html?needOrder=1#paths');
+    return;
+  }
+
   if (lockGate) lockGate.hidden = true;
   if (mainContent) mainContent.hidden = false;
 }
 
 if (pageStage){
-  markVisited(pageStage);
+  var canEnterStage = (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) || isUnlocked(pageStage) || isDone(pageStage);
+  if (canEnterStage) markVisited(pageStage);
   refreshPageLockGate();
 }
 
@@ -942,7 +1227,7 @@ if (revealEls.length && 'IntersectionObserver' in window){
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.08, rootMargin: '0px 0px -12% 0px' });
 
   revealEls.forEach(function(el){ io.observe(el); });
 } else {
@@ -1447,6 +1732,8 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
 
     var overallFillEl = document.getElementById('overallProgressFill');
     var overallPctEl = document.getElementById('overallProgressPct');
+    var journeyStripEl = document.getElementById('journeyStrip');
+    if (journeyStripEl) journeyStripEl.removeAttribute('hidden');
     if (overallFillEl || overallPctEl){
       var pctNow = getOverallProgress();
       if (overallFillEl) overallFillEl.style.width = pctNow + '%';
@@ -1455,7 +1742,7 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
 
     // صفحات عامة: لو ما اختار مساره أو ما شاف التعريف، نوجّهه
     var page = (location.pathname.split('/').pop() || '').toLowerCase();
-    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html'].indexOf(page) !== -1;
+    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html'].indexOf(page) !== -1;
     if (!skipRedirect && !HCIApi.isAdmin()){
       var u = HCIApi.currentUser();
       if (u && !u.pathType){
@@ -1775,12 +2062,17 @@ if (inboxList){
       '</div>';
     document.body.appendChild(layer);
 
-    if (slot && userWrap && userWrap.parentNode === slot){
-      slot.insertBefore(wrap, userWrap);
-    } else if (userWrap){
-      userWrap.insertBefore(wrap, userWrap.firstChild);
-    } else if (slot){
-      slot.appendChild(wrap);
+    /* دائماً بجانب الحساب داخل شريط الإجراءات — سطر واحد */
+    if (slot){
+      if (userWrap && userWrap.parentNode === slot){
+        slot.insertBefore(wrap, userWrap);
+      } else if (userWrap && userWrap.parentNode){
+        userWrap.parentNode.insertBefore(wrap, userWrap);
+      } else {
+        slot.appendChild(wrap);
+      }
+    } else if (userWrap && userWrap.parentNode){
+      userWrap.parentNode.insertBefore(wrap, userWrap);
     } else {
       return false;
     }
@@ -2308,21 +2600,46 @@ if (settingsSizeRow){
 
 if (settingsSwatchRow){
   var swatchButtons = settingsSwatchRow.querySelectorAll('.swatch-btn');
+  var customSwatch = document.getElementById('settingsAccentCustomBtn');
+  var accentPalette = document.getElementById('settingsAccentPalette');
   var storedAccent = localStorage.getItem('hci_accent_color') || '#C9A24B';
-  var themeNow = localStorage.getItem('hci_theme') || 'dark';
-  var resolvedStored = resolveAccentForTheme(themeNow, storedAccent);
+  var activeThemeId = getAccentThemeId(storedAccent);
+
+  function syncAccentSwatches(){
+    var stored = localStorage.getItem('hci_accent_color') || '#C9A24B';
+    var id = getAccentThemeId(stored);
+    swatchButtons.forEach(function(btn){
+      btn.classList.toggle('active', getAccentThemeId(btn.getAttribute('data-color')) === id);
+    });
+    if (customSwatch){
+      customSwatch.classList.toggle('active', id === 'custom');
+      if (id === 'custom') customSwatch.style.setProperty('--swatch-picked', stored);
+      else customSwatch.style.removeProperty('--swatch-picked');
+    }
+    syncAccentPaletteSelection(accentPalette, stored);
+  }
 
   swatchButtons.forEach(function(btn){
-    var c = btn.getAttribute('data-color');
-    btn.classList.toggle('active', c === storedAccent || c === resolvedStored);
+    btn.classList.toggle('active', getAccentThemeId(btn.getAttribute('data-color')) === activeThemeId);
     btn.addEventListener('click', function(){
+      closeAllAccentPalettes();
       var color = btn.getAttribute('data-color');
       localStorage.setItem('hci_accent_color', color);
       applyAccentColor(color);
-      swatchButtons.forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
+      syncAccentSwatches();
     });
   });
+
+  initAccentColorPicker({
+    button: customSwatch,
+    panel: accentPalette,
+    onPick: function(color){
+      localStorage.setItem('hci_accent_color', color);
+      applyAccentColor(color);
+      syncAccentSwatches();
+    }
+  });
+  syncAccentSwatches();
 }
 
 if (settingsSaveAll){
@@ -2350,7 +2667,12 @@ if (settingsSaveAll){
     }
     if (settingsSwatchRow){
       var activeSwatch = settingsSwatchRow.querySelector('.swatch-btn.active');
-      if (activeSwatch){
+      var activeCustom = settingsSwatchRow.querySelector('.swatch-custom.active');
+      if (activeCustom){
+        var customColor = localStorage.getItem('hci_accent_color') || '#3498DB';
+        localStorage.setItem('hci_accent_color', customColor);
+        applyAccentColor(customColor);
+      } else if (activeSwatch){
         var color = activeSwatch.getAttribute('data-color');
         localStorage.setItem('hci_accent_color', color);
         applyAccentColor(color);
@@ -2362,6 +2684,7 @@ if (settingsSaveAll){
     try {
       if (window.HCIApi && HCIApi.isLoggedIn()){
         await HCIApi.updateProfile(first, last);
+        localStorage.setItem('hci_user_name', first + ' ' + last);
         if (settingsSaveNote) settingsSaveNote.textContent = 'تم حفظ التغييرات في الحساب والشهادة ولوحة الإدارة.';
       } else {
         localStorage.setItem('hci_user_name', first + ' ' + last);
@@ -2379,7 +2702,15 @@ if (settingsSaveAll){
       }
       setTimeout(function(){ settingsSaveAll.textContent = 'حفظ التغييرات'; }, 1600);
     } catch (err) {
-      if (settingsSaveNote) settingsSaveNote.textContent = err.message || 'تعذر حفظ التغييرات';
+      // حتى لو فشل السيرفر: ثبّت الاسم والتفضيلات محلياً عشان ما يضيع التعديل
+      try { localStorage.setItem('hci_user_name', first + ' ' + last); } catch (e) { /* */ }
+      var chipFail = document.querySelector('.nav-user-name');
+      if (chipFail) chipFail.textContent = first + ' ' + last;
+      if (settingsSaveNote){
+        settingsSaveNote.textContent = (err && err.message)
+          ? ('حُفظت التفضيلات محلياً — ' + err.message)
+          : 'حُفظت التفضيلات محلياً. تعذر مزامنة الحساب.';
+      }
       settingsSaveAll.textContent = 'حفظ التغييرات';
     } finally {
       settingsSaveAll.disabled = false;
@@ -2639,7 +2970,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   });
 });
 
-// ----- بلّغ عن مشكلة — زر بالتذييل + نموذج منبثق -----
+// ----- بلّغ عن مشكلة — رابط بالتذييل + نموذج منبثق -----
 (function injectReportSection(){
   if (document.getElementById('reportSection')) return;
 
@@ -2650,11 +2981,22 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   if (document.body.classList.contains('path-choice-page')) return;
   if (document.body.classList.contains('cert-page')) return;
 
-  var trigger = document.createElement('button');
-  trigger.type = 'button';
-  trigger.id = 'reportTrigger';
-  trigger.className = 'footer-contact-btn footer-report-btn';
-  trigger.textContent = 'بلّغ عن مشكلة';
+  var trigger = document.getElementById('reportTrigger');
+  if (!trigger){
+    trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.id = 'reportTrigger';
+    trigger.className = 'footer-text-link footer-link-report';
+    trigger.textContent = 'بلّغ عن مشكلة';
+    var supportList = document.querySelector('.footer-support ul');
+    if (supportList){
+      var li = document.createElement('li');
+      li.appendChild(trigger);
+      supportList.appendChild(li);
+    }
+  } else {
+    trigger.className = 'footer-text-link footer-link-report';
+  }
   window.__hciReportTrigger = trigger;
 
   var backdrop = document.createElement('div');
@@ -2843,38 +3185,36 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   });
 })();
 
-// ----- تذييل: يمين الاسم | يسار تواصل + بلاغ -----
+// ----- تذييل: روابط تواصل + بلاغ (نمط المواقع الرسمية) -----
 (function injectFooterContact(){
   var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
   if (['admin.html', 'auth.html', 'certificate.html', 'maintenance.html'].indexOf(pageName) !== -1) return;
   if (document.body.classList.contains('auth-page')) return;
 
-  var inner = document.querySelector('footer .footer-inner');
-  var bottom = document.querySelector('footer .footer-bottom');
-  if (!inner || !bottom || document.getElementById('footerContactBtn')) return;
+  if (document.getElementById('contactModal')) return;
+  if (!document.querySelector('footer .footer-inner')) return;
 
-  var credit = document.createElement('div');
-  credit.className = 'footer-credit-block';
-  while (bottom.firstChild) credit.appendChild(bottom.firstChild);
-  bottom.appendChild(credit);
-
-  var actions = document.createElement('div');
-  actions.id = 'footerActions';
-  actions.className = 'footer-actions';
-
-  var btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'footerContactBtn';
-  btn.className = 'footer-contact-btn';
-  btn.textContent = 'تواصل معي';
-  actions.appendChild(btn);
-
-  var reportBtn = window.__hciReportTrigger || document.getElementById('reportTrigger');
-  if (reportBtn){
-    reportBtn.className = 'footer-contact-btn footer-report-btn';
-    actions.appendChild(reportBtn);
+  var btn = document.getElementById('footerContactBtn');
+  if (!btn){
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'footerContactBtn';
+    btn.className = 'footer-text-link footer-link-contact';
+    btn.textContent = 'تواصل معي';
+    var supportList = document.querySelector('.footer-support ul');
+    if (supportList){
+      var li = document.createElement('li');
+      li.appendChild(btn);
+      supportList.insertBefore(li, supportList.firstChild);
+    } else {
+      return;
+    }
+  } else {
+    btn.className = 'footer-text-link footer-link-contact';
   }
-  inner.appendChild(actions);
+
+  var reportBtn = document.getElementById('reportTrigger') || window.__hciReportTrigger;
+  if (reportBtn) reportBtn.className = 'footer-text-link footer-link-report';
 
   var backdrop = document.createElement('div');
   backdrop.id = 'contactModal';
@@ -2962,13 +3302,11 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
       document.getElementById('contactMessage').value = '';
       setTimeout(function(){
         closeContact();
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'إرسال';
-        statusEl.classList.remove('show');
-      }, 1200);
-    } catch (err) {
-      statusEl.textContent = err.message || 'تعذر الإرسال';
+      }, 900);
+    } catch (err){
+      statusEl.textContent = (err && err.message) || 'تعذّر الإرسال';
       statusEl.classList.add('show');
+    } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'إرسال';
     }
@@ -3037,4 +3375,19 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
       setTimeout(function(){ scrollToSection(hashId); }, 60);
     }
   }
+})();
+
+/* ====== أقسام القراءة: نفس المحتوى للجوال واللابتوب (عرض كامل) ====== */
+(function initReadSteps(){
+  document.querySelectorAll('[data-read-steps]').forEach(function(root){
+    root.querySelectorAll('.read-step').forEach(function(step){
+      step.classList.add('is-active');
+      step.removeAttribute('hidden');
+    });
+    root.classList.remove('is-last', 'is-first');
+    root.querySelectorAll('details.read-acc').forEach(function(d){ d.open = true; });
+  });
+  document.querySelectorAll('.read-accordions details.read-acc').forEach(function(d){
+    d.open = true;
+  });
 })();

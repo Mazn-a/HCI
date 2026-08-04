@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>تجربة الثيمات — HCI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+<style>
+  .theme-lab{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+  .theme-lab h1{
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    margin: 0 0 10px;
+    color: var(--text-hi);
+  }
+  .theme-lab .lead{
+    color: var(--text-mid);
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+  .theme-lab-swatches{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .theme-lab-swatches .swatch-btn{
+    width: 52px;
+    height: 52px;
+  }
+  .theme-lab-card{
+    border: 1px solid var(--card-border);
+    background: var(--card-bg-panel);
+    border-radius: var(--card-radius);
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+  .theme-lab-card h2{
+    margin: 0 0 8px;
+    color: var(--gold);
+    font-size: 1.2rem;
+  }
+  .theme-lab-card p{
+    margin: 0 0 16px;
+    color: var(--text-mid);
+    line-height: 1.7;
+  }
+  .theme-lab-actions{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .theme-lab-note{
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: var(--line-cyan);
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a href="index.html?open=1" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
+      <nav class="nav-links" aria-label="القائمة">
+        <a href="index.html?open=1">الرئيسية</a>
+        <a href="settings.html?open=1">الإعدادات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="theme-lab">
+    <h1>جرّب ثيمات الواجهة</h1>
+    <p class="lead">اضغط أي لون — يتغيّر الشعار والأزرار والبطاقات فوراً. ما يحتاج تسجيل دخول.</p>
+
+    <div class="theme-lab-swatches" id="themeLabSwatches" role="group" aria-label="ثيم الواجهة">
+      <button type="button" class="swatch-btn" data-color="#C9A24B" style="--swatch-color:#C9A24B;" aria-label="ذهبي" title="ذهبي"></button>
+      <button type="button" class="swatch-btn" data-color="#E0A0B4" style="--swatch-color:#E0A0B4;" aria-label="وردي" title="وردي"></button>
+      <button type="button" class="swatch-btn" data-color="#7A9E4A" style="--swatch-color:#7A9E4A;" aria-label="أخضر" title="أخضر"></button>
+      <div class="swatch-custom-wrap">
+        <button type="button" class="swatch-custom" id="themeLabAccentCustomBtn" aria-label="لون مخصص" title="لون مخصص" aria-expanded="false" aria-haspopup="true" aria-controls="themeLabAccentPalette"></button>
+        <div class="accent-palette" id="themeLabAccentPalette" hidden role="listbox" aria-label="ألوان مخصصة"></div>
+      </div>
+    </div>
+
+    <div class="theme-lab-card">
+      <h2>معاينة مباشرة</h2>
+      <p>هذا مثال لبطاقة وعنوان وزرّين بنفس ثيم الموقع الحالي.</p>
+      <div class="theme-lab-actions">
+        <a class="btn-primary" href="index.html?open=1">زر أساسي</a>
+        <a class="btn-ghost" href="settings.html?open=1">زر ثانوي</a>
+      </div>
+    </div>
+
+    <p class="theme-lab-note" id="themeLabNote">الثيم الحالي: ذهبي</p>
+  </main>
+
+  <script src="main.js"></script>
+  <script>
+  (function(){
+    var names = { gold: 'ذهبي', rose: 'وردي', green: 'أخضر', custom: 'مخصص' };
+    var row = document.getElementById('themeLabSwatches');
+    var note = document.getElementById('themeLabNote');
+    var customBtn = document.getElementById('themeLabAccentCustomBtn');
+    var palette = document.getElementById('themeLabAccentPalette');
+    if (!row || typeof applyAccentColor !== 'function') return;
+    var buttons = row.querySelectorAll('.swatch-btn');
+    function sync(){
+      var stored = localStorage.getItem('hci_accent_color') || '#C9A24B';
+      var id = typeof getAccentThemeId === 'function' ? getAccentThemeId(stored) : 'gold';
+      buttons.forEach(function(btn){
+        var cid = typeof getAccentThemeId === 'function' ? getAccentThemeId(btn.getAttribute('data-color')) : 'gold';
+        btn.classList.toggle('active', cid === id);
+      });
+      if (customBtn){
+        customBtn.classList.toggle('active', id === 'custom');
+        if (id === 'custom') customBtn.style.setProperty('--swatch-picked', stored);
+        else customBtn.style.removeProperty('--swatch-picked');
+      }
+      if (typeof syncAccentPaletteSelection === 'function') syncAccentPaletteSelection(palette, stored);
+      if (note){
+        note.textContent = id === 'custom'
+          ? ('الثيم الحالي: مخصص (' + stored + ')')
+          : ('الثيم الحالي: ' + (names[id] || id));
+      }
+    }
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (typeof closeAllAccentPalettes === 'function') closeAllAccentPalettes();
+        var color = btn.getAttribute('data-color');
+        localStorage.setItem('hci_accent_color', color);
+        applyAccentColor(color);
+        sync();
+      });
+    });
+    if (typeof initAccentColorPicker === 'function'){
+      initAccentColorPicker({
+        button: customBtn,
+        panel: palette,
+        onPick: function(color){
+          localStorage.setItem('hci_accent_color', color);
+          applyAccentColor(color);
+          sync();
+        }
+      });
+    }
+    sync();
+  })();
+  </script>
+</body>
+</html>

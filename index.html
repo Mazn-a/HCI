@@ -83,7 +83,7 @@
         <a href="#paths" class="btn-ghost">شاهد المسارات</a>
       </div>
 
-      <div class="journey-strip" aria-label="تقدمك بالرحلة">
+      <div class="journey-strip" id="journeyStrip" aria-label="تقدمك بالرحلة" hidden>
         <span class="js-label">تقدم الرحلة</span>
         <div class="progress-bar-track">
           <div class="progress-bar-fill" id="overallProgressFill"></div>
@@ -163,7 +163,7 @@
             <span class="tag">لماذا HCI؟</span>
             <span class="tag">مسار مهني</span>
           </div>
-          <a href="discover.html" class="station-link">ابدأ الاكتشاف ←</a>
+          <a href="discover.html" class="station-link">اكتشف التخصص</a>
         </li>
 
         <li class="station s2 reveal reveal-delay-1" data-stage="fundamentals">
@@ -177,7 +177,7 @@
             <span class="tag">Heuristics</span>
             <span class="tag">إدراك</span>
           </div>
-          <a href="fundamentals.html" class="station-link">ادخل الأساسيات ←</a>
+          <a href="fundamentals.html" class="station-link">أساسيات HCI</a>
         </li>
 
         <li class="station s3 reveal reveal-delay-2" data-stage="coding">
@@ -191,7 +191,7 @@
             <span class="tag">HTML</span>
             <span class="tag">CSS</span>
           </div>
-          <a href="coding.html" class="station-link">افتح الترميز ←</a>
+          <a href="coding.html" class="station-link">ترميز HTML &amp; CSS</a>
         </li>
 
         <li class="station s4 reveal" data-stage="courses">
@@ -205,7 +205,7 @@
             <span class="tag">UI/UX</span>
             <span class="tag">Figma</span>
           </div>
-          <a href="courses.html" class="station-link">استكشف الدورات ←</a>
+          <a href="courses.html" class="station-link">دورات متخصصة</a>
         </li>
 
         <li class="station s5 reveal reveal-delay-1" data-stage="books">
@@ -219,7 +219,7 @@
             <span class="tag">ملخصات عربية</span>
             <span class="tag">مراجع</span>
           </div>
-          <a href="books.html" class="station-link">مكتبة الكتب ←</a>
+          <a href="books.html" class="station-link">كتب ومراجع</a>
         </li>
 
         <li class="station s6 reveal reveal-delay-2" data-stage="practice">
@@ -233,7 +233,7 @@
             <span class="tag">تفاعلي</span>
             <span class="tag">تحديات</span>
           </div>
-          <a href="practice.html" class="station-link">جرّب التمارين ←</a>
+          <a href="practice.html" class="station-link">تعلّم بالمرح</a>
         </li>
 
         <li class="station s7 reveal" data-stage="contribute">
@@ -247,7 +247,7 @@
             <span class="tag">مجتمع</span>
             <span class="tag">عطاء</span>
           </div>
-          <a href="contribute.html" class="station-link">ابدأ الإفادة ←</a>
+          <a href="contribute.html" class="station-link">أفد غيرك</a>
         </li>
 
       </ol>
@@ -284,9 +284,43 @@
       <div class="footer-brand">
         <a href="index.html" class="footer-logo">HCI</a>
         <p class="footer-tagline">خارطة طريق لتفاعل الإنسان والحاسوب</p>
+        <p class="footer-about">منصة عربية ترتّب طريق تعلم تفاعل الإنسان والحاسوب للطالب: من الاكتشاف والأساسيات إلى التطبيق والإفادة، بمصادر مرتّبة وتقدّم واضح.</p>
+      </div>
+      <div class="footer-cols">
+      <nav class="footer-nav" aria-label="روابط التذييل">
+        <p class="footer-col-title">استكشف</p>
+        <ul>
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="index.html#paths">المسارات</a></li>
+          <li><a href="glossary.html">المعجم</a></li>
+          <li><a href="profile.html">الملف الشخصي</a></li>
+          <li><a href="certificate.html">الشهادة</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav footer-support" aria-label="التواصل والدعم">
+        <p class="footer-col-title">تواصل</p>
+        <ul>
+          <li><button type="button" class="footer-text-link footer-link-contact" id="footerContactBtn">تواصل معي</button></li>
+          <li><button type="button" class="footer-text-link footer-link-report" id="reportTrigger">بلّغ عن مشكلة</button></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav footer-legal" aria-label="روابط قانونية">
+        <p class="footer-col-title">قانوني</p>
+        <ul>
+          <li><a href="legal.html#privacy">سياسة الخصوصية</a></li>
+          <li><a href="legal.html#terms">شروط الاستخدام</a></li>
+        </ul>
+      </nav>
       </div>
       <div class="footer-bottom">
-        <span>إعداد <strong>مازن عطية</strong></span>
+        <div class="footer-credit-block">
+          <span class="footer-credit">إعداد <strong>مازن عطية</strong></span>
+          <ul class="footer-meta-links" aria-label="روابط قانونية">
+            <li><a href="legal.html#privacy">الخصوصية</a></li>
+            <li><a href="legal.html#terms">الشروط</a></li>
+          </ul>
+          <span class="footer-copy">© 2026 HCI</span>
+        </div>
       </div>
     </div>
   </footer>

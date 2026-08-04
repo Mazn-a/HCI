@@ -201,6 +201,31 @@ app.get('/api/auth/me', authRequired, (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
+/* ---------- تحديث الاسم في الملف الشخصي ---------- */
+app.patch('/api/auth/profile', authRequired, (req, res) => {
+  try {
+    const firstName = String(req.body.firstName || '').trim();
+    const lastName = String(req.body.lastName || '').trim();
+
+    if (!firstName || firstName.length < 2) {
+      return res.status(400).json({ error: 'الاسم الأول مطلوب (حرفين على الأقل)' });
+    }
+    if (!lastName || lastName.length < 2) {
+      return res.status(400).json({ error: 'الاسم الثاني مطلوب (حرفين على الأقل)' });
+    }
+
+    const user = db.findUserById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+    db.updateUser(user.id, { first_name: firstName, last_name: lastName });
+    const updated = db.findUserById(user.id);
+    res.json({ user: publicUser(updated) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر حفظ الملف الشخصي' });
+  }
+});
+
 /* ---------- طلب رمز تحقق (بريد أو جوال) ---------- */
 app.post('/api/auth/request-otp', (req, res) => {
   try {

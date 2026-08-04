@@ -41,7 +41,7 @@
   </header>
 
   <main class="lesson" id="main">
-    <div class="wrap">
+    <div class="wrap" style="max-width:760px;">
       <a href="index.html" class="page-back">الرجوع للرئيسية</a>
 
       <div class="lesson-head reveal">
@@ -51,23 +51,23 @@
       </div>
 
       <div class="timeline">
-        <div class="tl-item reveal">
+        <div class="tl-item">
           <h3>وش هو تفاعل الإنسان والحاسوب؟</h3>
           <p>HCI يدرس كيف يتفاعل البشر مع الأنظمة الرقمية، وكيف نصمم هالتفاعل عشان يكون مفهوم، مريح، وفعّال. مو بس «شكل حلو» — فهم سلوك، إدراك، وإتاحة وصول.</p>
         </div>
-        <div class="tl-item reveal">
+        <div class="tl-item">
           <h3>ليش التخصص يهمك كطالب؟</h3>
           <p>كل تطبيق، بوابة حكومية، وموقع خدمة عامة يحتاج ناس يفهمون المستخدم. مع التحول الرقمي بالمملكة، الطلب على مهارات UX/UI وأبحاث المستخدم يتزايد — والتخصص يعطيك الأساس العلمي ورا الأدوات.</p>
         </div>
-        <div class="tl-item reveal">
+        <div class="tl-item">
           <h3>الفرق بين HCI و«تصميم جرافيك»</h3>
           <p>التصميم الجرافيكي يهتم بالمظهر البصري. HCI يسأل: هل المستخدم يقدر يكمّل مهمته؟ هل الواجهة تحترم ذاكرته وإعاقته ولغته؟ الشكل جزء من الحل، مو كل الحل.</p>
         </div>
-        <div class="tl-item reveal">
+        <div class="tl-item">
           <h3>رحلتك بالمنصة باختصار</h3>
           <p>تبدأ بأساسيات → تبني واجهات بسيطة → دورات متخصصة → كتب تعمّق فهمك → تمارين تثبّت → وفي النهاية تساعد غيرك. كل مرحلة تُفتح بعد إنجاز ملموس.</p>
         </div>
-        <div class="tl-item reveal">
+        <div class="tl-item">
           <h3>معايير نراعيها (وصول عربي)</h3>
           <p>المنصة مبنية من الأساس بـ RTL عربي، تباين واضح، روابط تخطي، ودعم «تقليل الحركة» — لأن طالب HCI لازم يعيش المعايير اللي بيدرسها، مو بس يقرأ عنها.</p>
         </div>
@@ -80,7 +80,7 @@
         <label><input type="checkbox"> أبي مسار مرتب بدل بحث عشوائي على يوتيوب؟</label>
       </div>
 
-      <div class="hero-actions reveal" style="margin-top:32px;">
+      <div class="hero-actions reveal" style="margin-top:32px; margin-bottom:60px;">
         <a href="fundamentals.html" class="btn-primary" data-next-stage="fundamentals">التالي: أساسيات HCI ←</a>
       </div>
     </div>
@@ -91,15 +91,49 @@
       <div class="footer-brand">
         <a href="index.html" class="footer-logo">HCI</a>
         <p class="footer-tagline">خارطة طريق لتفاعل الإنسان والحاسوب</p>
+        <p class="footer-about">منصة عربية ترتّب طريق تعلم تفاعل الإنسان والحاسوب للطالب: من الاكتشاف والأساسيات إلى التطبيق والإفادة، بمصادر مرتّبة وتقدّم واضح.</p>
+      </div>
+      <div class="footer-cols">
+      <nav class="footer-nav" aria-label="روابط التذييل">
+        <p class="footer-col-title">استكشف</p>
+        <ul>
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="index.html#paths">المسارات</a></li>
+          <li><a href="glossary.html">المعجم</a></li>
+          <li><a href="profile.html">الملف الشخصي</a></li>
+          <li><a href="certificate.html">الشهادة</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav footer-support" aria-label="التواصل والدعم">
+        <p class="footer-col-title">تواصل</p>
+        <ul>
+          <li><button type="button" class="footer-text-link footer-link-contact" id="footerContactBtn">تواصل معي</button></li>
+          <li><button type="button" class="footer-text-link footer-link-report" id="reportTrigger">بلّغ عن مشكلة</button></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav footer-legal" aria-label="روابط قانونية">
+        <p class="footer-col-title">قانوني</p>
+        <ul>
+          <li><a href="legal.html#privacy">سياسة الخصوصية</a></li>
+          <li><a href="legal.html#terms">شروط الاستخدام</a></li>
+        </ul>
+      </nav>
       </div>
       <div class="footer-bottom">
-        <span>إعداد <strong>مازن عطية</strong></span>
+        <div class="footer-credit-block">
+          <span class="footer-credit">إعداد <strong>مازن عطية</strong></span>
+          <ul class="footer-meta-links" aria-label="روابط قانونية">
+            <li><a href="legal.html#privacy">الخصوصية</a></li>
+            <li><a href="legal.html#terms">الشروط</a></li>
+          </ul>
+          <span class="footer-copy">© 2026 HCI</span>
+        </div>
       </div>
     </div>
   </footer>
 
   <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
   <script src="api.js"></script>
-<script src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

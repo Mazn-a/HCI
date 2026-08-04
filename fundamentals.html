@@ -55,17 +55,26 @@
       <section class="lesson-section" style="--example-color: var(--line-cyan);">
         <h2><span class="sec-num">01</span> مبادئ نيلسن العشرة (Nielsen's 10 Usability Heuristics)</h2>
 
-        <p style="color:var(--text-mid); font-size:0.9rem; margin-bottom:6px;">شاهد الفرق: نفس الخطأ، بس بطريقتين مختلفتين تماماً بالتعامل معه.</p>
-        <div class="compare-block">
-          <div class="compare-card bad">
-            <span class="tag-label">✕ سيئ</span>
-            <p><strong>رسالة الخطأ:</strong> "Error 400: invalid input"<br>ما يفهم المستخدم العادي وش المشكلة أو كيف يصلحها — يحس إنه أخطأ بشي تقني غامض.</p>
-          </div>
-          <div class="compare-card good">
-            <span class="tag-label">✓ جيد</span>
-            <p><strong>رسالة الخطأ:</strong> "البريد الإلكتروني غير صحيح، تأكد من وجود علامة @"<br>واضحة، بلغة بشرية بسيطة، وتقول له بالضبط وش يصلح.</p>
-          </div>
+        <p class="compare-lead">نفس الخطأ (بريد غلط) — شوف وش يحس المستخدم بكل رسالة:</p>
+        <div class="compare-block compare-demo">
+          <article class="compare-card bad">
+            <div class="compare-card-top">
+              <span class="tag-label">✕ سيئ</span>
+              <span class="compare-scene">رسالة تقنية</span>
+            </div>
+            <div class="compare-msg" dir="ltr" lang="en">Error 400: invalid input</div>
+            <p class="compare-why"><strong>ليش؟</strong> المستخدم ما يفهم وش المشكلة ولا كيف يصلحها.</p>
+          </article>
+          <article class="compare-card good">
+            <div class="compare-card-top">
+              <span class="tag-label">✓ جيد</span>
+              <span class="compare-scene">رسالة بشرية</span>
+            </div>
+            <div class="compare-msg">البريد غير صحيح — تأكد من وجود علامة @</div>
+            <p class="compare-why"><strong>ليش؟</strong> واضحة، وتقول له بالضبط وش يسوي عشان يكمل.</p>
+          </article>
         </div>
+        <p class="compare-takeaway"><span>القاعدة:</span> اكتب للمستخدم، مو للمبرمج.</p>
 
         <div class="principle-grid">
 
@@ -309,9 +318,43 @@
       <div class="footer-brand">
         <a href="index.html" class="footer-logo">HCI</a>
         <p class="footer-tagline">خارطة طريق لتفاعل الإنسان والحاسوب</p>
+        <p class="footer-about">منصة عربية ترتّب طريق تعلم تفاعل الإنسان والحاسوب للطالب: من الاكتشاف والأساسيات إلى التطبيق والإفادة، بمصادر مرتّبة وتقدّم واضح.</p>
+      </div>
+      <div class="footer-cols">
+      <nav class="footer-nav" aria-label="روابط التذييل">
+        <p class="footer-col-title">استكشف</p>
+        <ul>
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="index.html#paths">المسارات</a></li>
+          <li><a href="glossary.html">المعجم</a></li>
+          <li><a href="profile.html">الملف الشخصي</a></li>
+          <li><a href="certificate.html">الشهادة</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav footer-support" aria-label="التواصل والدعم">
+        <p class="footer-col-title">تواصل</p>
+        <ul>
+          <li><button type="button" class="footer-text-link footer-link-contact" id="footerContactBtn">تواصل معي</button></li>
+          <li><button type="button" class="footer-text-link footer-link-report" id="reportTrigger">بلّغ عن مشكلة</button></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav footer-legal" aria-label="روابط قانونية">
+        <p class="footer-col-title">قانوني</p>
+        <ul>
+          <li><a href="legal.html#privacy">سياسة الخصوصية</a></li>
+          <li><a href="legal.html#terms">شروط الاستخدام</a></li>
+        </ul>
+      </nav>
       </div>
       <div class="footer-bottom">
-        <span>إعداد <strong>مازن عطية</strong></span>
+        <div class="footer-credit-block">
+          <span class="footer-credit">إعداد <strong>مازن عطية</strong></span>
+          <ul class="footer-meta-links" aria-label="روابط قانونية">
+            <li><a href="legal.html#privacy">الخصوصية</a></li>
+            <li><a href="legal.html#terms">الشروط</a></li>
+          </ul>
+          <span class="footer-copy">© 2026 HCI</span>
+        </div>
       </div>
     </div>
   </footer>

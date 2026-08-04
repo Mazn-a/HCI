@@ -1540,7 +1540,7 @@ if (inboxList){
 
 // مركز التنبيهات — زر في الشريط + لوحة + تنبيه فوري بأي صفحة
 (function setupNotifCenter(){
-  if (!window.HCIApi || !HCIApi.isLoggedIn() || HCIApi.isAdmin()) return;
+  if (!window.HCIApi || !HCIApi.isLoggedIn()) return;
 
   var LOCAL_KEY = 'hci_local_notifs';
   var SEEN_KEY = 'hci_seen_notif_ids';
@@ -1614,9 +1614,10 @@ if (inboxList){
   }
 
   function ensureUi(){
+    if (document.getElementById('navNotifBtn')) return true;
     var slot = document.getElementById('navCtaSlot');
     var userWrap = document.querySelector('.nav-user-wrap');
-    if ((!slot && !userWrap) || document.getElementById('navNotifBtn')) return;
+    if (!slot && !userWrap) return false;
     var wrap = document.createElement('span');
     wrap.className = 'nav-notif-wrap';
     wrap.innerHTML =
@@ -1634,15 +1635,15 @@ if (inboxList){
         '<div class="nav-notif-list" id="navNotifList"><p class="progress-note">لا توجد تنبيهات</p></div>' +
         '<a class="nav-notif-footer" href="profile.html#inbox">فتح صندوق الرسائل</a>' +
       '</div>';
-    /* جنب الأفاتار بمسافة: … المعجم | جرس · أفاتار */
+    /* ترتيب الشريط: … المعجم | جرس · أفاتار */
     if (slot && userWrap && userWrap.parentNode === slot){
       slot.insertBefore(wrap, userWrap);
     } else if (userWrap){
       userWrap.insertBefore(wrap, userWrap.firstChild);
     } else if (slot){
-      slot.insertBefore(wrap, slot.firstChild);
+      slot.appendChild(wrap);
     } else {
-      return;
+      return false;
     }
 
     var btn = document.getElementById('navNotifBtn');
@@ -1700,6 +1701,7 @@ if (inboxList){
         location.href = link;
       });
     });
+    return true;
   }
 
   function setBadge(count){
@@ -1814,8 +1816,21 @@ if (inboxList){
     }).catch(function(){});
   }
 
-  ensureUi();
-  refresh(false);
+  function bootNotifUi(){
+    if (ensureUi()){
+      refresh(false);
+      return;
+    }
+    var tries = 0;
+    var t = setInterval(function(){
+      tries++;
+      if (ensureUi() || tries > 20){
+        clearInterval(t);
+        refresh(false);
+      }
+    }, 150);
+  }
+  bootNotifUi();
   setInterval(function(){ refresh(false); }, 30000);
 
   window.HCINotifCenter = {

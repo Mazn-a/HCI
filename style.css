@@ -864,9 +864,9 @@ body.nav-open{ overflow: hidden; }
   height: 2.4rem;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-mid);
+  border: 1px solid var(--ink-3);
+  background: var(--ink-2);
+  color: var(--text-hi);
   cursor: pointer;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
 }

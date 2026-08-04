@@ -3767,6 +3767,15 @@ footer{
   font-weight: inherit;
 }
 
+/* الأعمدة تشارك شبكة اللابتوب مباشرة */
+.footer-cols{ display: contents; }
+.footer-nav{ grid-area: nav; }
+.footer-support{ grid-area: actions; }
+.footer-legal{ grid-area: legal; }
+
+/* روابط الجوال الإضافية — مخفية على اللابتوب */
+.footer-meta-links{ display: none; }
+
 /* ===== جوال: تخطيط مضغوط مختلف، بنفس الهوية ===== */
 @media (max-width: 860px){
   footer{

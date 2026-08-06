@@ -176,7 +176,8 @@ function publicUser(row) {
     phoneVerified: !!row.phone_verified,
     passwordChangedAt: row.password_changed_at || null,
     createdAt: row.created_at,
-    lastLogin: row.last_login
+    lastLogin: row.last_login,
+    referredBy: row.referred_by || null
   };
 }
 
@@ -270,14 +271,28 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(409).json({ error: 'هذا الرقم مسجّل مسبقاً' });
     }
 
+    const referredByRaw = req.body.referredBy != null ? req.body.referredBy : req.body.ref;
+    let referredBy = null;
+    if (referredByRaw != null && referredByRaw !== '') {
+      const n = Number(referredByRaw);
+      if (Number.isFinite(n) && n > 0 && db.findUserById(n)) referredBy = n;
+    }
+
     const user = db.createUser({
       firstName,
       lastName,
       email,
       phone: phone || null,
       passwordHash: bcrypt.hashSync(password, 10),
-      role: 'student'
+      role: 'student',
+      referredBy: referredBy
     });
+
+    if (referredBy) {
+      try {
+        db.attachShareSignup(referredBy, user.id, req.body.visitorKey || '');
+      } catch (e) { /* */ }
+    }
 
     const token = signToken(user);
     res.status(201).json({ token, user: publicUser(user) });
@@ -290,8 +305,10 @@ app.post('/api/auth/register', (req, res) => {
 /* ---------- تسجيل دخول (بريد أو جوال) ---------- */
 app.post('/api/auth/login', (req, res) => {
   try {
-    const identifier = String(req.body.identifier || req.body.email || '').trim();
-    const password = String(req.body.password || '');
+    let identifier = String(req.body.identifier || req.body.email || '').trim();
+    let password = String(req.body.password || '')
+      .replace(/[\u200B-\u200D\uFEFF\u2060]/g, '')
+      .trim();
 
     if (!identifier || !password) {
       return res.status(400).json({ error: 'أدخل البريد/الجوال وكلمة المرور' });
@@ -299,13 +316,13 @@ app.post('/api/auth/login', (req, res) => {
 
     let user = null;
     if (identifier.includes('@')) {
-      user = db.findUserByEmail(identifier);
+      user = db.findUserByEmail(identifier.toLowerCase());
     } else {
       user = db.findUserByPhone(normalizePhone(identifier));
     }
 
     if (!user || !checkPassword(user, password)) {
-      return res.status(401).json({ error: 'بيانات الدخول غير صحيحة' });
+      return res.status(401).json({ error: 'بيانات الدخول غير صحيحة — تأكد من البريد/الجوال وكلمة المرور' });
     }
 
     db.updateUser(user.id, { last_login: new Date().toISOString() });
@@ -321,6 +338,39 @@ app.get('/api/auth/me', authRequired, (req, res) => {
   const user = db.findUserById(req.user.id);
   if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
   res.json({ user: publicUser(user) });
+});
+
+/* ---------- مشاركة الموقع وتتبع الإحالات ---------- */
+app.post('/api/share/hit', (req, res) => {
+  try {
+    const result = db.recordShareHit({
+      sharerId: req.body.ref || req.body.sharerId,
+      visitorKey: req.body.visitorKey,
+      path: req.body.path || '/',
+      userAgent: req.get('user-agent') || ''
+    });
+    if (!result.ok) return res.status(400).json({ error: result.error || 'تعذر تسجيل الزيارة' });
+    res.json({ ok: true, duplicate: !!result.duplicate });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر تسجيل زيارة المشاركة' });
+  }
+});
+
+app.get('/api/share/stats', authRequired, (req, res) => {
+  try {
+    const user = db.findUserById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    const stats = db.getShareStats(user.id);
+    res.json({
+      ref: String(user.id),
+      sharePath: '/index.html?ref=' + user.id,
+      stats: stats
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر جلب إحصائيات المشاركة' });
+  }
 });
 
 /* تحديث الاسم — ينعكس على الشهادة ولوحة الإدارة مع سجل التغيير */

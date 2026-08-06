@@ -1,11 +1,23 @@
 /* api.js — التواصل مع سيرفر المنصة */
 (function () {
-  var API_BASE = '';
+  function resolveApiBase() {
+    // فتح الملف مباشرة من Finder
+    if (location.protocol === 'file:') return 'http://127.0.0.1:3000';
+    var host = location.hostname;
+    var port = String(location.port || '');
+    // معاينة بسيرفر ملفات (مثل python -m http.server) بدون API
+    if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '3000') {
+      return 'http://127.0.0.1:3000';
+    }
+    return '';
+  }
+
+  var API_BASE = resolveApiBase();
 
   // لو فتحت الملف مباشرة بدون سيرفر — نوجّه طلبات الـ API للسيرفر المحلي
   // والأفضل تفتح الموقع من: http://localhost:3000
   if (location.protocol === 'file:') {
-    API_BASE = 'http://localhost:3000';
+    API_BASE = 'http://127.0.0.1:3000';
   }
 
   // تحويل تلقائي من file:// لصفحات تحتاج سيرفر
@@ -65,6 +77,77 @@
   function isAdmin() {
     return localStorage.getItem('hci_user_role') === 'admin';
   }
+
+  function getVisitorKey() {
+    var key = localStorage.getItem('hci_visitor_id') || '';
+    if (!key || key.length < 12) {
+      key = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      try { localStorage.setItem('hci_visitor_id', key); } catch (e) { /* */ }
+    }
+    return key;
+  }
+
+  function captureShareRefFromUrl() {
+    try {
+      var m = /(?:\?|&)ref=([^&]+)/i.exec(location.search || '');
+      if (!m) return null;
+      var ref = String(decodeURIComponent(m[1] || '')).replace(/\D/g, '');
+      if (!ref) return null;
+      var myId = localStorage.getItem('hci_user_id') || '';
+      if (myId && myId === ref) return null; /* لا تتبع رابطك أنت */
+      localStorage.setItem('hci_ref', ref);
+      localStorage.setItem('hci_ref_at', new Date().toISOString());
+      return ref;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getStoredShareRef() {
+    try {
+      return localStorage.getItem('hci_ref') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function buildShareUrl(userId) {
+    var id = userId || (currentUser() && currentUser().id) || localStorage.getItem('hci_user_id');
+    if (!id) return location.origin + '/index.html';
+    var base = location.origin + location.pathname.replace(/[^/]+$/, '');
+    return base + 'index.html?ref=' + encodeURIComponent(String(id));
+  }
+
+  async function trackShareHit(refOverride) {
+    var ref = refOverride || getStoredShareRef();
+    if (!ref) return null;
+    var myId = localStorage.getItem('hci_user_id') || '';
+    if (myId && myId === String(ref)) return null;
+    try {
+      return await request('/api/share/hit', {
+        method: 'POST',
+        body: {
+          ref: ref,
+          visitorKey: getVisitorKey(),
+          path: (location.pathname.split('/').pop() || 'index.html') + (location.search || '')
+        }
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchShareStats() {
+    return request('/api/share/stats');
+  }
+
+  /* التقاط رابط المشاركة فور التحميل */
+  (function initShareCapture() {
+    var ref = captureShareRefFromUrl();
+    if (ref) {
+      trackShareHit(ref).catch(function () {});
+    }
+  })();
 
   function withTimeout(promise, ms, message) {
     return new Promise(function (resolve, reject) {
@@ -132,14 +215,28 @@
     }
 
     var data = {};
+    var rawText = '';
     try {
-      data = await res.json();
+      rawText = await res.text();
+      data = rawText ? JSON.parse(rawText) : {};
     } catch (e) {
       data = {};
     }
 
     if (!res.ok) {
-      var err = new Error(data.error || 'حدث خطأ');
+      var msg = data.error;
+      if (!msg) {
+        if (res.status === 404) {
+          msg = 'السيرفر الحالي ما يخدم تسجيل الدخول. افتح الموقع من http://localhost:3000 بعد تشغيل: npm start';
+        } else if (res.status === 401) {
+          msg = 'بيانات الدخول غير صحيحة';
+        } else if (res.status >= 500) {
+          msg = 'خطأ في السيرفر — حاول مرة ثانية بعد لحظات';
+        } else {
+          msg = 'حدث خطأ أثناء الاتصال (رمز ' + res.status + ')';
+        }
+      }
+      var err = new Error(msg);
       err.status = res.status;
       throw err;
     }
@@ -147,7 +244,11 @@
   }
 
   async function register(payload) {
-    var data = await request('/api/auth/register', { method: 'POST', body: payload });
+    var body = Object.assign({}, payload || {});
+    var ref = getStoredShareRef();
+    if (ref && body.referredBy == null) body.referredBy = ref;
+    body.visitorKey = getVisitorKey();
+    var data = await request('/api/auth/register', { method: 'POST', body: body });
     setSession(data.token, data.user);
     return data;
   }
@@ -301,6 +402,9 @@
           quiz: Object.assign({}, remote.quiz || {}, local.quiz || {})
         };
         applyProgress(merged);
+        try {
+          if (typeof sanitizeJourneyProgress === 'function') sanitizeJourneyProgress();
+        } catch (e) { /* */ }
         await saveProgress(merged);
       })(), 12000, 'مزامنة التقدم استغرقت وقتاً طويلاً');
     } catch (err) {
@@ -447,6 +551,12 @@
     collectLocalProgress: collectLocalProgress,
     applyProgress: applyProgress,
     syncProgress: syncProgress,
-    scheduleSync: scheduleSync
+    scheduleSync: scheduleSync,
+    getVisitorKey: getVisitorKey,
+    getStoredShareRef: getStoredShareRef,
+    buildShareUrl: buildShareUrl,
+    trackShareHit: trackShareHit,
+    fetchShareStats: fetchShareStats,
+    captureShareRefFromUrl: captureShareRefFromUrl
   };
 })();

@@ -5,3 +5,6 @@ data/uploads/
 *.log
 .env
 .tools/
+
+# نسخة احتياطية محلية من الموقع المرفوع — لا تُرفع لـ GitHub
+HCI/

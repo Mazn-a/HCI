@@ -28,6 +28,16 @@
     <p class="brand-sub">منصة تعلم تفاعل الإنسان والحاسوب</p>
     <p class="brand-tagline"><span class="dot"></span> سجّل دخولك أو أنشئ حساباً عشان تفتح المسارات</p>
 
+    <div class="remember-prompt" id="rememberPrompt" hidden>
+      <p class="remember-prompt-title">تعرّفنا على جهازك</p>
+      <p class="remember-prompt-text" id="rememberPromptText">هل تريد ملء بيانات حسابك المحفوظ؟</p>
+      <div class="remember-prompt-actions">
+        <button type="button" class="btn-primary" id="rememberFillYes">نعم، املأ البيانات</button>
+        <button type="button" class="btn-ghost" id="rememberFillNo">ليس الآن</button>
+        <button type="button" class="auth-link-btn" id="rememberForget">نسيان هذا الجهاز</button>
+      </div>
+    </div>
+
     <div class="tabs">
       <button type="button" class="tab-btn active" id="tabLogin">تسجيل الدخول</button>
       <button type="button" class="tab-btn" id="tabSignup">إنشاء حساب</button>
@@ -41,10 +51,21 @@
       </div>
       <div>
         <label for="loginPass">كلمة المرور</label>
-        <input type="password" id="loginPass" dir="ltr" placeholder="كلمة المرور" required autocomplete="current-password">
+        <div class="password-field">
+          <input type="password" id="loginPass" dir="ltr" placeholder="كلمة المرور" required autocomplete="current-password">
+          <button type="button" class="password-toggle" data-toggle-password="loginPass" aria-label="إظهار كلمة المرور" aria-pressed="false">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
+          </button>
+        </div>
         <p class="field-error" id="loginPassError">كلمة المرور مطلوبة</p>
         <p style="color:var(--text-mid);font-size:0.75rem;margin-top:6px;">للطلاب: 8 أحرف فأكثر · للمشرف يُقبل رمزه الخاص حتى لو أقصر</p>
       </div>
+      <label class="remember-row" for="rememberMe">
+        <input type="checkbox" id="rememberMe">
+        <span>تذكرني على هذا الجهاز</span>
+      </label>
+      <p class="remember-hint">إذا وافقت لاحقاً، نملأ بيانات حسابك تلقائياً عند فتح تسجيل الدخول من نفس الجهاز.</p>
       <button type="submit" class="submit-btn" id="loginSubmit">تسجيل الدخول</button>
       <button type="button" class="auth-link-btn" id="forgotOpenBtn">نسيت كلمة المرور؟</button>
     </form>
@@ -65,7 +86,13 @@
       </div>
       <div>
         <label for="resetNewPass">كلمة المرور الجديدة</label>
-        <input type="password" id="resetNewPass" dir="ltr" placeholder="8 أحرف على الأقل" autocomplete="new-password">
+        <div class="password-field">
+          <input type="password" id="resetNewPass" dir="ltr" placeholder="8 أحرف على الأقل" autocomplete="new-password">
+          <button type="button" class="password-toggle" data-toggle-password="resetNewPass" aria-label="إظهار كلمة المرور" aria-pressed="false">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
+          </button>
+        </div>
       </div>
       <button type="submit" class="submit-btn" id="resetSubmit">تحديث كلمة المرور</button>
       <button type="button" class="auth-link-btn" id="resetBackBtn">← رجوع لتسجيل الدخول</button>
@@ -124,7 +151,13 @@
 
       <div>
         <label for="signupPass">كلمة المرور</label>
-        <input type="password" id="signupPass" dir="ltr" placeholder="8 أحرف على الأقل" required minlength="8" autocomplete="new-password">
+        <div class="password-field">
+          <input type="password" id="signupPass" dir="ltr" placeholder="8 أحرف على الأقل" required minlength="8" autocomplete="new-password">
+          <button type="button" class="password-toggle" data-toggle-password="signupPass" aria-label="إظهار كلمة المرور" aria-pressed="false">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
+          </button>
+        </div>
         <p class="field-error" id="signupPassError">لازم 8 أحرف على الأقل</p>
       </div>
       <button type="submit" class="submit-btn" id="signupSubmit">إنشاء الحساب</button>

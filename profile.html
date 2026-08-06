@@ -45,6 +45,7 @@
         <nav class="settings-side" id="profileSideNav" aria-label="أقسام الملف الشخصي">
           <button type="button" class="settings-side-link is-active" data-target="sec-identity">الحساب</button>
           <button type="button" class="settings-side-link" data-target="sec-journey">التقدم</button>
+          <button type="button" class="settings-side-link" data-target="sec-share">المشاركة</button>
           <button type="button" class="settings-side-link" data-target="sec-inbox">الرسائل</button>
         </nav>
 
@@ -89,6 +90,37 @@
             </div>
 
             <div class="journey-map" id="journeyMap" aria-label="خريطة مراحل الرحلة"></div>
+          </section>
+
+          <section class="settings-block" id="sec-share">
+            <div class="settings-block-head">
+              <h2>مشاركة الموقع</h2>
+              <p>شارك رابطك الخاص. لما أحد يفتحه نعرف إنه جاء منك، ولو سجّل حساب يُحتسب لك.</p>
+            </div>
+            <div class="share-panel" id="sharePanel">
+              <label class="share-label" for="shareLinkInput">رابط المشاركة</label>
+              <div class="share-link-row">
+                <input type="text" id="shareLinkInput" class="share-link-input" readonly dir="ltr" value="">
+                <button type="button" class="btn-primary" id="shareCopyBtn">نسخ</button>
+                <button type="button" class="btn-ghost" id="shareNativeBtn">مشاركة</button>
+              </div>
+              <p class="share-hint" id="shareHint">سجّل دخولك عشان يظهر رابطك وإحصاءاتك.</p>
+              <div class="share-stats" id="shareStats" hidden>
+                <div class="share-stat"><span class="share-stat-label">زيارات الرابط</span><strong id="shareVisits">0</strong></div>
+                <div class="share-stat"><span class="share-stat-label">زوار مميزون</span><strong id="shareUniques">0</strong></div>
+                <div class="share-stat"><span class="share-stat-label">سجّلوا عبرك</span><strong id="shareSignups">0</strong></div>
+              </div>
+              <div class="share-lists" id="shareLists" hidden>
+                <div class="share-list-block">
+                  <h3>آخر من دخل من رابطك</h3>
+                  <ul class="share-list" id="shareRecentList"></ul>
+                </div>
+                <div class="share-list-block">
+                  <h3>من سجّل عبر مشاركتك</h3>
+                  <ul class="share-list" id="shareSignupList"></ul>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section class="settings-block" id="sec-inbox">
@@ -148,14 +180,7 @@
       <div class="footer-bottom">
         <div class="footer-credit-block">
           <span class="footer-credit">إعداد <strong>مازن عطية الذبياني</strong></span>
-          <ul class="footer-meta-links" aria-label="روابط إضافية">
-            <li><button type="button" class="footer-text-link footer-about-btn" data-about-open>نبذة عنا</button></li>
-            <li><button type="button" class="footer-text-link footer-link-contact footer-meta-contact" data-contact-open>تواصل معنا</button></li>
-            <li><a href="legal.html#privacy">الخصوصية</a></li>
-            <li><a href="legal.html#terms">الشروط</a></li>
-            <li><button type="button" class="footer-text-link footer-link-report footer-meta-report" data-report-open>بلّغ عن مشكلة</button></li>
-          </ul>
-          <span class="footer-copy">© 2026 HCI</span>
+<span class="footer-copy">© 2026 HCI</span>
         </div>
       </div>
     </div>

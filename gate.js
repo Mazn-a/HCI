@@ -52,7 +52,8 @@
       'glossary.html': true,
       'maintenance.html': true,
       /* معاينة الشهادة للتصميم فقط عبر ?preview=1 */
-      'certificate.html': /(?:\?|&)preview=1(?:&|$)/.test(search)
+      'certificate.html': /(?:\?|&)preview=1(?:&|$)/.test(search),
+      'verify.html': true
     };
 
     if (publicPages[page]) {

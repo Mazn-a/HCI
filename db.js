@@ -30,12 +30,14 @@ function defaultDb() {
     contacts: [],
     notifications: [],
     otps: [],
+    share_hits: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
     nextContactId: 1,
     nextNotificationId: 1,
-    nextOtpId: 1
+    nextOtpId: 1,
+    nextShareHitId: 1
   };
 }
 
@@ -68,12 +70,15 @@ function migrate(cache) {
   if (!cache.nextNotificationId) { cache.nextNotificationId = 1; changed = true; }
   if (!cache.otps) { cache.otps = []; changed = true; }
   if (!cache.nextOtpId) { cache.nextOtpId = 1; changed = true; }
+  if (!cache.share_hits) { cache.share_hits = []; changed = true; }
+  if (!cache.nextShareHitId) { cache.nextShareHitId = 1; changed = true; }
   cache.users.forEach(function (u) {
     if (typeof u.path_type === 'undefined') { u.path_type = null; changed = true; }
     if (typeof u.intro_seen === 'undefined') { u.intro_seen = false; changed = true; }
     if (typeof u.email_verified === 'undefined') { u.email_verified = u.role === 'admin'; changed = true; }
     if (typeof u.phone_verified === 'undefined') { u.phone_verified = u.role === 'admin'; changed = true; }
     if (!Array.isArray(u.name_history)) { u.name_history = []; changed = true; }
+    if (typeof u.referred_by === 'undefined') { u.referred_by = null; changed = true; }
     if (typeof u.password_changed_at === 'undefined') {
       u.password_changed_at = u.created_at || new Date().toISOString();
       changed = true;
@@ -178,8 +183,9 @@ const db = {
     return cache.users.find((u) => u.role === 'admin') || null;
   },
 
-  createUser({ firstName, lastName, email, phone, passwordHash, role }) {
+  createUser({ firstName, lastName, email, phone, passwordHash, role, referredBy }) {
     const now = new Date().toISOString();
+    const refId = referredBy != null && referredBy !== '' ? Number(referredBy) : null;
     const user = {
       id: cache.nextUserId++,
       first_name: firstName,
@@ -196,7 +202,8 @@ const db = {
       created_at: now,
       last_login: now,
       notes: '',
-      name_history: []
+      name_history: [],
+      referred_by: (refId && Number.isFinite(refId) && refId > 0) ? refId : null
     };
     cache.users.push(user);
     cache.progress.push({
@@ -576,6 +583,101 @@ const db = {
     if (raw.includes('@')) return this.findUserByEmail(raw.toLowerCase());
     const digits = raw.replace(/\D/g, '');
     return this.findUserByPhone(digits);
+  },
+
+  /** تسجيل زيارة من رابط مشاركة — زيارة فريدة لكل زائر خلال 24 ساعة */
+  recordShareHit({ sharerId, visitorKey, path, userAgent }) {
+    const sid = Number(sharerId);
+    if (!sid || !Number.isFinite(sid) || !this.findUserById(sid)) {
+      return { ok: false, error: 'رابط المشاركة غير صالح' };
+    }
+    const key = String(visitorKey || '').trim().slice(0, 64);
+    if (!key || key.length < 8) {
+      return { ok: false, error: 'معرّف الزائر غير صالح' };
+    }
+    /* لا تحسب زيارة صاحب الرابط لنفسه */
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const existing = (cache.share_hits || []).find(function (h) {
+      return h.sharer_id === sid && h.visitor_key === key && (now - new Date(h.at).getTime()) < dayMs;
+    });
+    if (existing) {
+      existing.last_at = new Date().toISOString();
+      existing.path = String(path || existing.path || '/').slice(0, 200);
+      persist();
+      return { ok: true, hit: existing, duplicate: true };
+    }
+    const hit = {
+      id: cache.nextShareHitId++,
+      sharer_id: sid,
+      visitor_key: key,
+      path: String(path || '/').slice(0, 200),
+      user_agent: String(userAgent || '').slice(0, 180),
+      at: new Date().toISOString(),
+      last_at: new Date().toISOString(),
+      signup_user_id: null
+    };
+    cache.share_hits.push(hit);
+    /* احتفظ بآخر 5000 زيارة فقط */
+    if (cache.share_hits.length > 5000) {
+      cache.share_hits = cache.share_hits.slice(-5000);
+    }
+    persist();
+    return { ok: true, hit: hit, duplicate: false };
+  },
+
+  attachShareSignup(sharerId, signupUserId, visitorKey) {
+    const sid = Number(sharerId);
+    const uid = Number(signupUserId);
+    if (!sid || !uid) return;
+    const key = String(visitorKey || '').trim();
+    const hits = (cache.share_hits || []).filter(function (h) {
+      return h.sharer_id === sid && (!key || h.visitor_key === key);
+    });
+    if (hits.length) {
+      hits[hits.length - 1].signup_user_id = uid;
+      persist();
+    }
+  },
+
+  getShareStats(sharerId) {
+    const sid = Number(sharerId);
+    const hits = (cache.share_hits || []).filter(function (h) { return h.sharer_id === sid; });
+    const uniqueVisitors = {};
+    hits.forEach(function (h) { uniqueVisitors[h.visitor_key] = true; });
+    const signups = cache.users.filter(function (u) {
+      return u.referred_by === sid && u.role !== 'admin';
+    }).map(function (u) {
+      return {
+        id: u.id,
+        name: ((u.first_name || '') + ' ' + (u.last_name || '')).trim(),
+        at: u.created_at
+      };
+    }).sort(function (a, b) {
+      return (a.at < b.at ? 1 : -1);
+    });
+
+    const recentHits = hits
+      .slice()
+      .sort(function (a, b) { return (a.at < b.at ? 1 : -1); })
+      .slice(0, 20)
+      .map(function (h) {
+        var signup = h.signup_user_id ? cache.users.find(function (u) { return u.id === h.signup_user_id; }) : null;
+        return {
+          at: h.at,
+          path: h.path,
+          converted: !!h.signup_user_id,
+          signupName: signup ? ((signup.first_name || '') + ' ' + (signup.last_name || '')).trim() : null
+        };
+      });
+
+    return {
+      visits: hits.length,
+      uniqueVisitors: Object.keys(uniqueVisitors).length,
+      signups: signups.length,
+      signupUsers: signups.slice(0, 30),
+      recent: recentHits
+    };
   }
 };
 

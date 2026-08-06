@@ -367,6 +367,41 @@ function saveJourney(data){
   if (window.HCIApi) HCIApi.scheduleSync();
 }
 
+/** اجتياز اختبار أساسيات HCI مطلوب قبل اعتبار المرحلة مكتملة وفتح الترميز */
+function isFundamentalsQuizPassed(){
+  if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) return true;
+  try {
+    var q = JSON.parse(localStorage.getItem('hci_quiz') || '{}');
+    return !!(q.fundamentals && q.fundamentals.passed);
+  } catch (e) {
+    return false;
+  }
+}
+
+/** يصحّح تقدماً خاطئاً: أساسيات «مكتملة» بدون اختبار → تُلغى، والترميز يُقفل */
+function sanitizeJourneyProgress(){
+  if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) return;
+  var j = getJourney();
+  if (!j.done) j.done = {};
+  if (!j.unlocked) j.unlocked = {};
+  var changed = false;
+
+  if (j.done.fundamentals && !isFundamentalsQuizPassed()){
+    delete j.done.fundamentals;
+    changed = true;
+  }
+  if (!isFundamentalsQuizPassed()){
+    if (j.unlocked.coding){
+      delete j.unlocked.coding;
+      changed = true;
+    }
+  }
+
+  if (changed){
+    try { localStorage.setItem('hci_journey', JSON.stringify(j)); } catch (e) { /* */ }
+  }
+}
+
 function markVisited(stageId){
   var j = getJourney();
   if (!j.visited) j.visited = {};
@@ -375,6 +410,11 @@ function markVisited(stageId){
 }
 
 function markComplete(stageId, silent){
+  // الأساسيات لا تُكمَل إلا بعد اجتياز الاختبار (3/4)
+  if (stageId === 'fundamentals' && !isFundamentalsQuizPassed()){
+    return false;
+  }
+
   var j = getJourney();
   if (!j.done) j.done = {};
   if (!j.unlocked) j.unlocked = {};
@@ -430,18 +470,20 @@ function isUnlocked(stageId){
   // الطالب: ترتيب صارم — المرحلة تنفتح فقط بعد إكمال اللي قبلها
   if (stageId === 'discover') return true;
 
-  var j = getJourney();
-  if (j.done && j.done[stageId]) return true;
+  if (isDone(stageId)) return true;
 
   var idx = JOURNEY_ORDER.indexOf(stageId);
   if (idx <= 0) return true;
   var prev = JOURNEY_ORDER[idx - 1];
-  return !!(j.done && j.done[prev]);
+  return isDone(prev);
 }
 
 function isDone(stageId){
   var j = getJourney();
-  return !!(j.done && j.done[stageId]);
+  if (!(j.done && j.done[stageId])) return false;
+  // أساسيات HCI: مكتملة فقط بعد اجتياز الاختبار
+  if (stageId === 'fundamentals') return isFundamentalsQuizPassed();
+  return true;
 }
 
 function getOverallProgress(){
@@ -622,17 +664,15 @@ function annotateChecklists(){
   });
 }
 
-// تهيئة: لو أول زيارة، fundamentals مقفول لين يزور discover
-// لكن نسهّل الدخول: لو ضغط "ابدأ المسار" من الهوم يفتح discover+fundamentals
+// تهيئة الرحلة — بدون فتح الأساسيات/الترميز قبل أوانها
 function bootstrapUnlockFromHome(){
   var j = getJourney();
   if (!j.unlocked) j.unlocked = {};
-  // أول مرة: fundamentals مفتوح عشان ما نصدم المبتدئ — بس نحفزه يبدأ بـ discover
   if (!j.bootstrapped){
-    j.unlocked.fundamentals = true;
     j.bootstrapped = true;
     saveJourney(j);
   }
+  sanitizeJourneyProgress();
 }
 bootstrapUnlockFromHome();
 
@@ -829,6 +869,7 @@ if (navCtaSlot && loggedInName){
       '<div class="nav-dropdown" id="navDropdown">' +
         adminLinkHtml +
         '<a href="profile.html">الملف الشخصي</a>' +
+        '<a href="profile.html#share">مشاركة الموقع</a>' +
         '<a href="settings.html">الإعدادات</a>' +
         '<a href="#" id="switchAccountLink">تبديل الحساب</a>' +
         '<a href="#" id="logoutLink" class="nav-dropdown-logout">تسجيل خروج</a>' +
@@ -892,11 +933,19 @@ if (navCtaSlot && loggedInName){
 
   async function doLogout(e){
     if (e) e.preventDefault();
+    try {
+      localStorage.setItem('hci_accent_color', DEFAULT_ACCENT_COLOR);
+      applyAccentColor(DEFAULT_ACCENT_COLOR);
+    } catch (err) { /* */ }
     if (window.HCIApi) await HCIApi.logout();
     window.location.href = 'index.html';
   }
   async function doSwitchAccount(e){
     if (e) e.preventDefault();
+    try {
+      localStorage.setItem('hci_accent_color', DEFAULT_ACCENT_COLOR);
+      applyAccentColor(DEFAULT_ACCENT_COLOR);
+    } catch (err) { /* */ }
     if (window.HCIApi) await HCIApi.logout();
     window.location.href = 'auth.html';
   }
@@ -1095,7 +1144,9 @@ if (stationsRoot){
           ? 'ابدأ من هنا بالترتيب. بعد ما تكمّل المسار تُفتح اللي بعده تلقائياً.'
           : ('أنجزت ' + doneCount + ' من 7. كمّل المسار الذهبي أدناه — هذي مرحلتك الحالية.');
       }
-      guideCta.textContent = doneCount === 0 ? 'ابدأ من هنا ←' : 'كمّل من هنا ←';
+      guideCta.textContent = doneCount === 0
+        ? (sid === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ من هنا ←')
+        : (sid === 'fundamentals' ? 'كمّل الأساسيات ←' : 'كمّل من هنا ←');
       guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
     }
   }
@@ -1105,11 +1156,27 @@ if (stationsRoot){
     if (doneCount >= JOURNEY_ORDER.length){
       heroCta.textContent = 'عرض شهادتك ←';
       heroCta.setAttribute('href', 'certificate.html');
-    } else {
-      heroCta.textContent = loggedInName
-        ? (doneCount === 0 ? 'ابدأ من هنا ←' : 'كمّل مسارك ←')
-        : 'ابدأ من المسار 1 ←';
+    } else if (loggedInName){
+      if (doneCount === 0){
+        heroCta.textContent = hs === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ من هنا ←';
+      } else if (hs === 'fundamentals'){
+        heroCta.textContent = 'كمّل الأساسيات ←';
+      } else if (hs === 'coding'){
+        heroCta.textContent = 'كمّل الترميز ←';
+      } else {
+        heroCta.textContent = 'كمّل مسارك ←';
+      }
       heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
+    } else {
+      // زائر: ابدأ من أول مسار مفتوح — مو من HTML
+      var guestStart = getCurrentStageId() || 'discover';
+      if (guestStart === 'coding' || guestStart === 'courses' || guestStart === 'books'){
+        guestStart = isDone('discover') ? 'fundamentals' : 'discover';
+      }
+      heroCta.textContent = guestStart === 'fundamentals'
+        ? 'ابدأ من الأساسيات ←'
+        : 'ابدأ رحلتك ←';
+      heroCta.setAttribute('href', STAGE_HREFS[guestStart] || 'discover.html');
     }
   }
 
@@ -1195,15 +1262,36 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
       return;
     }
 
-    // إكمال المرحلة الحالية تلقائياً عند الضغط على التالي
-    if (pageStage && !isDone(pageStage)){
+    // أساسيات HCI: ممنوع الانتقال للترميز بدون اجتياز الاختبار
+    if (pageStage === 'fundamentals' && targetStage === 'coding' && !isFundamentalsQuizPassed()){
+      e.preventDefault();
+      showLockAlert(
+        'لازم تجتاز اختبار الأساسيات (3 من 4 على الأقل) قبل ما تفتح الترميز.',
+        'fundamentals.html#quiz',
+        'العودة للاختبار'
+      );
+      return;
+    }
+
+    // إكمال المرحلة الحالية عند الضغط على التالي (الأساسيات فقط عبر الاختبار)
+    if (pageStage && pageStage !== 'fundamentals' && !isDone(pageStage)){
       markComplete(pageStage);
       if (overallFill) overallFill.style.width = getOverallProgress() + '%';
       if (overallPct) overallPct.textContent = getOverallProgress() + '%';
     }
 
-    // فتح الهدف صراحة قبل الانتقال
+    // فتح الهدف صراحة قبل الانتقال — إلا الترميز بدون اختبار
     if (targetStage){
+      if (targetStage === 'coding' && !isFundamentalsQuizPassed() &&
+          !(window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist()))){
+        e.preventDefault();
+        showLockAlert(
+          'مسار الترميز ينفتح بعد اجتياز اختبار أساسيات HCI.',
+          'fundamentals.html#quiz',
+          'العودة للاختبار'
+        );
+        return;
+      }
       var jGo = getJourney();
       if (!jGo.unlocked) jGo.unlocked = {};
       jGo.unlocked[targetStage] = true;
@@ -1215,9 +1303,14 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
 function updateCodingNextButton(){
   var nextCoding = document.querySelector('a[data-next-stage="coding"]');
   if (!nextCoding) return;
-  nextCoding.classList.remove('is-locked-next');
-  nextCoding.setAttribute('aria-disabled', 'false');
-  nextCoding.removeAttribute('title');
+  var ok = isFundamentalsQuizPassed();
+  nextCoding.classList.toggle('is-locked-next', !ok);
+  nextCoding.setAttribute('aria-disabled', ok ? 'false' : 'true');
+  if (ok){
+    nextCoding.removeAttribute('title');
+  } else {
+    nextCoding.title = 'اجتز اختبار الأساسيات أولاً (3 من 4)';
+  }
 }
 updateCodingNextButton();
 
@@ -1447,6 +1540,127 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var loginIdentifierError = document.getElementById('loginIdentifierError');
   var loginPassError = document.getElementById('loginPassError');
   var loginSubmit = document.getElementById('loginSubmit');
+  var rememberMe = document.getElementById('rememberMe');
+  var rememberPrompt = document.getElementById('rememberPrompt');
+  var rememberPromptText = document.getElementById('rememberPromptText');
+  var rememberFillYes = document.getElementById('rememberFillYes');
+  var rememberFillNo = document.getElementById('rememberFillNo');
+  var rememberForget = document.getElementById('rememberForget');
+  var REMEMBER_KEY = 'hci_remember_login';
+
+  function encodeRememberSecret(value){
+    try { return btoa(unescape(encodeURIComponent(String(value || '')))); }
+    catch (e) { return ''; }
+  }
+  function decodeRememberSecret(value){
+    try { return decodeURIComponent(escape(atob(String(value || '')))); }
+    catch (e) { return ''; }
+  }
+  function readRememberedLogin(){
+    try {
+      var raw = localStorage.getItem(REMEMBER_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || !data.identifier) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+  function saveRememberedLogin(identifier, password, displayName){
+    try {
+      localStorage.setItem(REMEMBER_KEY, JSON.stringify({
+        identifier: String(identifier || '').trim(),
+        secret: encodeRememberSecret(password || ''),
+        name: String(displayName || '').trim(),
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) { /* */ }
+  }
+  function clearRememberedLogin(){
+    try { localStorage.removeItem(REMEMBER_KEY); } catch (e) { /* */ }
+  }
+  function hideRememberPrompt(){
+    if (rememberPrompt) rememberPrompt.hidden = true;
+  }
+  function showRememberPrompt(data){
+    if (!rememberPrompt || !data) return;
+    var label = data.name || data.identifier || 'حسابك';
+    if (rememberPromptText){
+      rememberPromptText.textContent =
+        'وجدنا حساب «' + label + '» محفوظ على هذا الجهاز. هل تريد ملء البيانات تلقائياً؟';
+    }
+    rememberPrompt.hidden = false;
+  }
+
+  // عرض طلب الموافقة إذا فيه حساب محفوظ على الجهاز
+  (function offerRememberedFill(){
+    if (!loginIdentifier || !loginPass) return;
+    if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()) return;
+    var remembered = readRememberedLogin();
+    if (!remembered) return;
+    if (rememberMe) rememberMe.checked = true;
+    showRememberPrompt(remembered);
+  })();
+
+  if (rememberFillYes){
+    rememberFillYes.addEventListener('click', function(){
+      var remembered = readRememberedLogin();
+      if (!remembered){ hideRememberPrompt(); return; }
+      if (loginIdentifier) loginIdentifier.value = remembered.identifier || '';
+      if (loginPass) loginPass.value = decodeRememberSecret(remembered.secret);
+      if (rememberMe) rememberMe.checked = true;
+      hideRememberPrompt();
+      if (loginPass && loginPass.value) loginPass.focus();
+      else if (loginIdentifier) loginIdentifier.focus();
+    });
+  }
+  if (rememberFillNo){
+    rememberFillNo.addEventListener('click', hideRememberPrompt);
+  }
+  if (rememberForget){
+    rememberForget.addEventListener('click', function(){
+      clearRememberedLogin();
+      if (rememberMe) rememberMe.checked = false;
+      hideRememberPrompt();
+    });
+  }
+
+  // عين إظهار/إخفاء كلمة المرور
+  document.querySelectorAll('[data-toggle-password]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = btn.getAttribute('data-toggle-password');
+      var input = document.getElementById(id);
+      if (!input) return;
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      btn.setAttribute('aria-label', show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+      var openIcon = btn.querySelector('.eye-open');
+      var closedIcon = btn.querySelector('.eye-closed');
+      if (openIcon && closedIcon){
+        if (show){
+          openIcon.setAttribute('hidden', '');
+          closedIcon.removeAttribute('hidden');
+        } else {
+          closedIcon.setAttribute('hidden', '');
+          openIcon.removeAttribute('hidden');
+        }
+      }
+    });
+  });
+
+  // Enter من المعرّف/الجوال → ينقل لكلمة المرور (لابتوب وجوال)
+  function focusPasswordOnEnter(fromInput, passInput){
+    if (!fromInput || !passInput) return;
+    fromInput.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      passInput.focus();
+      try { passInput.select(); } catch (err) { /* */ }
+    });
+  }
+  focusPasswordOnEnter(loginIdentifier, loginPass);
 
   formLogin.addEventListener('submit', async function(event){
     event.preventDefault();
@@ -1454,6 +1668,10 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       return v.trim().length > 0 && (v.includes('@') ? isValidEmail(v) : isValidPhone(v));
     });
     var passOk = validateField(loginPass, loginPassError, function(v){ return v.length > 0; });
+    if (idOk && !passOk){
+      loginPass.focus();
+      return;
+    }
     if (!idOk || !passOk) return;
 
     if (!window.HCIApi){
@@ -1466,7 +1684,18 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     loginSubmit.textContent = 'جاري الدخول…';
     statusMsg.classList.remove('show');
     try {
-      var data = await HCIApi.login(loginIdentifier.value.trim(), loginPass.value);
+      var identifierValue = loginIdentifier.value.trim();
+      var passwordValue = String(loginPass.value || '')
+        .replace(/[\u200B-\u200D\uFEFF\u2060]/g, '')
+        .trim();
+      var data = await HCIApi.login(identifierValue, passwordValue);
+      // حفظ / مسح التذكر حسب اختيار المستخدم
+      if (rememberMe && rememberMe.checked){
+        var displayName = (data.user && (data.user.fullName || data.user.firstName)) || identifierValue;
+        saveRememberedLogin(identifierValue, passwordValue, displayName);
+      } else {
+        clearRememberedLogin();
+      }
       // لا نعلّق الدخول على المزامنة — نكمل ولو فشلت/تأخّرت
       try { await HCIApi.syncProgress(); } catch (syncErr) { /* تجاهل */ }
       if (data.user.pathType === 'specialist') HCIApi.applySpecialistUnlocks();
@@ -1515,6 +1744,10 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       if (normalized) signupPhone.value = normalized;
       if (signupPhone.value) validateField(signupPhone, signupPhoneError, isValidPhone);
     });
+    focusPasswordOnEnter(signupPhone, signupPass);
+  }
+  if (signupEmail){
+    focusPasswordOnEnter(signupEmail, signupPass);
   }
 
   bindAsciiDigitsInMixedField(loginIdentifier);
@@ -1540,7 +1773,12 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       if (signupEmailError) signupEmailError.classList.remove('show');
     }
 
-    if (!firstOk || !lastOk || !passOk || !contactOk) return;
+    if (!firstOk || !lastOk || !contactOk || !passOk){
+      if (firstOk && lastOk && contactOk && !passOk && signupPass){
+        signupPass.focus();
+      }
+      return;
+    }
 
     if (!window.HCIApi){
       statusMsg.textContent = 'ملف api.js غير محمّل';
@@ -2387,6 +2625,144 @@ if (journeyMap){
   if (certBox) certBox.hidden = p < 100;
 }
 
+/* ----- مشاركة الموقع وإحصائيات الإحالات ----- */
+(function initSharePanel() {
+  var panel = document.getElementById('sharePanel');
+  if (!panel) return;
+
+  var input = document.getElementById('shareLinkInput');
+  var copyBtn = document.getElementById('shareCopyBtn');
+  var nativeBtn = document.getElementById('shareNativeBtn');
+  var hint = document.getElementById('shareHint');
+  var statsEl = document.getElementById('shareStats');
+  var listsEl = document.getElementById('shareLists');
+  var recentList = document.getElementById('shareRecentList');
+  var signupList = document.getElementById('shareSignupList');
+
+  function formatShareTime(iso) {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleString('ar-SA', {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) { return ''; }
+  }
+
+  function setLoggedOut() {
+    if (hint) {
+      hint.hidden = false;
+      hint.innerHTML = '<a href="auth.html?tab=signup">أنشئ حساباً</a> أو سجّل دخولك لتظهر رابط مشاركتك وإحصاءاتك.';
+    }
+    if (statsEl) statsEl.hidden = true;
+    if (listsEl) listsEl.hidden = true;
+    if (input) input.value = location.origin + '/index.html';
+    if (copyBtn) copyBtn.disabled = true;
+    if (nativeBtn) nativeBtn.disabled = true;
+  }
+
+  async function loadShare() {
+    if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())) {
+      setLoggedOut();
+      return;
+    }
+    if (copyBtn) copyBtn.disabled = false;
+    if (nativeBtn) nativeBtn.disabled = false;
+    var url = HCIApi.buildShareUrl();
+    if (input) input.value = url;
+    if (hint) hint.hidden = true;
+
+    try {
+      var data = await HCIApi.fetchShareStats();
+      if (data && data.sharePath) {
+        url = location.origin + data.sharePath;
+        if (input) input.value = url;
+      }
+      var s = (data && data.stats) || {};
+      if (statsEl) {
+        statsEl.hidden = false;
+        var v = document.getElementById('shareVisits');
+        var u = document.getElementById('shareUniques');
+        var g = document.getElementById('shareSignups');
+        if (v) v.textContent = String(s.visits || 0);
+        if (u) u.textContent = String(s.uniqueVisitors || 0);
+        if (g) g.textContent = String(s.signups || 0);
+      }
+      if (listsEl) listsEl.hidden = false;
+      if (recentList) {
+        var recent = s.recent || [];
+        recentList.innerHTML = recent.length
+          ? recent.map(function (r) {
+              var label = r.converted && r.signupName
+                ? ('سجّل: ' + r.signupName)
+                : ('زيارة' + (r.path ? ' · ' + r.path.replace(/^\//, '') : ''));
+              return '<li><span>' + escapeHtml(label) + '</span><time>' + escapeHtml(formatShareTime(r.at)) + '</time></li>';
+            }).join('')
+          : '<li class="share-empty">ما في زيارات بعد — ابدأ بالمشاركة</li>';
+      }
+      if (signupList) {
+        var users = s.signupUsers || [];
+        signupList.innerHTML = users.length
+          ? users.map(function (u) {
+              return '<li><span>' + escapeHtml(u.name || ('مستخدم #' + u.id)) + '</span><time>' + escapeHtml(formatShareTime(u.at)) + '</time></li>';
+            }).join('')
+          : '<li class="share-empty">ما سجّل أحد عبر رابطك بعد</li>';
+      }
+    } catch (e) {
+      if (hint) {
+        hint.hidden = false;
+        hint.textContent = 'تعذر تحميل الإحصائيات — تأكد أن السيرفر يعمل.';
+      }
+    }
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async function () {
+      var text = (input && input.value) || '';
+      if (!text) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          input.select();
+          document.execCommand('copy');
+        }
+        copyBtn.textContent = 'تم النسخ';
+        setTimeout(function () { copyBtn.textContent = 'نسخ'; }, 1600);
+      } catch (e) {
+        alert('انسخ الرابط يدوياً من الخانة');
+      }
+    });
+  }
+
+  if (nativeBtn) {
+    nativeBtn.addEventListener('click', async function () {
+      var text = (input && input.value) || '';
+      if (!text) return;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'منصة HCI',
+            text: 'تعرّف على مسار تعلم تفاعل الإنسان والحاسوب',
+            url: text
+          });
+        } catch (e) { /* ألغى المستخدم */ }
+      } else if (copyBtn) {
+        copyBtn.click();
+      }
+    });
+  }
+
+  loadShare();
+
+  /* تنقل الهاش #share */
+  if (location.hash === '#share') {
+    var sec = document.getElementById('sec-share');
+    var btn = document.querySelector('.settings-side-link[data-target="sec-share"]');
+    if (btn) btn.click();
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+})();
+
 // ----- مسار الترميز -----
 var lessonList = document.getElementById('lessonList');
 var codingProgressFill = document.getElementById('codingProgressFill');
@@ -2828,6 +3204,37 @@ if (quizCheckBtn && quizResult){
     quizResult.textContent = 'نتيجتك: ' + correctCount + ' من ' + questions.length + ' صحيحة';
     quizResult.classList.add('show');
 
+    // حفظ نتيجة الاختبار أولاً (قبل markComplete)
+    try {
+      var answers = [];
+      questions.forEach(function(q, idx){
+        var correctValue = q.getAttribute('data-correct');
+        var selected = q.querySelector('input[type="radio"]:checked');
+        var titleEl = q.querySelector('p:not(.quiz-feedback)');
+        var title = titleEl ? titleEl.textContent.trim().slice(0, 100) : ('سؤال ' + (idx + 1));
+        var qid = 'fundamentals-q' + (idx + 1);
+        var chosen = selected ? selected.value : '';
+        answers.push({
+          qid: qid,
+          title: title,
+          chosen: chosen,
+          correct: correctValue,
+          ok: !!(selected && selected.value === correctValue)
+        });
+      });
+      var quizStore = {};
+      try { quizStore = JSON.parse(localStorage.getItem('hci_quiz') || '{}'); } catch (err) { quizStore = {}; }
+      quizStore.fundamentals = {
+        score: correctCount,
+        total: questions.length,
+        passed: correctCount >= 3,
+        answers: answers,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('hci_quiz', JSON.stringify(quizStore));
+      if (window.HCIApi && HCIApi.isLoggedIn()) HCIApi.scheduleSync();
+    } catch (err) { /* */ }
+
     // فتح الترميز عند 3/4 أو أكثر فقط
     if (correctCount >= 3){
       markComplete('fundamentals');
@@ -2847,37 +3254,6 @@ if (quizCheckBtn && quizResult){
       quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
       updateCodingNextButton();
     }
-
-    // حفظ إجابات الاختبار للإحصائيات في لوحة الإدارة
-    try {
-      var answers = [];
-      questions.forEach(function(q, idx){
-        var correctValue = q.getAttribute('data-correct');
-        var selected = q.querySelector('input[type="radio"]:checked');
-        var titleEl = q.querySelector('p:not(.quiz-feedback)');
-        var title = titleEl ? titleEl.textContent.trim().slice(0, 100) : ('سؤال ' + (idx + 1));
-        var qid = 'fundamentals-q' + (idx + 1);
-        var chosen = selected ? selected.value : '';
-        answers.push({
-          qid: qid,
-          title: title,
-          chosen: chosen,
-          correct: correctValue,
-          ok: !!(selected && selected.value === correctValue)
-        });
-      });
-      var quizStore = {};
-      try { quizStore = JSON.parse(localStorage.getItem('hci_quiz') || '{}'); } catch (e) { quizStore = {}; }
-      quizStore.fundamentals = {
-        score: correctCount,
-        total: questions.length,
-        passed: correctCount >= 3,
-        answers: answers,
-        updatedAt: new Date().toISOString()
-      };
-      localStorage.setItem('hci_quiz', JSON.stringify(quizStore));
-      if (window.HCIApi && HCIApi.isLoggedIn()) HCIApi.scheduleSync();
-    } catch (e) { /* */ }
   });
 }
 
@@ -3385,6 +3761,8 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
 
   if (location.hash){
     var hashId = location.hash.replace(/^#/, '');
+    if (hashId === 'share') hashId = 'sec-share';
+    if (hashId === 'inbox') hashId = 'sec-inbox';
     if (document.getElementById(hashId)){
       setTimeout(function(){ scrollToSection(hashId); }, 60);
     }

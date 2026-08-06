@@ -89,6 +89,9 @@
     if (logoutLink) {
       logoutLink.addEventListener('click', async function (e) {
         e.preventDefault();
+        try {
+          localStorage.setItem('hci_accent_color', '#C9A24B');
+        } catch (err) { /* */ }
         await HCIApi.logout();
         location.href = 'index.html';
       });

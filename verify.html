@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>التحقق من الشهادة — HCI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="gate.js"></script>
+</head>
+<body class="cert-page verify-page">
+  <a href="#verifyCard" class="skip-link">تخطي إلى نتيجة التحقق</a>
+
+  <div class="cert-toolbar no-print">
+    <a href="index.html" class="btn-ghost cert-tb-home">← الرئيسية</a>
+    <a href="certificate.html" class="btn-ghost">الشهادة</a>
+  </div>
+
+  <main class="verify-wrap" id="verifyCard">
+    <div class="verify-card" id="verifyResult">
+      <p class="verify-brand">HCI · Verify Certificate</p>
+      <h1 class="verify-title" id="verifyTitle">جاري التحقق…</h1>
+      <p class="verify-sub" id="verifySub">نتحقق من رقم الشهادة.</p>
+      <dl class="verify-meta" id="verifyMeta" hidden></dl>
+    </div>
+  </main>
+
+<script>
+(function () {
+  var REG_KEY = 'hci_cert_registry';
+
+  function qs(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+  }
+
+  function getRecord(id) {
+    try {
+      var reg = JSON.parse(localStorage.getItem(REG_KEY) || '{}');
+      return reg[id] || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function render(id) {
+    var title = document.getElementById('verifyTitle');
+    var sub = document.getElementById('verifySub');
+    var meta = document.getElementById('verifyMeta');
+    var card = document.getElementById('verifyResult');
+
+    if (!id) {
+      title.textContent = 'تحقق من شهادة HCI';
+      sub.textContent = 'امسح رمز QR الموجود على الشهادة للتحقق تلقائياً.';
+      meta.hidden = true;
+      card.classList.remove('is-valid', 'is-invalid');
+      return;
+    }
+
+    var rec = getRecord(id);
+    if (!rec) {
+      title.textContent = 'تعذّر التحقق';
+      sub.textContent = 'لم نعثر على شهادة بهذا الرقم في سجلات هذا الجهاز. قد تكون صادرة من جهاز آخر أو لم تُنشأ بعد.';
+      meta.hidden = false;
+      meta.innerHTML =
+        '<div><dt>رقم الشهادة</dt><dd dir="ltr">' + id.replace(/</g, '') + '</dd></div>';
+      card.classList.add('is-invalid');
+      card.classList.remove('is-valid');
+      return;
+    }
+
+    title.textContent = 'شهادة موثّقة';
+    sub.textContent = 'تم التحقق بنجاح — هذه الشهادة صادرة عن منصة HCI.';
+    meta.hidden = false;
+    meta.innerHTML =
+      '<div><dt>الاسم</dt><dd>' + escapeHtml(rec.name) + '</dd></div>' +
+      '<div><dt>المسار</dt><dd>' + escapeHtml(rec.path || '') + '</dd></div>' +
+      '<div><dt>الإنجاز</dt><dd>' + escapeHtml(String(rec.pct) + '%') + '</dd></div>' +
+      '<div><dt>تاريخ الإصدار</dt><dd>' + escapeHtml(rec.issuedAr || '') + '</dd></div>' +
+      '<div><dt>تاريخ الإكمال</dt><dd>' + escapeHtml(rec.completedAr || '') + '</dd></div>' +
+      '<div><dt>رقم الشهادة</dt><dd dir="ltr">' + escapeHtml(rec.id) + '</dd></div>';
+    card.classList.add('is-valid');
+    card.classList.remove('is-invalid');
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  render(qs('id'));
+})();
+</script>
+</body>
+</html>

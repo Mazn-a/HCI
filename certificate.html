@@ -14,52 +14,70 @@
   <a href="#cert" class="skip-link">تخطي إلى الشهادة</a>
 
   <div class="cert-toolbar no-print" id="certToolbar">
-    <a href="profile.html" class="btn-ghost">← الملف الشخصي</a>
-    <div class="cert-toolbar-actions">
-      <a href="index.html" class="btn-ghost">الرئيسية</a>
-      <button type="button" class="btn-primary" id="printCertBtn">طباعة / حفظ PDF</button>
+    <a href="index.html" class="btn-ghost cert-tb-home">الرئيسية</a>
+    <div class="cert-toolbar-end">
+      <button type="button" class="btn-primary cert-tb-print" id="printCertBtn">طباعة / حفظ PDF</button>
     </div>
   </div>
 
-  <div class="cert-sheet" id="cert">
-    <div class="cert-ornament" aria-hidden="true"></div>
-    <div class="cert-ornament cert-ornament-inner" aria-hidden="true"></div>
+  <div class="cert-sheet is-landscape" id="cert" data-orient="landscape">
+    <div class="cert-pattern" aria-hidden="true"></div>
+    <div class="cert-frame" aria-hidden="true"></div>
+    <div class="cert-frame cert-frame-inner" aria-hidden="true"></div>
+    <div class="cert-ornament cert-ornament-tl" aria-hidden="true"></div>
+    <div class="cert-ornament cert-ornament-tr" aria-hidden="true"></div>
+    <div class="cert-ornament cert-ornament-bl" aria-hidden="true"></div>
+    <div class="cert-ornament cert-ornament-br" aria-hidden="true"></div>
 
-    <div class="cert-top">
-      <p class="cert-brand">HCI</p>
-      <p class="cert-brand-sub">منصة تعلم تفاعل الإنسان والحاسوب</p>
-      <p class="cert-badge">CERTIFICATE OF COMPLETION</p>
-    </div>
+    <div class="cert-inner">
+      <header class="cert-head">
+        <p class="cert-brand">HCI</p>
+        <p class="cert-brand-sub">منصة تعلم تفاعل الإنسان والحاسوب</p>
+        <div class="cert-divider" aria-hidden="true"><span></span></div>
+        <h1 class="cert-title">شهادة إتمام المسار</h1>
+        <p class="cert-path" id="certPath">مسار تفاعل الإنسان والحاسوب (HCI)</p>
+      </header>
 
-    <h1 class="cert-title">شهادة إتمام المسار</h1>
-    <p class="cert-line">تُمنح هذه الشهادة إلى</p>
-    <p class="cert-name" id="certName">الطالب</p>
-
-    <p class="cert-body">
-      لإتمام رحلة التعلم الكاملة في منصة <strong>HCI</strong> —
-      من اكتشاف التخصص وأساسيات تفاعل الإنسان والحاسوب،
-      إلى الترميز والدورات والكتب والتمارين وإفادة الآخرين.
-    </p>
-
-    <p class="cert-motto">«من رغبتك الأولى… إلى ما تُفيد به غيرك»</p>
-
-    <div class="cert-seal" aria-hidden="true">
-      <span class="cert-seal-ring">HCI</span>
-      <span class="cert-seal-text">مكتمل 100%</span>
-    </div>
-
-    <div class="cert-footer">
-      <div>
-        <span class="cert-label">التاريخ</span>
-        <strong id="certDate"></strong>
+      <div class="cert-mid">
+        <p class="cert-line">بفخر واعتزاز، وتقديراً لتميّز المستفيد والتزامه، وإتمامه جميع متطلبات المسار بنجاح وإتقان، تُمنح هذه الشهادة إلى</p>
+        <div class="cert-recipient">
+          <div class="cert-avatar" id="certAvatar" hidden></div>
+          <p class="cert-name" id="certName">الطالب</p>
+        </div>
       </div>
-      <div>
-        <span class="cert-label">رقم الشهادة</span>
-        <strong id="certId">—</strong>
-      </div>
-      <div>
-        <span class="cert-label">المصمم</span>
-        <strong>مازن عطية</strong>
+
+      <div class="cert-bottom">
+        <div class="cert-meta cert-meta-dates">
+          <div class="cert-date-row">
+            <span class="cert-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 8H6v10h14V10zM6 8h14V6H6v2z"/></svg>
+            </span>
+            <div>
+              <span class="cert-label">تاريخ الإصدار</span>
+              <strong id="certIssued" class="cert-date-value"></strong>
+            </div>
+          </div>
+          <div class="cert-id-block">
+            <span class="cert-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h10v1.5H8V12zm0 3.5h10V17H8v-1.5z"/></svg>
+            </span>
+            <div>
+              <span class="cert-label">رقم الشهادة</span>
+              <strong id="certId" class="cert-id-value">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="cert-meta cert-meta-sign">
+          <span class="cert-label cert-sign-title">مدير المنصة</span>
+          <strong class="cert-sign-name">مازن عطية الذبياني</strong>
+          <span class="cert-sign-rule" aria-hidden="true"></span>
+        </div>
+
+        <div class="cert-meta cert-meta-qr">
+          <canvas id="certQr" class="cert-qr" width="64" height="64" aria-label="رمز التحقق"></canvas>
+          <span class="cert-label">QR</span>
+        </div>
       </div>
     </div>
   </div>
@@ -69,10 +87,15 @@
     <a href="index.html#paths">ارجع للمسارات</a>
   </p>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="api.js"></script>
 <script src="main.js"></script>
 <script>
 (function () {
+  var ORIENT_KEY = 'hci_cert_orient';
+  var REG_KEY = 'hci_cert_registry';
+  var PATH_NAME = 'مسار تفاعل الإنسان والحاسوب (HCI)';
+
   function userName() {
     try {
       if (window.HCIApi && HCIApi.currentUser) {
@@ -97,29 +120,130 @@
     }
   }
 
-  function makeCertId(name) {
-    var base = String(name || 'HCI').replace(/\s+/g, '').slice(0, 8);
+  function formatArDate(d) {
+    return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function formatEnDate(d) {
+    return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function hashStr(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return Math.abs(h);
+  }
+
+  function makeCertId(name, issued) {
+    var y = issued.getFullYear();
+    var n = String((hashStr(String(name) + y) % 900000) + 100000);
+    return 'HCI-' + y + '-' + n;
+  }
+
+  function completedDate() {
+    try {
+      var j = JSON.parse(localStorage.getItem('hci_journey') || '{}');
+      if (j.completedAt) return new Date(j.completedAt);
+      if (j.doneAt) return new Date(j.doneAt);
+    } catch (e) { /* */ }
     var d = new Date();
-    var y = d.getFullYear();
-    var m = String(d.getMonth() + 1).padStart(2, '0');
-    var day = String(d.getDate()).padStart(2, '0');
-    var n = Math.abs(Array.from(base).reduce(function (a, c) { return a + c.charCodeAt(0); }, 0) % 9000) + 1000;
-    return 'HCI-' + y + m + day + '-' + n;
+    d.setDate(d.getDate() - 1);
+    return d;
+  }
+
+  function saveRegistry(record) {
+    try {
+      var reg = JSON.parse(localStorage.getItem(REG_KEY) || '{}');
+      reg[record.id] = record;
+      localStorage.setItem(REG_KEY, JSON.stringify(reg));
+    } catch (e) { /* */ }
+  }
+
+  function applyOptionalAvatar() {
+    var el = document.getElementById('certAvatar');
+    if (!el) return;
+    var photo = '';
+    try {
+      if (typeof getUserAvatar === 'function') photo = getUserAvatar() || '';
+      else photo = localStorage.getItem('hci_avatar') || '';
+    } catch (e) { photo = ''; }
+
+    if (photo) {
+      el.hidden = false;
+      el.style.backgroundImage = 'url(' + photo + ')';
+      el.classList.add('has-photo');
+    } else {
+      el.hidden = true;
+      el.style.backgroundImage = '';
+      el.classList.remove('has-photo');
+    }
+  }
+
+  function setOrientationLandscape() {
+    var sheet = document.getElementById('cert');
+    if (!sheet) return;
+    sheet.classList.add('is-landscape');
+    sheet.classList.remove('is-portrait');
+    sheet.setAttribute('data-orient', 'landscape');
+    try { localStorage.setItem(ORIENT_KEY, 'landscape'); } catch (e) { /* */ }
+
+    var pageStyle = document.getElementById('certPageSize');
+    if (!pageStyle) {
+      pageStyle = document.createElement('style');
+      pageStyle.id = 'certPageSize';
+      document.head.appendChild(pageStyle);
+    }
+    pageStyle.textContent = '@page{ size: A4 landscape; margin: 0; }';
+  }
+
+  function renderQr(url) {
+    var canvas = document.getElementById('certQr');
+    if (!canvas) return;
+    if (window.QRCode && QRCode.toCanvas) {
+      QRCode.toCanvas(canvas, url, {
+        width: 64,
+        margin: 1,
+        color: { dark: '#1a1a1a', light: '#f7f0e2' }
+      }, function () { /* */ });
+      return;
+    }
+    var img = document.createElement('img');
+    img.className = 'cert-qr';
+    img.width = 64;
+    img.height = 64;
+    img.alt = 'رمز التحقق';
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=64x64&margin=2&data=' + encodeURIComponent(url);
+    canvas.replaceWith(img);
   }
 
   var name = userName();
   var pct = progressPct();
   var preview = /(?:\?|&)preview=1(?:&|$)/.test(location.search);
+  var issued = new Date();
+  var completed = completedDate();
 
   var sheet = document.getElementById('cert');
   var locked = document.getElementById('certLocked');
   var toolbar = document.getElementById('certToolbar');
 
+  if (preview && (name === 'متعلم HCI' || pct < 100)) {
+    name = 'مازن عطية الذبياني';
+    if (pct < 100) pct = 100;
+  }
+
+  var certId = makeCertId(name, issued);
+  var verifyPath = 'verify.html?id=' + encodeURIComponent(certId);
+  var verifyUrl = location.origin + location.pathname.replace(/[^/]+$/, '') + verifyPath;
+
   document.getElementById('certName').textContent = name;
-  document.getElementById('certDate').textContent = new Date().toLocaleDateString('ar-SA', {
-    year: 'numeric', month: 'long', day: 'numeric'
-  });
-  document.getElementById('certId').textContent = makeCertId(name);
+  document.getElementById('certPath').textContent = PATH_NAME;
+  document.getElementById('certIssued').textContent = formatArDate(issued);
+  document.getElementById('certId').textContent = certId;
+  applyOptionalAvatar();
+  setOrientationLandscape();
 
   if (pct < 100 && !preview) {
     if (sheet) sheet.hidden = true;
@@ -128,10 +252,20 @@
     return;
   }
 
-  if (preview && pct < 100) {
-    document.getElementById('certName').textContent = name === 'متعلم HCI' ? 'مازن عطية' : name;
-    document.getElementById('certId').textContent = makeCertId(document.getElementById('certName').textContent);
-  }
+  saveRegistry({
+    id: certId,
+    name: name,
+    path: PATH_NAME,
+    pct: pct,
+    issuedAt: issued.toISOString(),
+    completedAt: completed.toISOString(),
+    issuedAr: formatArDate(issued),
+    completedAr: formatArDate(completed),
+    issuedEn: formatEnDate(issued),
+    verified: true
+  });
+
+  renderQr(verifyUrl);
 
   var printBtn = document.getElementById('printCertBtn');
   if (printBtn) {

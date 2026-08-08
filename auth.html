@@ -80,12 +80,12 @@
         <label for="resetIdentifier">البريد أو رقم الجوال</label>
         <input type="text" id="resetIdentifier" dir="ltr" placeholder="you@email.com أو 05xxxxxxxx" autocomplete="username">
       </div>
-      <button type="button" class="btn-ghost" id="resetSendCode" style="width:100%;">إرسال رمز التحقق</button>
       <p class="otp-demo" id="resetDemoCode" hidden></p>
       <div>
         <label for="resetCode">رمز التحقق</label>
         <input type="text" id="resetCode" dir="ltr" inputmode="numeric" placeholder="6 أرقام" autocomplete="one-time-code">
       </div>
+      <button type="button" class="auth-link-btn" id="resetSendCode">إرسال رمز التحقق</button>
       <div>
         <label for="resetNewPass">كلمة المرور الجديدة</label>
         <div class="password-field">
@@ -108,12 +108,12 @@
         <label for="verifyIdentifier">البريد أو رقم الهاتف</label>
         <input type="text" id="verifyIdentifier" dir="ltr" placeholder="نفس البيانات المستخدمة عند التسجيل">
       </div>
-      <button type="button" class="btn-ghost" id="verifySendCode" style="width:100%;">إرسال رمز التحقق</button>
       <p class="otp-demo" id="verifyDemoCode" hidden></p>
       <div>
         <label for="verifyCode">رمز التحقق</label>
         <input type="text" id="verifyCode" dir="ltr" inputmode="numeric" maxlength="6" placeholder="6 أرقام" autocomplete="one-time-code">
       </div>
+      <button type="button" class="auth-link-btn" id="verifySendCode">إرسال رمز التحقق</button>
       <button type="submit" class="submit-btn" id="verifySubmit">تأكيد الملكيّة</button>
     </form>
 

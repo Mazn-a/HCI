@@ -3607,12 +3607,18 @@ body[data-theme="light"] .settings-side-link{
 .status-msg.show{ display:block; }
 
 .auth-link-btn{
-  display:block; width:100%; margin-top:12px; padding:10px;
+  display:block; width:100%; margin-top:4px; padding:8px 4px;
   background:none; border:none; color: var(--line-cyan);
   font-family: var(--font-body); font-size:0.88rem; font-weight:600;
   cursor:pointer; text-align:center;
+  min-height: auto;
+  box-shadow: none;
 }
 .auth-link-btn:hover{ color: var(--gold); }
+.auth-link-btn:disabled{
+  opacity: 0.65;
+  cursor: wait;
+}
 
 /* تذكرني */
 .remember-row{

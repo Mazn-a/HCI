@@ -3037,6 +3037,7 @@ var codingProgressNote = document.getElementById('codingProgressNote');
 if (lessonList && codingProgressFill && codingProgressNote){
   var lessonCards = lessonList.querySelectorAll('.lesson-card');
   var storageKey = 'hci_coding_progress';
+  var LOCK_MSG = 'افتح «اشرحلي المفهوم» في الدرس السابق أولاً. بعد القراءة ينفك هذا الدرس.';
 
   function getProgress(){
     try {
@@ -3054,28 +3055,65 @@ if (lessonList && codingProgressFill && codingProgressNote){
     if (window.HCIApi) HCIApi.scheduleSync();
   }
 
+  function lessonState(progress, id){
+    var v = progress[id];
+    if (v === true) return { read: true, done: true };
+    if (v && typeof v === 'object') return { read: !!v.read || !!v.done, done: !!v.done };
+    return { read: false, done: false };
+  }
+
+  function setLessonState(progress, id, patch){
+    var cur = lessonState(progress, id);
+    progress[id] = {
+      read: patch.read != null ? patch.read : cur.read,
+      done: patch.done != null ? patch.done : cur.done
+    };
+    if (progress[id].done) progress[id].read = true;
+  }
+
+  function isLessonUnlocked(progress, index){
+    if (index === 0) return true;
+    var prevId = lessonCards[index - 1].getAttribute('data-lesson');
+    return lessonState(progress, prevId).read;
+  }
+
   function renderLessons(){
     var progress = getProgress();
     var doneCount = 0;
+    var readCount = 0;
     var currentAssigned = false;
+    var htmlCards = lessonList.querySelectorAll('[data-coding-stage="html"] .lesson-card');
+    var htmlAllRead = true;
+    htmlCards.forEach(function(card){
+      if (!lessonState(progress, card.getAttribute('data-lesson')).read) htmlAllRead = false;
+    });
+    var cssLock = document.getElementById('cssStageLock');
+    if (cssLock) cssLock.hidden = htmlAllRead;
 
     lessonCards.forEach(function(card, index){
       var id = card.getAttribute('data-lesson');
       var doneBtn = card.querySelector('.lesson-done-btn');
-      var isLessonDone = !!progress[id];
+      var explainer = card.querySelector('.lesson-explainer');
+      var st = lessonState(progress, id);
+      var unlocked = isLessonUnlocked(progress, index);
+      var lockedLesson = !unlocked;
 
-      card.classList.remove('is-locked-lesson');
-      card.removeAttribute('title');
+      card.classList.toggle('is-locked-lesson', lockedLesson);
+      card.title = lockedLesson ? LOCK_MSG : '';
 
-      card.classList.toggle('is-done', isLessonDone);
-      doneBtn.classList.toggle('done', isLessonDone);
-      doneBtn.textContent = isLessonDone ? 'تم ✓' : 'أكملت هذا الدرس';
+      card.classList.toggle('is-done', st.done);
+      doneBtn.classList.toggle('done', st.done);
+      if (lockedLesson) doneBtn.textContent = 'كيف أفتحه؟';
+      else if (st.done) doneBtn.textContent = 'تم ✓';
+      else if (!st.read) doneBtn.textContent = 'افتح الشرح أولاً';
+      else doneBtn.textContent = 'أكملت هذا الدرس';
       doneBtn.disabled = false;
-      doneBtn.removeAttribute('data-locked');
+      doneBtn.setAttribute('data-locked', lockedLesson ? '1' : '0');
 
-      if (isLessonDone){ doneCount++; }
+      if (st.read) readCount++;
+      if (st.done) doneCount++;
 
-      if (!isLessonDone && !currentAssigned){
+      if (!lockedLesson && !st.done && !currentAssigned){
         card.classList.add('is-current');
         currentAssigned = true;
       } else {
@@ -3083,17 +3121,17 @@ if (lessonList && codingProgressFill && codingProgressNote){
       }
     });
 
-    var percent = Math.round((doneCount / lessonCards.length) * 100);
+    var tracked = readCount > doneCount ? readCount : doneCount;
+    var percent = Math.round((tracked / lessonCards.length) * 100);
     codingProgressFill.style.width = percent + '%';
 
-    if (doneCount === 0){
-      codingProgressNote.textContent = 'كل الدروس مفتوحة — اقرأ بأي ترتيب يناسبك';
-    } else if (doneCount === lessonCards.length){
-      codingProgressNote.textContent = 'أكملت كل الدروس! فتحت مسار الدورات ✨';
+    if (tracked === 0){
+      codingProgressNote.textContent = 'ابدأ من درس HTML الأول: افتح «اشرحلي المفهوم»';
+    } else if (tracked === lessonCards.length){
+      codingProgressNote.textContent = 'أكملت مرحلتي HTML و CSS — فتحت مسار الدورات';
       markComplete('coding');
     } else {
-      codingProgressNote.textContent = 'أكملت ' + doneCount + ' من ' + lessonCards.length + ' دروس';
-      // فتح الدورات عند 50%
+      codingProgressNote.textContent = 'قرأت ' + tracked + ' من ' + lessonCards.length + ' دروس';
       if (percent >= 50){
         var j = getJourney();
         if (!j.unlocked) j.unlocked = {};
@@ -3106,13 +3144,44 @@ if (lessonList && codingProgressFill && codingProgressNote){
     }
   }
 
-  lessonCards.forEach(function(card){
+  lessonCards.forEach(function(card, index){
     var id = card.getAttribute('data-lesson');
     var doneBtn = card.querySelector('.lesson-done-btn');
+    var explainer = card.querySelector('.lesson-explainer');
+
+    if (explainer){
+      explainer.addEventListener('toggle', function(){
+        if (!explainer.open) return;
+        if (!isLessonUnlocked(getProgress(), index)){
+          explainer.open = false;
+          showLockAlert(LOCK_MSG, null, null);
+          return;
+        }
+        var progress = getProgress();
+        setLessonState(progress, id, { read: true, done: true });
+        saveProgress(progress);
+        renderLessons();
+      });
+    }
 
     doneBtn.addEventListener('click', function(){
       var progress = getProgress();
-      progress[id] = !progress[id];
+      if (!isLessonUnlocked(progress, index)){
+        showLockAlert(LOCK_MSG, null, null);
+        var current = document.querySelector('.lesson-card.is-current');
+        if (current) current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      var st = lessonState(progress, id);
+      if (!st.read){
+        if (explainer){
+          explainer.open = true;
+        } else {
+          showLockAlert('افتح «اشرحلي المفهوم» في هذا الدرس أولاً.', null, null);
+        }
+        return;
+      }
+      setLessonState(progress, id, { done: !st.done, read: true });
       saveProgress(progress);
       renderLessons();
     });

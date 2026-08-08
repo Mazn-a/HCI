@@ -47,7 +47,7 @@
 
   var welcomeTitle = document.getElementById('adminWelcomeTitle');
   if (welcomeTitle) {
-    welcomeTitle.textContent = 'أهلاً بك أيها المدير، ' + (me.user.firstName || me.user.fullName || '');
+    welcomeTitle.textContent = 'أهلاً بك، ' + (me.user.firstName || me.user.fullName || '');
   }
 
   var slot = document.getElementById('navCtaSlot');

@@ -797,11 +797,7 @@ if (greetingEl){
   else if (hour < 17) { greetingText = 'مساء الخير'; }
   else { greetingText = 'مساء النور'; }
 
-  var isAdminGreet = window.HCIApi && HCIApi.isAdmin();
-  if (isAdminGreet){
-    greetingText += loggedInName ? (' أيها المدير، ' + loggedInName) : ' أيها المدير';
-    greetingText += ' — لوحة القيادة جاهزة';
-  } else if (loggedInName){
+  if (loggedInName){
     greetingText += '، ' + loggedInName;
   } else {
     greetingText += ' — مرحباً بك';
@@ -4005,7 +4001,7 @@ document.querySelectorAll('[data-book-read]').forEach(function(btn){
   var aboutHtml =
     '<p class="about-modal-lead">المنصة من إعداد <strong>مازن عطية الذبياني</strong>.</p>' +
     '<p>طالب في <strong>جامعة أم القرى</strong>، يدرس تخصص <strong>تفاعل الإنسان والحاسوب (HCI)</strong>.</p>' +
-    '<p>يسعى لنشر التخصص ومفاهيمه بالعربية، وترتيب مسار تعلّم واضح للطلاب، مع الاستمرار في تطوير المنصة وتحسين التجربة خطوة بخطوة.</p>';
+    '<p>يسعى لنشر التخصص ومفاهيمه بالعربية، وترتيب مسار تعلّم واضح، مع الاستمرار في تطوير المنصة وتحسين التجربة خطوة بخطوة.</p>';
 
   var backdrop = document.createElement('div');
   backdrop.id = 'aboutModal';

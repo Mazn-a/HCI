@@ -533,7 +533,7 @@
     overlay.setAttribute('role', 'status');
     overlay.innerHTML =
       '<div class="welcome-card">' +
-        '<p class="welcome-greet">' + greet + (isAdminUser ? ' أيها المدير' : '') + '</p>' +
+        '<p class="welcome-greet">' + greet + '</p>' +
         (first ? '<p class="welcome-name">' + first + '</p>' : '') +
         '<p class="welcome-sub">' +
           (isAdminUser

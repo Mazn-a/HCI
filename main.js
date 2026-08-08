@@ -2145,15 +2145,11 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
 
     // صفحات عامة: لو ما اختار مساره أو ما شاف التعريف، نوجّهه
     var page = (location.pathname.split('/').pop() || '').toLowerCase();
-    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html'].indexOf(page) !== -1;
+    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'profile.html'].indexOf(page) !== -1;
     if (!skipRedirect && !HCIApi.isAdmin()){
       var u = HCIApi.currentUser();
       if (u && !u.pathType){
         location.href = 'path-choice.html';
-        return;
-      }
-      if (u && u.pathType === 'curious' && !u.introSeen){
-        location.href = 'intro.html';
         return;
       }
       if (u && u.pathType === 'specialist'){

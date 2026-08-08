@@ -3654,11 +3654,42 @@ body[data-theme="light"] .settings-side-link{
 .remember-prompt-actions .auth-link-btn{
   width:auto; margin:0; padding: 8px 6px; font-size: 0.8rem;
 }
+.auth-otp-send{
+  display:inline-block;
+  margin: 6px 0 0;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  min-height: auto;
+  color: var(--line-cyan);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-otp-send:hover{ color: var(--gold); }
+.auth-otp-send:disabled{ opacity: 0.65; cursor: wait; }
 .otp-demo{
-  margin: 4px 0 8px; padding:12px 14px; border-radius:8px;
-  border:1px dashed rgba(212,175,55,0.45); background: rgba(212,175,55,0.08);
-  color: var(--gold); font-family: var(--font-mono); font-size:1.05rem;
-  text-align:center; letter-spacing:0.12em;
+  margin: 8px 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-mid);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  line-height: 1.6;
+  text-align: start;
+  letter-spacing: normal;
+  pointer-events: none;
+  user-select: text;
+}
+.otp-demo strong{
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  letter-spacing: 0.16em;
+  font-weight: 700;
 }
 .auth-card form#formReset,
 .auth-card form#formVerify{ display:none; flex-direction:column; gap:16px; }

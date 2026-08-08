@@ -1899,8 +1899,10 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         var resetDemoCode = document.getElementById('resetDemoCode');
         if (resetDemoCode && otp.demoCode) {
           resetDemoCode.hidden = false;
-          resetDemoCode.textContent = 'رمز التحقق: ' + otp.demoCode;
+          resetDemoCode.innerHTML = 'اكتب في الخانة فوق هذا الرمز: <strong>' + String(otp.demoCode) + '</strong>';
         }
+        resetSendCode.textContent = 'أعد إرسال الرمز';
+        if (resetCode) resetCode.focus();
         statusMsg.textContent = otp.message;
         statusMsg.classList.add('show');
       } catch (err) {
@@ -1961,16 +1963,17 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         });
         if (verifyDemoCode && otp.demoCode) {
           verifyDemoCode.hidden = false;
-          verifyDemoCode.textContent = 'رمز التحقق: ' + otp.demoCode;
+          verifyDemoCode.innerHTML = 'اكتب في الخانة فوق هذا الرمز: <strong>' + String(otp.demoCode) + '</strong>';
         }
         statusMsg.textContent = otp.message;
         statusMsg.classList.add('show');
+        if (verifyCode) verifyCode.focus();
       } catch (err) {
         statusMsg.textContent = err.message;
         statusMsg.classList.add('show');
       } finally {
         verifySendCode.disabled = false;
-        verifySendCode.textContent = 'إرسال رمز التحقق';
+        verifySendCode.textContent = 'أعد إرسال الرمز';
       }
     });
   }

@@ -3376,6 +3376,16 @@ body[data-theme="light"] .settings-side-link{
 .profile-page #sec-inbox{
   scroll-margin-top: calc(var(--settings-header-offset) + 16px);
 }
+.profile-page #sec-inbox .settings-block-head{
+  margin-bottom: 14px;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.profile-page #sec-inbox .inbox-toolbar{
+  margin-bottom: 14px;
+  padding-bottom: 0;
+  border-bottom: none;
+}
 @media (max-width: 560px){
   .profile-page .settings-side-link{
     flex: 1 1 calc(50% - 6px);

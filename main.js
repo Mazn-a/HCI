@@ -1484,12 +1484,13 @@ function bindAsciiDigitsOnly(input, maxLen){
   });
 }
 
-/** للحقول المختلطة (بريد أو جوال): يحوّل الأرقام غير الإنجليزية → إنجليزي */
+/** للحقول المختلطة (بريد أو جوال): يحوّل الأرقام العربية → إنجليزي دون حذف النص */
 function bindAsciiDigitsInMixedField(input){
   if (!input) return;
   function normalizeMixed(){
     var raw = toAsciiDigits(input.value);
-    var v = raw.includes('@') ? raw : onlyAsciiDigits(raw);
+    var hasLettersOrAt = /[a-zA-Z@._%+]/.test(raw);
+    var v = hasLettersOrAt ? raw : onlyAsciiDigits(raw);
     if (input.value !== v) input.value = v;
   }
   input.addEventListener('input', normalizeMixed);

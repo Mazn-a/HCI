@@ -31,13 +31,15 @@ function defaultDb() {
     notifications: [],
     otps: [],
     share_hits: [],
+    certificates: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
     nextContactId: 1,
     nextNotificationId: 1,
     nextOtpId: 1,
-    nextShareHitId: 1
+    nextShareHitId: 1,
+    nextCertificateId: 1
   };
 }
 
@@ -60,6 +62,18 @@ function writeLocal(data) {
   fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
+let localWriteTimer = null;
+function writeLocalAsync(data) {
+  if (localWriteTimer) clearTimeout(localWriteTimer);
+  localWriteTimer = setTimeout(function () {
+    localWriteTimer = null;
+    const json = JSON.stringify(data, null, 2);
+    fs.writeFile(dbPath, json, 'utf8', function (err) {
+      if (err) console.error('HCI DB: فشل الحفظ المحلي:', err.message);
+    });
+  }, 120);
+}
+
 function migrate(cache) {
   var changed = false;
   if (!cache.reports) { cache.reports = []; changed = true; }
@@ -72,6 +86,8 @@ function migrate(cache) {
   if (!cache.nextOtpId) { cache.nextOtpId = 1; changed = true; }
   if (!cache.share_hits) { cache.share_hits = []; changed = true; }
   if (!cache.nextShareHitId) { cache.nextShareHitId = 1; changed = true; }
+  if (!cache.certificates) { cache.certificates = []; changed = true; }
+  if (!cache.nextCertificateId) { cache.nextCertificateId = 1; changed = true; }
   cache.users.forEach(function (u) {
     if (typeof u.path_type === 'undefined') { u.path_type = null; changed = true; }
     if (typeof u.intro_seen === 'undefined') { u.intro_seen = false; changed = true; }
@@ -143,7 +159,7 @@ async function flushRemote() {
 }
 
 function persist() {
-  writeLocal(cache);
+  writeLocalAsync(cache);
   if (!pgPool) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(function () {
@@ -300,6 +316,33 @@ const db = {
     Object.assign(row, data, { updated_at: new Date().toISOString() });
     persist();
     return row;
+  },
+
+  getCertificateByUserId(userId) {
+    return cache.certificates.find((c) => c.user_id === Number(userId)) || null;
+  },
+
+  getCertificateById(id) {
+    return cache.certificates.find((c) => c.id === String(id)) || null;
+  },
+
+  createCertificate(data) {
+    const existing = this.getCertificateByUserId(data.userId);
+    if (existing) return existing;
+    const year = new Date(data.issuedAt).getFullYear();
+    const seq = String(cache.nextCertificateId++).padStart(6, '0');
+    const record = {
+      id: 'HCI-' + year + '-' + seq,
+      user_id: Number(data.userId),
+      name: data.name,
+      path: data.path,
+      pct: data.pct,
+      issued_at: data.issuedAt,
+      completed_at: data.completedAt
+    };
+    cache.certificates.push(record);
+    persist();
+    return record;
   },
 
   createMessage({ adminId, userId, subject, body }) {
@@ -845,6 +888,17 @@ function checkPassword(user, rawPassword) {
     return false;
   }
 }
+
+function flushLocalSync() {
+  if (localWriteTimer) {
+    clearTimeout(localWriteTimer);
+    localWriteTimer = null;
+  }
+  try { writeLocal(cache); } catch (e) { /* */ }
+}
+process.on('SIGTERM', flushLocalSync);
+process.on('SIGINT', flushLocalSync);
+process.on('exit', flushLocalSync);
 
 module.exports = {
   db,

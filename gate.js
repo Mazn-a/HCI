@@ -62,6 +62,8 @@
       'intro.html': true,
       'glossary.html': true,
       'maintenance.html': true,
+      'legal.html': true,
+      'theme-lab.html': true,
       /* معاينة الشهادة للتصميم فقط عبر ?preview=1 */
       'certificate.html': /(?:\?|&)preview=1(?:&|$)/.test(search),
       'verify.html': true

@@ -1,6 +1,7 @@
 /* سيرفر منصة HCI — مصادقة، تقدم، لوحة إدارة */
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -8,6 +9,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db, ensureAdmin, checkPassword, ready, dataDir } = require('./db');
+const { sendOtpEmail } = require('./mailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +37,7 @@ const upload = multer({
   }
 });
 
+app.use(compression());
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
@@ -125,10 +128,19 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, {
+  maxAge: '30d',
+  setHeaders: function (res) {
+    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+  }
+}));
 app.use(express.static(__dirname, {
   setHeaders: function (res, filePath) {
     if (/\.(css|js)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    } else if (/\.(png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    } else if (/\.html$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     }
   }
@@ -561,7 +573,7 @@ app.patch('/api/auth/profile', authRequired, (req, res) => {
 });
 
 /* ---------- طلب رمز تحقق (بريد أو هاتف) ---------- */
-app.post('/api/auth/request-otp', (req, res) => {
+app.post('/api/auth/request-otp', async (req, res) => {
   try {
     const purpose = String(req.body.purpose || 'verify');
     if (purpose !== 'verify' && purpose !== 'reset') {
@@ -605,14 +617,24 @@ app.post('/api/auth/request-otp', (req, res) => {
       channel: resolved.channel
     });
 
-    res.json({
+    let emailSent = false;
+    if (resolved.channel === 'email') {
+      emailSent = await sendOtpEmail(resolved.identifier, code, purpose);
+    }
+
+    const payload = {
       ok: true,
       channel: resolved.channel,
-      message: resolved.channel === 'email'
-        ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
-        : 'تم إنشاء رمز تحقق لرقم الهاتف. أدخله خلال 10 دقائق.',
-      demoCode: code
-    });
+      message: emailSent
+        ? 'أرسلنا رمز التحقق إلى بريدك الإلكتروني — تفقد صندوق الوارد (وربما مجلد الرسائل غير المرغوبة).'
+        : (resolved.channel === 'email'
+          ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
+          : 'تم إنشاء رمز تحقق لرقم الهاتف. أدخله خلال 10 دقائق.')
+    };
+    /* demoCode يظهر بالواجهة فقط لو ما قدرنا نرسل بريد فعلي (وضع تجريبي بدون SMTP مُعد) */
+    if (!emailSent) payload.demoCode = code;
+
+    res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر إرسال رمز التحقق' });
@@ -748,6 +770,55 @@ app.put('/api/progress', authRequired, (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'تعذر حفظ التقدم' });
   }
+});
+
+/* ---------- الشهادة (يُصدرها السيرفر ليصح التحقق من أي جهاز) ---------- */
+const CERT_PATH_NAME = 'مسار تفاعل الإنسان والحاسوب (HCI)';
+
+function computeProgressPercent(userId) {
+  const p = db.getProgress(userId);
+  const journey = parseJsonSafe(p && p.journey_json, {});
+  const done = journey.done || {};
+  const doneCount = Object.keys(done).filter((k) => done[k]).length;
+  return { pct: Math.round((doneCount / 7) * 100), journey, updatedAt: p ? p.updated_at : null };
+}
+
+app.get('/api/certificate/me', authRequired, (req, res) => {
+  const user = db.findUserById(req.user.id);
+  if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+  const existing = db.getCertificateByUserId(user.id);
+  if (existing) return res.json({ certificate: existing });
+
+  const { pct, journey } = computeProgressPercent(user.id);
+  if (pct < 100) return res.json({ locked: true, pct });
+
+  const fullName = (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
+  const completedAt = journey.completedAt || journey.doneAt || new Date().toISOString();
+  const record = db.createCertificate({
+    userId: user.id,
+    name: fullName,
+    path: CERT_PATH_NAME,
+    pct: pct,
+    issuedAt: new Date().toISOString(),
+    completedAt: completedAt
+  });
+  res.json({ certificate: record });
+});
+
+app.get('/api/certificate/:id', (req, res) => {
+  const record = db.getCertificateById(req.params.id);
+  if (!record) return res.status(404).json({ error: 'لم يتم العثور على شهادة بهذا الرقم' });
+  res.json({
+    certificate: {
+      id: record.id,
+      name: record.name,
+      path: record.path,
+      pct: record.pct,
+      issued_at: record.issued_at,
+      completed_at: record.completed_at
+    }
+  });
 });
 
 /* ---------- رسائل ---------- */
@@ -1303,6 +1374,10 @@ ready.then(() => {
     console.log('  الجوال: ' + adminInfo.phone);
     console.log('  كلمة المرور: ' + adminInfo.password);
     console.log('═══════════════════════════════════════');
+    if (!process.env.JWT_SECRET) {
+      console.warn('⚠️  تحذير: JWT_SECRET غير معرّف بمتغيرات البيئة — يُستخدم سر افتراضي غير آمن للنشر العام.');
+      console.warn('   أضف JWT_SECRET بقيمة عشوائية طويلة في Render → Environment قبل الإطلاق الفعلي.');
+    }
     console.log('');
   });
 }).catch((err) => {

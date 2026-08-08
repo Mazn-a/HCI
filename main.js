@@ -363,7 +363,9 @@ function getJourney(){
 }
 
 function saveJourney(data){
-  localStorage.setItem('hci_journey', JSON.stringify(data));
+  try {
+    localStorage.setItem('hci_journey', JSON.stringify(data));
+  } catch (e) { /* تخزين ممتلئ أو محظور — نكمل بدون توقف باقي السكربت */ }
   if (window.HCIApi) HCIApi.scheduleSync();
 }
 
@@ -695,8 +697,17 @@ if (backToTop){
       backToTop.style.bottom = '';
     }
   }
-  window.addEventListener('scroll', syncBackToTop, { passive: true });
-  window.addEventListener('resize', syncBackToTop);
+  var backToTopTicking = false;
+  function onBackToTopScroll(){
+    if (backToTopTicking) return;
+    backToTopTicking = true;
+    requestAnimationFrame(function(){
+      syncBackToTop();
+      backToTopTicking = false;
+    });
+  }
+  window.addEventListener('scroll', onBackToTopScroll, { passive: true });
+  window.addEventListener('resize', onBackToTopScroll);
   syncBackToTop();
   backToTop.addEventListener('click', function(){
     var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1339,12 +1350,19 @@ if (revealEls.length && 'IntersectionObserver' in window){
 // ----- شريط تقدم القراءة -----
 var readingFill = document.getElementById('readingProgressFill');
 if (readingFill){
-  window.addEventListener('scroll', function(){
+  var readingTicking = false;
+  function updateReadingFill(){
     var doc = document.documentElement;
     var scrollTop = doc.scrollTop || document.body.scrollTop;
     var height = doc.scrollHeight - doc.clientHeight;
     var progress = height > 0 ? (scrollTop / height) * 100 : 0;
     readingFill.style.width = progress + '%';
+    readingTicking = false;
+  }
+  window.addEventListener('scroll', function(){
+    if (readingTicking) return;
+    readingTicking = true;
+    requestAnimationFrame(updateReadingFill);
   }, { passive: true });
 }
 
@@ -2150,7 +2168,7 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
 
     // صفحات عامة: لو ما اختار مساره أو ما شاف التعريف، نوجّهه
     var page = (location.pathname.split('/').pop() || '').toLowerCase();
-    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html'].indexOf(page) !== -1;
+    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'legal.html'].indexOf(page) !== -1;
     if (!skipRedirect && !HCIApi.isAdmin()){
       var u = HCIApi.currentUser();
       if (u && !u.pathType){
@@ -2713,7 +2731,10 @@ if (inboxList){
     }, 150);
   }
   bootNotifUi();
-  setInterval(function(){ refresh(false); }, 12000);
+  /* نتحقق كل 45 ثانية، وفقط لو التبويب ظاهر — يخفف الحمل على السيرفر مع كثرة المستخدمين المتزامنين */
+  setInterval(function(){
+    if (!document.hidden) refresh(false);
+  }, 45000);
   document.addEventListener('visibilitychange', function(){
     if (!document.hidden) refresh(false);
   });
@@ -2902,12 +2923,18 @@ if (lessonList && codingProgressFill && codingProgressNote){
   var storageKey = 'hci_coding_progress';
 
   function getProgress(){
-    var raw = localStorage.getItem(storageKey);
-    return raw ? JSON.parse(raw) : {};
+    try {
+      var raw = localStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
   }
 
   function saveProgress(progress){
-    localStorage.setItem(storageKey, JSON.stringify(progress));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(progress));
+    } catch (e) { /* */ }
     if (window.HCIApi) HCIApi.scheduleSync();
   }
 

@@ -199,6 +199,27 @@
     pageStyle.textContent = '@page{ size: A4 landscape; margin: 0; }';
   }
 
+  function fitCertName() {
+    var el = document.getElementById('certName');
+    if (!el) return;
+    var maxSize = 2.55, minSize = 1.05, step = 0.08;
+    var rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var size = maxSize;
+    el.style.fontSize = size + 'rem';
+    var guard = 0;
+    while (guard < 40) {
+      var lineHeight = size * 1.25 * rootPx;
+      var linesUsed = Math.round(el.scrollHeight / lineHeight);
+      var overflowsWidth = el.scrollWidth > el.clientWidth + 1;
+      var tooManyLines = linesUsed > 2;
+      if (!overflowsWidth && !tooManyLines) break;
+      size -= step;
+      if (size <= minSize) { size = minSize; el.style.fontSize = size + 'rem'; break; }
+      el.style.fontSize = size + 'rem';
+      guard++;
+    }
+  }
+
   function renderQr(url) {
     var canvas = document.getElementById('certQr');
     if (!canvas) return;
@@ -219,57 +240,104 @@
     canvas.replaceWith(img);
   }
 
-  var name = userName();
-  var pct = progressPct();
   var preview = /(?:\?|&)preview=1(?:&|$)/.test(location.search);
-  var issued = new Date();
-  var completed = completedDate();
-
   var sheet = document.getElementById('cert');
   var locked = document.getElementById('certLocked');
   var toolbar = document.getElementById('certToolbar');
 
-  if (preview && (name === 'متعلم HCI' || pct < 100)) {
-    name = 'مازن عطية الذبياني';
-    if (pct < 100) pct = 100;
-  }
-
-  var certId = makeCertId(name, issued);
-  var verifyPath = 'verify.html?id=' + encodeURIComponent(certId);
-  var verifyUrl = location.origin + location.pathname.replace(/[^/]+$/, '') + verifyPath;
-
-  document.getElementById('certName').textContent = name;
-  document.getElementById('certPath').textContent = PATH_NAME;
-  document.getElementById('certIssued').textContent = formatArDate(issued);
-  document.getElementById('certId').textContent = certId;
-  applyOptionalAvatar();
-  setOrientationLandscape();
-
-  if (pct < 100 && !preview) {
+  function showLocked() {
     if (sheet) sheet.hidden = true;
     if (toolbar) toolbar.hidden = true;
     if (locked) locked.hidden = false;
+  }
+
+  function renderCertificate(name, certId, issuedDate, completedDate2, verifyUrl) {
+    document.getElementById('certName').textContent = name;
+    document.getElementById('certPath').textContent = PATH_NAME;
+    document.getElementById('certIssued').textContent = formatArDate(issuedDate);
+    document.getElementById('certId').textContent = certId;
+    applyOptionalAvatar();
+    setOrientationLandscape();
+    fitCertName();
+    window.addEventListener('resize', fitCertName);
+    window.addEventListener('beforeprint', fitCertName);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitCertName);
+    renderQr(verifyUrl);
+    var printBtn = document.getElementById('printCertBtn');
+    if (printBtn && !printBtn.dataset.bound) {
+      printBtn.dataset.bound = '1';
+      printBtn.addEventListener('click', function () { window.print(); });
+    }
+  }
+
+  function buildVerifyUrl(certId) {
+    var verifyPath = 'verify.html?id=' + encodeURIComponent(certId);
+    return location.origin + location.pathname.replace(/[^/]+$/, '') + verifyPath;
+  }
+
+  /* المعاينة (?preview=1): تصميم فقط، لا تُسجَّل شهادة حقيقية */
+  if (preview) {
+    var pName = userName();
+    var pPct = progressPct();
+    if (pName === 'متعلم HCI' || pPct < 100) { pName = 'مازن عطية الذبياني'; pPct = 100; }
+    var pIssued = new Date();
+    var pCompleted = completedDate();
+    var pCertId = makeCertId(pName, pIssued);
+    renderCertificate(pName, pCertId, pIssued, pCompleted, buildVerifyUrl(pCertId));
     return;
   }
 
-  saveRegistry({
-    id: certId,
-    name: name,
-    path: PATH_NAME,
-    pct: pct,
-    issuedAt: issued.toISOString(),
-    completedAt: completed.toISOString(),
-    issuedAr: formatArDate(issued),
-    completedAr: formatArDate(completed),
-    issuedEn: formatEnDate(issued),
-    verified: true
-  });
+  /* الوضع الحقيقي: الشهادة تصدر من السيرفر حتى يعمل التحقق (QR) من أي جهاز */
+  async function loadServerCertificate() {
+    var resp = await HCIApi.fetchMyCertificate();
+    if (resp && resp.locked) { showLocked(); return true; }
+    if (resp && resp.certificate) {
+      var rec = resp.certificate;
+      var issuedD = new Date(rec.issued_at);
+      var completedD = new Date(rec.completed_at);
+      renderCertificate(rec.name, rec.id, issuedD, completedD, buildVerifyUrl(rec.id));
+      saveRegistry({
+        id: rec.id,
+        name: rec.name,
+        path: rec.path,
+        pct: rec.pct,
+        issuedAt: rec.issued_at,
+        completedAt: rec.completed_at,
+        issuedAr: formatArDate(issuedD),
+        completedAr: formatArDate(completedD),
+        issuedEn: formatEnDate(issuedD),
+        verified: true
+      });
+      return true;
+    }
+    return false;
+  }
 
-  renderQr(verifyUrl);
+  /* احتياطي محلي فقط (بدون سيرفر) — يبقي الشهادة تعمل حتى لو تعذّر الاتصال */
+  function renderLocalFallback() {
+    var name = userName();
+    var pct = progressPct();
+    if (pct < 100) { showLocked(); return; }
+    var issued = new Date();
+    var completed = completedDate();
+    var certId = makeCertId(name, issued);
+    renderCertificate(name, certId, issued, completed, buildVerifyUrl(certId));
+    saveRegistry({
+      id: certId, name: name, path: PATH_NAME, pct: pct,
+      issuedAt: issued.toISOString(), completedAt: completed.toISOString(),
+      issuedAr: formatArDate(issued), completedAr: formatArDate(completed),
+      issuedEn: formatEnDate(issued), verified: true
+    });
+  }
 
-  var printBtn = document.getElementById('printCertBtn');
-  if (printBtn) {
-    printBtn.addEventListener('click', function () { window.print(); });
+  if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()) {
+    loadServerCertificate().then(function (handled) {
+      if (!handled) renderLocalFallback();
+    }).catch(function () {
+      renderLocalFallback();
+    });
+  } else {
+    renderLocalFallback();
   }
 })();
 </script>

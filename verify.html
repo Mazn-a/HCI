@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="gate.js"></script>
+<script src="api.js"></script>
 </head>
 <body class="cert-page verify-page">
   <a href="#verifyCard" class="skip-link">تخطي إلى نتيجة التحقق</a>
@@ -44,41 +45,48 @@
     }
   }
 
-  function render(id) {
-    var title = document.getElementById('verifyTitle');
-    var sub = document.getElementById('verifySub');
+  function formatArDate(iso) {
+    try { return new Date(iso).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }); }
+    catch (e) { return ''; }
+  }
+
+  function showChecking() {
+    document.getElementById('verifyTitle').textContent = 'جاري التحقق…';
+    document.getElementById('verifySub').textContent = 'نتحقق من رقم الشهادة.';
+  }
+
+  function showEmpty() {
     var meta = document.getElementById('verifyMeta');
     var card = document.getElementById('verifyResult');
+    document.getElementById('verifyTitle').textContent = 'تحقق من شهادة HCI';
+    document.getElementById('verifySub').textContent = 'امسح رمز QR الموجود على الشهادة للتحقق تلقائياً.';
+    meta.hidden = true;
+    card.classList.remove('is-valid', 'is-invalid');
+  }
 
-    if (!id) {
-      title.textContent = 'تحقق من شهادة HCI';
-      sub.textContent = 'امسح رمز QR الموجود على الشهادة للتحقق تلقائياً.';
-      meta.hidden = true;
-      card.classList.remove('is-valid', 'is-invalid');
-      return;
-    }
+  function showInvalid(id) {
+    var meta = document.getElementById('verifyMeta');
+    var card = document.getElementById('verifyResult');
+    document.getElementById('verifyTitle').textContent = 'تعذّر التحقق';
+    document.getElementById('verifySub').textContent = 'لم نعثر على شهادة بهذا الرقم. تأكد من الرمز أو أن الشهادة صادرة فعلاً من منصة HCI.';
+    meta.hidden = false;
+    meta.innerHTML = '<div><dt>رقم الشهادة</dt><dd dir="ltr">' + escapeHtml(id) + '</dd></div>';
+    card.classList.add('is-invalid');
+    card.classList.remove('is-valid');
+  }
 
-    var rec = getRecord(id);
-    if (!rec) {
-      title.textContent = 'تعذّر التحقق';
-      sub.textContent = 'لم نعثر على شهادة بهذا الرقم في سجلات هذا الجهاز. قد تكون صادرة من جهاز آخر أو لم تُنشأ بعد.';
-      meta.hidden = false;
-      meta.innerHTML =
-        '<div><dt>رقم الشهادة</dt><dd dir="ltr">' + id.replace(/</g, '') + '</dd></div>';
-      card.classList.add('is-invalid');
-      card.classList.remove('is-valid');
-      return;
-    }
-
-    title.textContent = 'شهادة موثّقة';
-    sub.textContent = 'تم التحقق بنجاح — هذه الشهادة صادرة عن منصة HCI.';
+  function showValid(rec) {
+    var meta = document.getElementById('verifyMeta');
+    var card = document.getElementById('verifyResult');
+    document.getElementById('verifyTitle').textContent = 'شهادة موثّقة';
+    document.getElementById('verifySub').textContent = 'تم التحقق بنجاح — هذه الشهادة صادرة عن منصة HCI.';
     meta.hidden = false;
     meta.innerHTML =
       '<div><dt>الاسم</dt><dd>' + escapeHtml(rec.name) + '</dd></div>' +
       '<div><dt>المسار</dt><dd>' + escapeHtml(rec.path || '') + '</dd></div>' +
       '<div><dt>الإنجاز</dt><dd>' + escapeHtml(String(rec.pct) + '%') + '</dd></div>' +
-      '<div><dt>تاريخ الإصدار</dt><dd>' + escapeHtml(rec.issuedAr || '') + '</dd></div>' +
-      '<div><dt>تاريخ الإكمال</dt><dd>' + escapeHtml(rec.completedAr || '') + '</dd></div>' +
+      '<div><dt>تاريخ الإصدار</dt><dd>' + escapeHtml(rec.issuedAr || formatArDate(rec.issued_at)) + '</dd></div>' +
+      '<div><dt>تاريخ الإكمال</dt><dd>' + escapeHtml(rec.completedAr || formatArDate(rec.completed_at)) + '</dd></div>' +
       '<div><dt>رقم الشهادة</dt><dd dir="ltr">' + escapeHtml(rec.id) + '</dd></div>';
     card.classList.add('is-valid');
     card.classList.remove('is-invalid');
@@ -88,6 +96,23 @@
     return String(s || '').replace(/[&<>"']/g, function (c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
+  }
+
+  async function render(id) {
+    if (!id) { showEmpty(); return; }
+    showChecking();
+
+    if (window.HCIApi && HCIApi.fetchCertificateById) {
+      try {
+        var resp = await HCIApi.fetchCertificateById(id);
+        if (resp && resp.certificate) { showValid(resp.certificate); return; }
+      } catch (e) { /* نكمل للاحتياطي المحلي */ }
+    }
+
+    var rec = getRecord(id);
+    if (rec) { showValid(rec); return; }
+
+    showInvalid(id);
   }
 
   render(qs('id'));

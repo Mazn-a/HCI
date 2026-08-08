@@ -6,7 +6,7 @@
 <title>HCI — ترميز HTML و CSS لتخصص التفاعل</title>
 <meta name="description" content="دروس HTML و CSS مرتبة لطلاب HCI على منصة HCI لتحويل أفكار التصميم لواجهات حقيقية.">
 <meta name="keywords" content="HCI, تفاعل الإنسان والحاسوب, تفاعل الانسان مع الحاسوب, Human Computer Interaction, UX, UI, تجربة المستخدم">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="noindex, nofollow">
 <meta name="application-name" content="HCI">
 <meta name="apple-mobile-web-app-title" content="HCI">
 <meta property="og:site_name" content="HCI">
@@ -46,7 +46,7 @@
       <div class="lesson-head reveal">
         <span class="eyebrow">/// خط 02 — ترميز HTML &amp; CSS</span>
         <h1>دروس متسلسلة… كل درس يفتح اللي بعده</h1>
-        <p>افتح الدرس على W3Schools، طبّق، وارجع واضغط «أكملت». ما تقدر تقفز لدرس قبل اللي قبله — عشان البناء يكون حقيقي.</p>
+        <p>كل درس فيه شرح مبسّط ومثال حي هنا بصفحتنا — اضغط «اشرحلي المفهوم» تحت أي درس بدون ما تطلع من الموقع. الرابط الخارجي (W3Schools) اختياري لمن يبي يتعمّق أكثر. بعد ما تفهم الفكرة اضغط «أكملت هذا الدرس» — ما تقدر تقفز لدرس قبل اللي قبله عشان البناء يكون حقيقي.</p>
       </div>
 
       <div class="profile-card reveal" style="margin-bottom:44px;">
@@ -64,9 +64,27 @@
           <div class="lesson-info">
             <h3>مقدمة إلى HTML</h3>
             <p>وش هو HTML ووش وظيفته بأي صفحة ويب</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>HTML هي لغة توصيف (مو برمجة) تُستخدم لبناء هيكل أي صفحة ويب. كل جزء بالصفحة (عنوان، فقرة، صورة...) تحدده باستخدام «وسوم» Tags. كل صفحة HTML تبدأ بنفس الشكل الأساسي:</p>
+                <pre class="lesson-code"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;صفحتي&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;مرحباً&lt;/h1&gt;
+    &lt;p&gt;هذه أول صفحة HTML لي.&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;color:#111'&gt;&lt;h1 style='margin:0 0 6px;font-size:20px'&gt;مرحباً&lt;/h1&gt;&lt;p style='margin:0;font-size:14px'&gt;هذه أول صفحة HTML لي.&lt;/p&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/html/html_intro.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/html/html_intro.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -76,9 +94,21 @@
           <div class="lesson-info">
             <h3>العناصر والوسوم الأساسية</h3>
             <p>كيف تبني هيكل الصفحة بالعناصر (Elements)</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>كل عنصر HTML له وسم فتح ووسم إغلاق يحيطان بالمحتوى، مثل <code>&lt;p&gt;...&lt;/p&gt;</code>. أشهر العناصر: <code>h1</code> إلى <code>h6</code> للعناوين بأحجام مختلفة، <code>p</code> للفقرات، <code>div</code> لتقسيم المحتوى لصناديق.</p>
+                <pre class="lesson-code"><code>&lt;h1&gt;عنوان رئيسي&lt;/h1&gt;
+&lt;h2&gt;عنوان فرعي&lt;/h2&gt;
+&lt;p&gt;فقرة عادية فيها &lt;span&gt;كلمة مميزة&lt;/span&gt;.&lt;/p&gt;
+&lt;div&gt;صندوق يحتوي عناصر ثانية&lt;/div&gt;</code></pre>
+                <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;color:#111'&gt;&lt;h1 style='margin:0 0 4px;font-size:20px'&gt;عنوان رئيسي&lt;/h1&gt;&lt;h2 style='margin:0 0 6px;font-size:16px;color:#444'&gt;عنوان فرعي&lt;/h2&gt;&lt;p style='margin:0 0 6px;font-size:14px'&gt;فقرة عادية فيها &lt;span style=&quot;background:#ffe08a&quot;&gt;كلمة مميزة&lt;/span&gt;.&lt;/p&gt;&lt;div style='border:1px dashed #999;padding:6px;font-size:13px'&gt;صندوق يحتوي عناصر ثانية&lt;/div&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/html/html_elements.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/html/html_elements.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -88,9 +118,21 @@
           <div class="lesson-info">
             <h3>الروابط</h3>
             <p>كيف تربط صفحاتك ببعض أو بمواقع خارجية</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>وسم <code>&lt;a&gt;</code> يصنع رابط، وخاصية <code>href</code> تحدد وجهته (صفحة بنفس الموقع أو رابط خارجي). خاصية <code>target="_blank"</code> تفتح الرابط بصفحة/تبويب جديد بدل ما تطلع من صفحتك الحالية.</p>
+                <pre class="lesson-code"><code>&lt;a href="about.html"&gt;من نحن&lt;/a&gt;
+&lt;a href="https://example.com" target="_blank"&gt;
+  زوروا هذا الموقع (يفتح بصفحة جديدة)
+&lt;/a&gt;</code></pre>
+                <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;color:#111'&gt;&lt;a href='#' style='color:#0a5cff;text-decoration:underline;font-size:14px;display:block;margin-bottom:8px'&gt;من نحن&lt;/a&gt;&lt;a href='#' style='color:#0a5cff;text-decoration:underline;font-size:14px'&gt;زوروا هذا الموقع (يفتح بصفحة جديدة) ↗&lt;/a&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/html/html_links.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/html/html_links.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -100,9 +142,18 @@
           <div class="lesson-info">
             <h3>الصور</h3>
             <p>إضافة وتنسيق الصور بالصفحة</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>وسم <code>&lt;img&gt;</code> يعرض صورة، وما يحتاج وسم إغلاق. خاصية <code>src</code> تحدد مسار الصورة، وخاصية <code>alt</code> نص بديل يظهر لو الصورة ما تحمّلت — ومهم جداً لذوي الإعاقة البصرية ومحركات البحث.</p>
+                <pre class="lesson-code"><code>&lt;img src="cat.jpg" alt="قطة بيضاء تجلس على أريكة" width="220"&gt;</code></pre>
+                <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;color:#111'&gt;&lt;div style='width:180px;height:110px;border:2px dashed #999;display:flex;align-items:center;justify-content:center;font-size:12px;color:#666;text-align:center;background:#f4f4f4'&gt;🖼️ قطة بيضاء تجلس على أريكة&lt;/div&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/html/html_images.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/html/html_images.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -112,9 +163,26 @@
           <div class="lesson-info">
             <h3>القوائم</h3>
             <p>قوائم مرقّمة وغير مرقّمة</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>وسم <code>&lt;ul&gt;</code> يصنع قائمة غير مرقّمة (نقاط)، ووسم <code>&lt;ol&gt;</code> يصنع قائمة مرقّمة (1، 2، 3...). داخل كل قائمة تحط عناصرها بوسم <code>&lt;li&gt;</code>.</p>
+                <pre class="lesson-code"><code>&lt;ul&gt;
+  &lt;li&gt;حليب&lt;/li&gt;
+  &lt;li&gt;خبز&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;افتح الموقع&lt;/li&gt;
+  &lt;li&gt;سجّل حساب&lt;/li&gt;
+&lt;/ol&gt;</code></pre>
+                <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;color:#111;font-size:14px'&gt;&lt;ul style='margin:0 18px 10px 0;padding:0'&gt;&lt;li&gt;حليب&lt;/li&gt;&lt;li&gt;خبز&lt;/li&gt;&lt;/ul&gt;&lt;ol style='margin:0 18px 0 0;padding:0'&gt;&lt;li&gt;افتح الموقع&lt;/li&gt;&lt;li&gt;سجّل حساب&lt;/li&gt;&lt;/ol&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/html/html_lists.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/html/html_lists.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -124,9 +192,22 @@
           <div class="lesson-info">
             <h3>الفورمات</h3>
             <p>بناء نماذج إدخال بيانات (زي فورم التسجيل)</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>وسم <code>&lt;form&gt;</code> يجمّع حقول إدخال بيانات المستخدم، مثل فورم تسجيل الدخول اللي استخدمته بهذا الموقع. أهم عناصره: <code>&lt;input&gt;</code> لحقل الإدخال، <code>&lt;label&gt;</code> لتسمية توضيحية، و<code>&lt;button&gt;</code> لزر الإرسال.</p>
+                <pre class="lesson-code"><code>&lt;form&gt;
+  &lt;label for="name"&gt;الاسم:&lt;/label&gt;
+  &lt;input type="text" id="name"&gt;
+  &lt;button type="submit"&gt;إرسال&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+                <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;color:#111;font-size:14px'&gt;&lt;label style='display:block;margin-bottom:4px'&gt;الاسم:&lt;/label&gt;&lt;input style='padding:5px;border:1px solid #999;border-radius:4px;margin-bottom:8px;display:block' placeholder='اكتب اسمك'&gt;&lt;button style='padding:5px 14px;border:0;border-radius:4px;background:#0a5cff;color:#fff'&gt;إرسال&lt;/button&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/html/html_forms.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/html/html_forms.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -136,9 +217,22 @@
           <div class="lesson-info">
             <h3>مقدمة إلى CSS</h3>
             <p>كيف تنسّق شكل عناصر HTML اللي بنيتها</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>لو HTML يبني الهيكل، فـ CSS تعطيه الشكل: الألوان، الخطوط، المسافات... تقدر تختار أي عنصر HTML (زي <code>h1</code>) وتحدد له خصائص شكل.</p>
+                <pre class="lesson-code"><code>h1 {
+  color: #2b6cb0;
+  font-size: 28px;
+  text-align: center;
+}</code></pre>
+                <p class="lesson-preview-label">كذا بيأثر على العنصر:</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px'&gt;&lt;h1 style='color:#2b6cb0;font-size:24px;text-align:center;margin:0'&gt;مرحباً&lt;/h1&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/css/css_intro.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/css/css_intro.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>
@@ -148,9 +242,23 @@
           <div class="lesson-info">
             <h3>صندوق العناصر (Box Model)</h3>
             <p>أساس أي تخطيط CSS — الحواف، الهوامش، والمسافات</p>
+            <details class="lesson-explainer">
+              <summary>اشرحلي المفهوم هنا (بدون ما أطلع من الموقع)</summary>
+              <div class="lesson-explainer-body">
+                <p>كل عنصر HTML هو عملياً صندوق يتكوّن من 4 طبقات حول بعض: المحتوى (Content) بالنص، ثم الحشوة (Padding) فراغ داخلي، ثم الحد (Border) الإطار، ثم الهامش (Margin) فراغ خارجي يفصله عن العناصر الثانية. فهم هذا الصندوق هو أساس أي تصميم CSS.</p>
+                <pre class="lesson-code"><code>.box {
+  width: 160px;
+  padding: 16px;
+  border: 2px solid #333;
+  margin: 20px;
+}</code></pre>
+                <p class="lesson-preview-label">كذا يطلع الصندوق (من برا لجوه: هامش، حد، حشوة، محتوى):</p>
+                <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body style='font-family:sans-serif;margin:12px;font-size:12px'&gt;&lt;div style='background:#ffe8b3;padding:14px;display:inline-block'&gt;هامش (Margin)&lt;div style='border:3px solid #333;padding:0'&gt;&lt;div style='background:#c9e6ff;padding:10px'&gt;حد + حشوة&lt;div style='background:#fff;border:1px dashed #999;padding:6px'&gt;المحتوى&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;"></iframe>
+              </div>
+            </details>
           </div>
           <div class="lesson-actions">
-            <a href="https://www.w3schools.com/css/css_boxmodel.asp" target="_blank" rel="noopener" class="lesson-open">افتح الدرس ↗</a>
+            <a href="https://www.w3schools.com/css/css_boxmodel.asp" target="_blank" rel="noopener" class="lesson-open">قراءة إضافية (W3Schools) ↗</a>
             <button type="button" class="lesson-done-btn">أكملت هذا الدرس</button>
           </div>
         </div>

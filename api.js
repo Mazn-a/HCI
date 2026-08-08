@@ -304,6 +304,14 @@
     return request('/api/progress', { method: 'PUT', body: payload });
   }
 
+  async function fetchMyCertificate() {
+    return request('/api/certificate/me');
+  }
+
+  async function fetchCertificateById(id) {
+    return request('/api/certificate/' + encodeURIComponent(id));
+  }
+
   async function updateProfile(firstName, lastName) {
     var data = await request('/api/auth/profile', {
       method: 'PATCH',
@@ -573,6 +581,8 @@
     afterAuthFlow: afterAuthFlow,
     fetchProgress: fetchProgress,
     saveProgress: saveProgress,
+    fetchMyCertificate: fetchMyCertificate,
+    fetchCertificateById: fetchCertificateById,
     fetchMessages: fetchMessages,
     fetchUnreadCount: fetchUnreadCount,
     fetchNotifications: fetchNotifications,

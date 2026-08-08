@@ -3064,21 +3064,18 @@ if (lessonList && codingProgressFill && codingProgressNote){
       var doneBtn = card.querySelector('.lesson-done-btn');
       var isLessonDone = !!progress[id];
 
-      // قفل تسلسلي: الدرس التالي يفتح بعد إكمال السابق
-      var prevDone = index === 0 || !!progress[lessonCards[index - 1].getAttribute('data-lesson')];
-      var lockedLesson = !prevDone && !isLessonDone;
-      card.classList.toggle('is-locked-lesson', lockedLesson);
-      card.title = lockedLesson ? 'أكمل الدرس السابق أولاً عشان يفتح هذا الدرس' : '';
+      card.classList.remove('is-locked-lesson');
+      card.removeAttribute('title');
 
       card.classList.toggle('is-done', isLessonDone);
       doneBtn.classList.toggle('done', isLessonDone);
-      doneBtn.textContent = isLessonDone ? 'تم ✓' : (lockedLesson ? 'كيف أفتحه؟' : 'أكملت هذا الدرس');
+      doneBtn.textContent = isLessonDone ? 'تم ✓' : 'أكملت هذا الدرس';
       doneBtn.disabled = false;
-      doneBtn.setAttribute('data-locked', lockedLesson ? '1' : '0');
+      doneBtn.removeAttribute('data-locked');
 
       if (isLessonDone){ doneCount++; }
 
-      if (!isLessonDone && prevDone && !currentAssigned){
+      if (!isLessonDone && !currentAssigned){
         card.classList.add('is-current');
         currentAssigned = true;
       } else {
@@ -3090,7 +3087,7 @@ if (lessonList && codingProgressFill && codingProgressNote){
     codingProgressFill.style.width = percent + '%';
 
     if (doneCount === 0){
-      codingProgressNote.textContent = 'ما بدأت بعد — افتح أول درس وابدأ';
+      codingProgressNote.textContent = 'كل الدروس مفتوحة — اقرأ بأي ترتيب يناسبك';
     } else if (doneCount === lessonCards.length){
       codingProgressNote.textContent = 'أكملت كل الدروس! فتحت مسار الدورات ✨';
       markComplete('coding');
@@ -3114,17 +3111,6 @@ if (lessonList && codingProgressFill && codingProgressNote){
     var doneBtn = card.querySelector('.lesson-done-btn');
 
     doneBtn.addEventListener('click', function(){
-      if (doneBtn.getAttribute('data-locked') === '1'){
-        showLockAlert(
-          'لفتح هذا الدرس أكمل الدرس السابق أولاً بالترتيب، ثم ارجع هنا.',
-          'coding.html',
-          'ارجع لأول درس ناقص'
-        );
-        // نمرر للدرس الحالي المقترح
-        var current = document.querySelector('.lesson-card.is-current');
-        if (current) current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
       var progress = getProgress();
       progress[id] = !progress[id];
       saveProgress(progress);

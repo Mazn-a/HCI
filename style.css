@@ -5106,6 +5106,10 @@ body[data-theme="light"] .back-to-top{
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px; margin-top: 18px;
 }
+.share-stats-single{
+  grid-template-columns: 1fr;
+  max-width: 280px;
+}
 .share-stat{
   border: 1px solid var(--ink-3); border-radius: 12px; padding: 12px 10px; text-align: center;
   background: rgba(255,255,255,0.03);

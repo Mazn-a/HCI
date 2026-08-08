@@ -211,6 +211,7 @@
 
         <div class="admin-tabs">
           <button type="button" class="size-btn active" id="tabUsers">المستخدمون</button>
+          <button type="button" class="size-btn" id="tabShare">المشاركة</button>
           <button type="button" class="size-btn" id="tabMessages">الرسائل</button>
           <button type="button" class="size-btn" id="tabReports">بلاغات المشاكل</button>
           <button type="button" class="size-btn" id="tabContacts">التواصل معي</button>
@@ -234,6 +235,62 @@
             </table>
             <div class="admin-users-mobile" id="usersMobile"></div>
             <p id="usersEmpty" style="padding:24px; color:var(--text-mid); display:none;">لا يوجد طلاب مسجّلون حالياً.</p>
+          </div>
+        </div>
+
+        <div id="panelShare" hidden>
+          <div class="admin-stats" id="shareAdminStats" style="margin-bottom:18px;">
+            <div class="stat-box"><div class="n" id="shareStatSharers">—</div><div class="l">من شاركوا رابطهم</div></div>
+            <div class="stat-box"><div class="n" id="shareStatEntries">—</div><div class="l">دخلوا عبر الروابط</div></div>
+            <div class="stat-box"><div class="n" id="shareStatSignups">—</div><div class="l">سجّلوا عبر مشاركة</div></div>
+          </div>
+          <div class="profile-card" style="max-width:none; margin-bottom:18px;">
+            <h3 style="margin:0 0 12px; color:var(--gold);">من شارك الموقع</h3>
+            <p style="color:var(--text-mid); font-size:0.85rem; margin:0 0 14px;">كل مستخدم وُجد له دخول أو تسجيل عبر رابطه.</p>
+            <table class="admin-table" id="shareSharersTable">
+              <thead>
+                <tr>
+                  <th>المشارك</th>
+                  <th>التواصل</th>
+                  <th>دخلوا عبره</th>
+                  <th>سجّلوا عبره</th>
+                </tr>
+              </thead>
+              <tbody id="shareSharersBody"></tbody>
+            </table>
+            <div class="admin-users-mobile" id="shareSharersMobile"></div>
+            <p id="shareSharersEmpty" style="padding:8px 0; color:var(--text-mid); display:none;">ما في مشاركات مسجّلة بعد.</p>
+          </div>
+          <div class="profile-card" style="max-width:none; margin-bottom:18px;">
+            <h3 style="margin:0 0 12px; color:var(--gold);">من دخل عبر أي مستخدم</h3>
+            <table class="admin-table" id="shareEntriesTable">
+              <thead>
+                <tr>
+                  <th>الوقت</th>
+                  <th>دخل عبر</th>
+                  <th>الزائر</th>
+                  <th>التسجيل</th>
+                </tr>
+              </thead>
+              <tbody id="shareEntriesBody"></tbody>
+            </table>
+            <div class="admin-users-mobile" id="shareEntriesMobile"></div>
+            <p id="shareEntriesEmpty" style="padding:8px 0; color:var(--text-mid); display:none;">ما في دخول عبر روابط بعد.</p>
+          </div>
+          <div class="profile-card" style="max-width:none;">
+            <h3 style="margin:0 0 12px; color:var(--gold);">من سجّل عبر مشاركة</h3>
+            <table class="admin-table" id="shareSignupsTable">
+              <thead>
+                <tr>
+                  <th>المسجّل</th>
+                  <th>عبر</th>
+                  <th>التاريخ</th>
+                </tr>
+              </thead>
+              <tbody id="shareSignupsBody"></tbody>
+            </table>
+            <div class="admin-users-mobile" id="shareSignupsMobile"></div>
+            <p id="shareSignupsEmpty" style="padding:8px 0; color:var(--text-mid); display:none;">ما سجّل أحد عبر رابط مشاركة بعد.</p>
           </div>
         </div>
 

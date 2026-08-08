@@ -477,11 +477,18 @@ app.get('/api/auth/me', authRequired, (req, res) => {
 /* ---------- مشاركة الموقع وتتبع الإحالات ---------- */
 app.post('/api/share/hit', (req, res) => {
   try {
+    let visitorUserId = null;
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (token) {
+      try { visitorUserId = jwt.verify(token, JWT_SECRET).id; } catch { /* زائر */ }
+    }
     const result = db.recordShareHit({
       sharerId: req.body.ref || req.body.sharerId,
       visitorKey: req.body.visitorKey,
       path: req.body.path || '/',
-      userAgent: req.get('user-agent') || ''
+      userAgent: req.get('user-agent') || '',
+      visitorUserId: visitorUserId
     });
     if (!result.ok) return res.status(400).json({ error: result.error || 'تعذر تسجيل الزيارة' });
     res.json({ ok: true, duplicate: !!result.duplicate });
@@ -504,6 +511,15 @@ app.get('/api/share/stats', authRequired, (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر جلب إحصائيات المشاركة' });
+  }
+});
+
+app.get('/api/admin/share', adminRequired, (_req, res) => {
+  try {
+    res.json(db.getAdminShareOverview());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر جلب سجل المشاركة' });
   }
 });
 

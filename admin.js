@@ -323,11 +323,13 @@
   }
 
   function setAdminTab(active) {
-    ['tabUsers', 'tabMessages', 'tabReports', 'tabContacts'].forEach(function (id) {
+    ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle('active', id === active);
     });
     document.getElementById('panelUsers').hidden = active !== 'tabUsers';
+    var panelShare = document.getElementById('panelShare');
+    if (panelShare) panelShare.hidden = active !== 'tabShare';
     document.getElementById('panelMessages').hidden = active !== 'tabMessages';
     document.getElementById('panelReports').hidden = active !== 'tabReports';
     var panelContacts = document.getElementById('panelContacts');
@@ -337,6 +339,14 @@
   document.getElementById('tabUsers').addEventListener('click', function () {
     setAdminTab('tabUsers');
   });
+
+  var tabShare = document.getElementById('tabShare');
+  if (tabShare) {
+    tabShare.addEventListener('click', function () {
+      setAdminTab('tabShare');
+      loadShareAdmin().catch(function (e) { alert(e.message); });
+    });
+  }
 
   document.getElementById('tabMessages').addEventListener('click', function () {
     setAdminTab('tabMessages');
@@ -352,6 +362,106 @@
     setAdminTab('tabContacts');
     loadContacts().catch(function (e) { alert(e.message); });
   });
+
+  function formatShareTime(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString('ar-SA', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) { return iso; }
+  }
+
+  function contactLine(email, phone) {
+    return [email, phone].filter(Boolean).join(' · ') || '—';
+  }
+
+  async function loadShareAdmin() {
+    var data = await HCIApi.request('/api/admin/share');
+    var t = (data && data.totals) || {};
+    var elSharers = document.getElementById('shareStatSharers');
+    var elEntries = document.getElementById('shareStatEntries');
+    var elSignups = document.getElementById('shareStatSignups');
+    if (elSharers) elSharers.textContent = t.sharers != null ? t.sharers : 0;
+    if (elEntries) elEntries.textContent = t.uniqueEntries != null ? t.uniqueEntries : (t.entries || 0);
+    if (elSignups) elSignups.textContent = t.signups != null ? t.signups : 0;
+
+    var sharers = data.sharers || [];
+    var sharersBody = document.getElementById('shareSharersBody');
+    var sharersMobile = document.getElementById('shareSharersMobile');
+    var sharersEmpty = document.getElementById('shareSharersEmpty');
+    if (sharersEmpty) sharersEmpty.style.display = sharers.length ? 'none' : 'block';
+    if (sharersBody) {
+      sharersBody.innerHTML = sharers.map(function (s) {
+        return '<tr>' +
+          '<td><strong>' + escapeHtml(s.name) + '</strong><div style="color:var(--text-mid);font-size:0.75rem">#' + s.id + '</div></td>' +
+          '<td>' + escapeHtml(contactLine(s.email, s.phone)) + '</td>' +
+          '<td>' + Number(s.unique || 0) + '</td>' +
+          '<td>' + Number(s.signups || 0) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+    if (sharersMobile) {
+      sharersMobile.innerHTML = sharers.map(function (s) {
+        return '<div class="admin-user-card"><strong>' + escapeHtml(s.name) + '</strong>' +
+          '<div class="meta">دخلوا عبره: ' + Number(s.unique || 0) +
+          '<br>سجّلوا عبره: ' + Number(s.signups || 0) +
+          '<br>' + escapeHtml(contactLine(s.email, s.phone)) + '</div></div>';
+      }).join('');
+    }
+
+    var entries = data.entries || [];
+    var entriesBody = document.getElementById('shareEntriesBody');
+    var entriesMobile = document.getElementById('shareEntriesMobile');
+    var entriesEmpty = document.getElementById('shareEntriesEmpty');
+    if (entriesEmpty) entriesEmpty.style.display = entries.length ? 'none' : 'block';
+    if (entriesBody) {
+      entriesBody.innerHTML = entries.map(function (e) {
+        var visitor = e.visitorName || e.signupName || 'زائر';
+        var signup = e.signupName ? ('سجّل: ' + e.signupName) : '—';
+        return '<tr>' +
+          '<td>' + escapeHtml(formatShareTime(e.at)) + '</td>' +
+          '<td>' + escapeHtml(e.sharerName || ('#' + e.sharerId)) + '</td>' +
+          '<td>' + escapeHtml(visitor) + '</td>' +
+          '<td>' + escapeHtml(signup) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+    if (entriesMobile) {
+      entriesMobile.innerHTML = entries.map(function (e) {
+        var visitor = e.visitorName || e.signupName || 'زائر';
+        return '<div class="admin-user-card"><strong>' + escapeHtml(visitor) + '</strong>' +
+          '<div class="meta">دخل عبر: ' + escapeHtml(e.sharerName || '') +
+          '<br>' + escapeHtml(formatShareTime(e.at)) +
+          (e.signupName ? ('<br>سجّل: ' + escapeHtml(e.signupName)) : '') +
+          '</div></div>';
+      }).join('');
+    }
+
+    var signups = data.signups || [];
+    var signupsBody = document.getElementById('shareSignupsBody');
+    var signupsMobile = document.getElementById('shareSignupsMobile');
+    var signupsEmpty = document.getElementById('shareSignupsEmpty');
+    if (signupsEmpty) signupsEmpty.style.display = signups.length ? 'none' : 'block';
+    if (signupsBody) {
+      signupsBody.innerHTML = signups.map(function (u) {
+        return '<tr>' +
+          '<td><strong>' + escapeHtml(u.name) + '</strong><div style="color:var(--text-mid);font-size:0.75rem">' +
+          escapeHtml(contactLine(u.email, u.phone)) + '</div></td>' +
+          '<td>' + escapeHtml(u.viaName || ('#' + u.viaId)) + '</td>' +
+          '<td>' + escapeHtml(formatShareTime(u.at)) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+    if (signupsMobile) {
+      signupsMobile.innerHTML = signups.map(function (u) {
+        return '<div class="admin-user-card"><strong>' + escapeHtml(u.name) + '</strong>' +
+          '<div class="meta">عبر: ' + escapeHtml(u.viaName || '') +
+          '<br>' + escapeHtml(formatShareTime(u.at)) + '</div></div>';
+      }).join('');
+    }
+  }
 
   async function loadContacts() {
     var data = await HCIApi.request('/api/admin/contacts');

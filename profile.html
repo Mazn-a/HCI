@@ -95,7 +95,7 @@
           <section class="settings-block" id="sec-share">
             <div class="settings-block-head">
               <h2>مشاركة الموقع</h2>
-              <p>شارك رابطك الخاص. لما أحد يفتحه نعرف إنه جاء منك، ولو سجّل حساب يُحتسب لك.</p>
+              <p>شارك رابطك. يظهر لك فقط كم شخص دخل الموقع عن طريقك.</p>
             </div>
             <div class="share-panel" id="sharePanel">
               <label class="share-label" for="shareLinkInput">رابط المشاركة</label>
@@ -104,20 +104,11 @@
                 <button type="button" class="btn-primary" id="shareCopyBtn">نسخ</button>
                 <button type="button" class="btn-ghost" id="shareNativeBtn">مشاركة</button>
               </div>
-              <p class="share-hint" id="shareHint">سجّل دخولك عشان يظهر رابطك وإحصاءاتك.</p>
-              <div class="share-stats" id="shareStats" hidden>
-                <div class="share-stat"><span class="share-stat-label">زيارات الرابط</span><strong id="shareVisits">0</strong></div>
-                <div class="share-stat"><span class="share-stat-label">زوار مميزون</span><strong id="shareUniques">0</strong></div>
-                <div class="share-stat"><span class="share-stat-label">سجّلوا عبرك</span><strong id="shareSignups">0</strong></div>
-              </div>
-              <div class="share-lists" id="shareLists" hidden>
-                <div class="share-list-block">
-                  <h3>آخر من دخل من رابطك</h3>
-                  <ul class="share-list" id="shareRecentList"></ul>
-                </div>
-                <div class="share-list-block">
-                  <h3>من سجّل عبر مشاركتك</h3>
-                  <ul class="share-list" id="shareSignupList"></ul>
+              <p class="share-hint" id="shareHint">سجّل دخولك عشان يظهر رابطك وكم دخلوا عبره.</p>
+              <div class="share-stats share-stats-single" id="shareStats" hidden>
+                <div class="share-stat">
+                  <span class="share-stat-label">دخلوا عبر رابطك</span>
+                  <strong id="shareEntered">0</strong>
                 </div>
               </div>
             </div>

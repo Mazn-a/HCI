@@ -2749,26 +2749,13 @@ if (journeyMap){
   var nativeBtn = document.getElementById('shareNativeBtn');
   var hint = document.getElementById('shareHint');
   var statsEl = document.getElementById('shareStats');
-  var listsEl = document.getElementById('shareLists');
-  var recentList = document.getElementById('shareRecentList');
-  var signupList = document.getElementById('shareSignupList');
-
-  function formatShareTime(iso) {
-    if (!iso) return '';
-    try {
-      return new Date(iso).toLocaleString('ar-SA', {
-        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-    } catch (e) { return ''; }
-  }
 
   function setLoggedOut() {
     if (hint) {
       hint.hidden = false;
-      hint.innerHTML = '<a href="auth.html?tab=signup">أنشئ حساباً</a> أو سجّل دخولك لتظهر رابط مشاركتك وإحصاءاتك.';
+      hint.innerHTML = '<a href="auth.html?tab=signup">أنشئ حساباً</a> أو سجّل دخولك لتظهر رابطك وكم دخلوا عبره.';
     }
     if (statsEl) statsEl.hidden = true;
-    if (listsEl) listsEl.hidden = true;
     if (input) input.value = location.origin + '/index.html';
     if (copyBtn) copyBtn.disabled = true;
     if (nativeBtn) nativeBtn.disabled = true;
@@ -2794,32 +2781,8 @@ if (journeyMap){
       var s = (data && data.stats) || {};
       if (statsEl) {
         statsEl.hidden = false;
-        var v = document.getElementById('shareVisits');
-        var u = document.getElementById('shareUniques');
-        var g = document.getElementById('shareSignups');
-        if (v) v.textContent = String(s.visits || 0);
-        if (u) u.textContent = String(s.uniqueVisitors || 0);
-        if (g) g.textContent = String(s.signups || 0);
-      }
-      if (listsEl) listsEl.hidden = false;
-      if (recentList) {
-        var recent = s.recent || [];
-        recentList.innerHTML = recent.length
-          ? recent.map(function (r) {
-              var label = r.converted && r.signupName
-                ? ('سجّل: ' + r.signupName)
-                : ('زيارة' + (r.path ? ' · ' + r.path.replace(/^\//, '') : ''));
-              return '<li><span>' + escapeHtml(label) + '</span><time>' + escapeHtml(formatShareTime(r.at)) + '</time></li>';
-            }).join('')
-          : '<li class="share-empty">ما في زيارات بعد — ابدأ بالمشاركة</li>';
-      }
-      if (signupList) {
-        var users = s.signupUsers || [];
-        signupList.innerHTML = users.length
-          ? users.map(function (u) {
-              return '<li><span>' + escapeHtml(u.name || ('مستخدم #' + u.id)) + '</span><time>' + escapeHtml(formatShareTime(u.at)) + '</time></li>';
-            }).join('')
-          : '<li class="share-empty">ما سجّل أحد عبر رابطك بعد</li>';
+        var entered = document.getElementById('shareEntered');
+        if (entered) entered.textContent = String(s.uniqueVisitors != null ? s.uniqueVisitors : (s.visits || 0));
       }
     } catch (e) {
       if (hint) {

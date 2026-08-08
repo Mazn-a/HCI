@@ -595,10 +595,14 @@ const db = {
   },
 
   /** تسجيل زيارة من رابط مشاركة — زيارة فريدة لكل زائر خلال 24 ساعة */
-  recordShareHit({ sharerId, visitorKey, path, userAgent }) {
+  recordShareHit({ sharerId, visitorKey, path, userAgent, visitorUserId }) {
     const sid = Number(sharerId);
     if (!sid || !Number.isFinite(sid) || !this.findUserById(sid)) {
       return { ok: false, error: 'رابط المشاركة غير صالح' };
+    }
+    const visitorId = visitorUserId != null ? Number(visitorUserId) : null;
+    if (visitorId && visitorId === sid) {
+      return { ok: true, hit: null, duplicate: true, self: true };
     }
     const key = String(visitorKey || '').trim().slice(0, 64);
     if (!key || key.length < 8) {
@@ -613,6 +617,7 @@ const db = {
     if (existing) {
       existing.last_at = new Date().toISOString();
       existing.path = String(path || existing.path || '/').slice(0, 200);
+      if (visitorId && !existing.visitor_user_id) existing.visitor_user_id = visitorId;
       persist();
       return { ok: true, hit: existing, duplicate: true };
     }
@@ -620,6 +625,7 @@ const db = {
       id: cache.nextShareHitId++,
       sharer_id: sid,
       visitor_key: key,
+      visitor_user_id: (visitorId && this.findUserById(visitorId)) ? visitorId : null,
       path: String(path || '/').slice(0, 200),
       user_agent: String(userAgent || '').slice(0, 180),
       at: new Date().toISOString(),
@@ -627,10 +633,6 @@ const db = {
       signup_user_id: null
     };
     cache.share_hits.push(hit);
-    /* احتفظ بآخر 5000 زيارة فقط */
-    if (cache.share_hits.length > 5000) {
-      cache.share_hits = cache.share_hits.slice(-5000);
-    }
     persist();
     return { ok: true, hit: hit, duplicate: false };
   },
@@ -645,6 +647,7 @@ const db = {
     });
     if (hits.length) {
       hits[hits.length - 1].signup_user_id = uid;
+      if (!hits[hits.length - 1].visitor_user_id) hits[hits.length - 1].visitor_user_id = uid;
       persist();
     }
   },
@@ -686,6 +689,115 @@ const db = {
       signups: signups.length,
       signupUsers: signups.slice(0, 30),
       recent: recentHits
+    };
+  },
+
+  getAdminShareOverview() {
+    const hits = cache.share_hits || [];
+    const nameOf = function (id) {
+      const u = db.findUserById(id);
+      if (!u) return null;
+      return ((u.first_name || '') + ' ' + (u.last_name || '')).trim() || ('#' + id);
+    };
+    const contactOf = function (id) {
+      const u = db.findUserById(id);
+      if (!u) return { email: null, phone: null };
+      return { email: u.email || null, phone: u.phone || null };
+    };
+
+    const sharerMap = {};
+    function ensureSharer(id) {
+      if (!id || sharerMap[id]) return sharerMap[id];
+      const c = contactOf(id);
+      sharerMap[id] = {
+        id: id,
+        name: nameOf(id) || ('مستخدم #' + id),
+        email: c.email,
+        phone: c.phone,
+        entries: 0,
+        uniqueKeys: {},
+        signups: 0
+      };
+      return sharerMap[id];
+    }
+
+    hits.forEach(function (h) {
+      const s = ensureSharer(h.sharer_id);
+      if (!s) return;
+      s.entries += 1;
+      if (h.visitor_key) s.uniqueKeys[h.visitor_key] = true;
+    });
+
+    const referred = cache.users.filter(function (u) {
+      return u.referred_by && u.role !== 'admin';
+    });
+    referred.forEach(function (u) {
+      const s = ensureSharer(u.referred_by);
+      if (s) s.signups += 1;
+    });
+
+    const uniqueAll = {};
+    hits.forEach(function (h) {
+      if (h.visitor_key) uniqueAll[h.visitor_key] = true;
+    });
+
+    const sharers = Object.keys(sharerMap).map(function (k) {
+      const s = sharerMap[k];
+      return {
+        id: s.id,
+        name: s.name,
+        email: s.email,
+        phone: s.phone,
+        entries: s.entries,
+        unique: Object.keys(s.uniqueKeys).length,
+        signups: s.signups
+      };
+    }).sort(function (a, b) {
+      if (b.entries !== a.entries) return b.entries - a.entries;
+      return b.signups - a.signups;
+    });
+
+    const entries = hits.slice().sort(function (a, b) {
+      return (a.at < b.at ? 1 : -1);
+    }).slice(0, 300).map(function (h) {
+      return {
+        id: h.id,
+        at: h.at,
+        lastAt: h.last_at || h.at,
+        path: h.path || '/',
+        sharerId: h.sharer_id,
+        sharerName: nameOf(h.sharer_id) || ('#' + h.sharer_id),
+        visitorUserId: h.visitor_user_id || null,
+        visitorName: h.visitor_user_id ? nameOf(h.visitor_user_id) : null,
+        signupUserId: h.signup_user_id || null,
+        signupName: h.signup_user_id ? nameOf(h.signup_user_id) : null
+      };
+    });
+
+    const signups = referred.map(function (u) {
+      return {
+        id: u.id,
+        name: ((u.first_name || '') + ' ' + (u.last_name || '')).trim() || ('#' + u.id),
+        email: u.email || null,
+        phone: u.phone || null,
+        at: u.created_at,
+        viaId: u.referred_by,
+        viaName: nameOf(u.referred_by) || ('#' + u.referred_by)
+      };
+    }).sort(function (a, b) {
+      return (a.at < b.at ? 1 : -1);
+    });
+
+    return {
+      totals: {
+        sharers: sharers.length,
+        entries: hits.length,
+        uniqueEntries: Object.keys(uniqueAll).length,
+        signups: referred.length
+      },
+      sharers: sharers,
+      entries: entries,
+      signups: signups
     };
   }
 };

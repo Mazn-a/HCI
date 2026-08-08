@@ -754,10 +754,47 @@ app.get('/api/progress', authRequired, (req, res) => {
   });
 });
 
+/* ---------- الشهادة (يُصدرها السيرفر ليصح التحقق من أي جهاز) ---------- */
+const CERT_PATH_NAME = 'مسار تفاعل الإنسان والحاسوب (HCI)';
+
+function maybeIssueCertificateAndNotify(userId, journey) {
+  const done = (journey && journey.done) || {};
+  const ids = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
+  if (ids.filter((k) => done[k]).length < 7) return false;
+
+  const user = db.findUserById(userId);
+  if (!user) return false;
+
+  if (!db.getCertificateByUserId(user.id)) {
+    const fullName = (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
+    db.createCertificate({
+      userId: user.id,
+      name: fullName,
+      path: CERT_PATH_NAME,
+      pct: 100,
+      issuedAt: new Date().toISOString(),
+      completedAt: journey.completedAt || journey.doneAt || new Date().toISOString()
+    });
+  }
+
+  const already = db.getNotificationsForUser(user.id).some((n) => n.type === 'certificate');
+  if (!already) {
+    db.createNotification({
+      userId: user.id,
+      type: 'certificate',
+      title: 'حصلت على شهادتك',
+      body: 'أكملت المسار كامل. شهادتك جاهزة — اضغط لفكّها.',
+      link: 'certificate.html'
+    });
+  }
+  return true;
+}
+
 app.put('/api/progress', authRequired, (req, res) => {
   try {
+    const journey = req.body.journey || {};
     db.upsertProgress(req.user.id, {
-      journey_json: JSON.stringify(req.body.journey || {}),
+      journey_json: JSON.stringify(journey),
       coding_json: JSON.stringify(req.body.coding || {}),
       coding_stage: String(req.body.codingStage || ''),
       practice_json: JSON.stringify(req.body.practice || {}),
@@ -765,15 +802,13 @@ app.put('/api/progress', authRequired, (req, res) => {
       books_json: JSON.stringify(req.body.books || {}),
       quiz_json: JSON.stringify(req.body.quiz || {})
     });
-    res.json({ ok: true });
+    const certificateReady = maybeIssueCertificateAndNotify(req.user.id, journey);
+    res.json({ ok: true, certificateReady: certificateReady });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر حفظ التقدم' });
   }
 });
-
-/* ---------- الشهادة (يُصدرها السيرفر ليصح التحقق من أي جهاز) ---------- */
-const CERT_PATH_NAME = 'مسار تفاعل الإنسان والحاسوب (HCI)';
 
 function computeProgressPercent(userId) {
   const p = db.getProgress(userId);

@@ -456,6 +456,9 @@ function markComplete(stageId, silent){
     }
   }
 
+  var allDone = JOURNEY_ORDER.every(function(id){ return !!j.done[id]; });
+  if (allDone && !j.completedAt) j.completedAt = new Date().toISOString();
+
   saveJourney(j);
 
   if (wasNew && !silent && toastMsg){
@@ -602,6 +605,42 @@ function showLockAlert(message, href, ctaLabel){
 function showStageLock(stageId){
   var info = getLockInfo(stageId);
   showLockAlert(info.reason, info.href, info.cta);
+}
+
+function showCertReadyDialog(){
+  var existing = document.getElementById('lockDialog');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'lockDialog';
+  backdrop.className = 'lock-dialog-backdrop';
+  backdrop.setAttribute('role', 'alertdialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-labelledby', 'lockDialogTitle');
+
+  backdrop.innerHTML =
+    '<div class="lock-dialog">' +
+      '<p class="lock-dialog-eyebrow">/// أحسنت</p>' +
+      '<h3 id="lockDialogTitle">حصلت على شهادتك</h3>' +
+      '<p class="lock-dialog-reason">أكملت المسار كامل. شهادتك جاهزة باسمك — فكّها الحين لعرضها أو طباعتها.</p>' +
+      '<div class="lock-dialog-actions">' +
+        '<button type="button" class="btn-ghost" id="lockDialogClose">لاحقاً</button>' +
+        '<a href="certificate.html" class="btn-primary" id="lockDialogGo">فك الشهادة ←</a>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(backdrop);
+  requestAnimationFrame(function(){ backdrop.classList.add('show'); });
+
+  function close(){
+    backdrop.classList.remove('show');
+    setTimeout(function(){ backdrop.remove(); }, 220);
+  }
+
+  document.getElementById('lockDialogClose').addEventListener('click', close);
+  backdrop.addEventListener('click', function(e){
+    if (e.target === backdrop) close();
+  });
 }
 
 function stageFromHref(href){
@@ -1284,7 +1323,10 @@ annotateChecklists();
 // زر إكمال مرحلة (contribute وغيرها) — يكمل ويوجّه إن لزم
 var markCompleteBtn = document.getElementById('markCompleteBtn');
 if (markCompleteBtn && pageStage){
-  if (isDone(pageStage) && markCompleteBtn.tagName === 'BUTTON'){
+  if (pageStage === 'contribute'){
+    markCompleteBtn.textContent = 'فك الشهادة ←';
+    markCompleteBtn.setAttribute('href', 'certificate.html');
+  } else if (isDone(pageStage) && markCompleteBtn.tagName === 'BUTTON'){
     markCompleteBtn.textContent = 'أكملت هالمرحلة ✓';
     markCompleteBtn.disabled = true;
     markCompleteBtn.style.opacity = '0.7';
@@ -1296,9 +1338,32 @@ if (markCompleteBtn && pageStage){
       showLockAlert(check.message, null, null);
       return;
     }
-    markComplete(pageStage);
+    var wasNew = markComplete(pageStage);
     if (overallFill) overallFill.style.width = getOverallProgress() + '%';
     if (overallPct) overallPct.textContent = getOverallProgress() + '%';
+
+    if (pageStage === 'contribute'){
+      e.preventDefault();
+      if (!wasNew){
+        window.location.href = 'certificate.html';
+        return;
+      }
+      if (window.HCINotifCenter){
+        HCINotifCenter.pushLocal(
+          'حصلت على شهادتك',
+          'أكملت المسار كامل. شهادتك جاهزة — اضغط لفكّها.',
+          'certificate.html',
+          true
+        );
+      }
+      showCertReadyDialog();
+      if (window.HCIApi && HCIApi.isLoggedIn()){
+        HCIApi.syncProgress().then(function(){
+          if (window.HCINotifCenter) HCINotifCenter.refresh(true);
+        }).catch(function(){});
+      }
+      return;
+    }
 
     var go = markCompleteBtn.getAttribute('data-complete-and-go');
     if (go){
@@ -2440,7 +2505,7 @@ if (inboxList){
     try { localStorage.setItem(LOCAL_KEY, JSON.stringify(list.slice(0, 40))); } catch (e) { /* */ }
   }
 
-  function pushLocal(title, body, link){
+  function pushLocal(title, body, link, quiet){
     var list = readLocal();
     var item = {
       id: 'local-' + Date.now(),
@@ -2453,7 +2518,7 @@ if (inboxList){
     };
     list.unshift(item);
     writeLocal(list);
-    showToast(title, body, link);
+    if (!quiet) showToast(title, body, link);
     try {
       var seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
       seen.push('local:' + item.id);

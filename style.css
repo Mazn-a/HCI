@@ -3572,6 +3572,34 @@ body[data-theme="light"] .settings-side-link{
   opacity: 0.75; cursor: wait; filter: none; transform: none;
 }
 
+.auth-divider{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 2px;
+  color: var(--text-mid);
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after{
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--ink-3);
+}
+.auth-divider span{ flex: none; }
+.google-btn-wrap{
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+}
+.google-btn-wrap > div{
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center;
+}
+
 .status-msg{
   text-align:center; font-size: 0.85rem; margin-top: 16px;
   display:none; color: var(--gold); font-weight:600;

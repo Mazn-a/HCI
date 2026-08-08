@@ -1716,11 +1716,13 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var signupEmail = document.getElementById('signupEmail');
   var signupPhone = document.getElementById('signupPhone');
   var signupPass = document.getElementById('signupPass');
+  var signupPassConfirm = document.getElementById('signupPassConfirm');
   var signupFirstError = document.getElementById('signupFirstError');
   var signupLastError = document.getElementById('signupLastError');
   var signupEmailError = document.getElementById('signupEmailError');
   var signupPhoneError = document.getElementById('signupPhoneError');
   var signupPassError = document.getElementById('signupPassError');
+  var signupPassConfirmError = document.getElementById('signupPassConfirmError');
   var signupSubmit = document.getElementById('signupSubmit');
 
   // حدود وصيغة مباشرة أثناء الكتابة
@@ -1749,6 +1751,12 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   if (signupEmail){
     focusPasswordOnEnter(signupEmail, signupPass);
   }
+  if (signupPass && signupPassConfirm){
+    focusPasswordOnEnter(signupPass, signupPassConfirm);
+    signupPassConfirm.addEventListener('input', function(){
+      if (signupPassConfirmError) signupPassConfirmError.classList.remove('show');
+    });
+  }
 
   bindAsciiDigitsInMixedField(loginIdentifier);
   bindAsciiDigitsInMixedField(document.getElementById('resetIdentifier'));
@@ -1761,6 +1769,9 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     var firstOk = validateField(signupFirst, signupFirstError, function(v){ return v.trim().length >= 2; });
     var lastOk = validateField(signupLast, signupLastError, function(v){ return v.trim().length >= 2; });
     var passOk = validateField(signupPass, signupPassError, function(v){ return v.length >= 8; });
+    var confirmOk = validateField(signupPassConfirm, signupPassConfirmError, function(v){
+      return v.length >= 8 && v === String(signupPass && signupPass.value || '');
+    });
 
     var contactOk = false;
     if (contactMode === 'email'){
@@ -1773,9 +1784,11 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       if (signupEmailError) signupEmailError.classList.remove('show');
     }
 
-    if (!firstOk || !lastOk || !contactOk || !passOk){
+    if (!firstOk || !lastOk || !contactOk || !passOk || !confirmOk){
       if (firstOk && lastOk && contactOk && !passOk && signupPass){
         signupPass.focus();
+      } else if (firstOk && lastOk && contactOk && passOk && !confirmOk && signupPassConfirm){
+        signupPassConfirm.focus();
       }
       return;
     }
@@ -1957,6 +1970,106 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       }
     });
   }
+
+  // ---- تسجيل الدخول / إنشاء حساب عبر Google ----
+  (function initGoogleAuth(){
+    if (!window.HCIApi || typeof HCIApi.getGoogleAuthConfig !== 'function') return;
+
+    var googleReady = false;
+    var googleBusy = false;
+
+    function showGoogleUi(clientId){
+      document.querySelectorAll('.google-auth-only').forEach(function(el){
+        el.hidden = false;
+      });
+
+      function loadGis(cb){
+        if (window.google && google.accounts && google.accounts.id) {
+          cb();
+          return;
+        }
+        var existing = document.querySelector('script[data-hci-gis]');
+        if (existing) {
+          existing.addEventListener('load', cb);
+          return;
+        }
+        var s = document.createElement('script');
+        s.src = 'https://accounts.google.com/gsi/client';
+        s.async = true;
+        s.defer = true;
+        s.setAttribute('data-hci-gis', '1');
+        s.onload = cb;
+        s.onerror = function(){
+          if (statusMsg){
+            statusMsg.textContent = 'تعذر تحميل خدمة جوجل — أعد تحميل الصفحة';
+            statusMsg.classList.add('show');
+          }
+        };
+        document.head.appendChild(s);
+      }
+
+      function onCredential(response){
+        if (!response || !response.credential || googleBusy) return;
+        googleBusy = true;
+        if (statusMsg){
+          statusMsg.textContent = 'جاري الدخول بحساب جوجل…';
+          statusMsg.classList.add('show');
+        }
+        HCIApi.loginWithGoogle(response.credential).then(function(data){
+          try { return HCIApi.syncProgress().then(function(){ return data; }); }
+          catch (e) { return data; }
+        }).then(function(data){
+          if (data.user && data.user.pathType === 'specialist') HCIApi.applySpecialistUnlocks();
+          return HCIApi.afterAuthFlow(data.user, !!data.isNew).then(function(dest){
+            window.location.href = dest;
+          });
+        }).catch(function(err){
+          if (statusMsg){
+            statusMsg.textContent = (err && err.message) || 'تعذر الدخول بجوجل';
+            statusMsg.classList.add('show');
+          }
+        }).finally(function(){
+          googleBusy = false;
+        });
+      }
+
+      loadGis(function(){
+        if (googleReady) return;
+        try {
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: onCredential,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+            context: 'signin',
+            ux_mode: 'popup'
+          });
+          var opts = {
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'rectangular',
+            logo_alignment: 'left',
+            width: 320
+          };
+          var loginWrap = document.getElementById('googleLoginBtnWrap');
+          var signupWrap = document.getElementById('googleSignupBtnWrap');
+          if (loginWrap) google.accounts.id.renderButton(loginWrap, opts);
+          if (signupWrap) google.accounts.id.renderButton(signupWrap, opts);
+          googleReady = true;
+        } catch (e) {
+          if (statusMsg){
+            statusMsg.textContent = 'تعذر تهيئة زر جوجل';
+            statusMsg.classList.add('show');
+          }
+        }
+      });
+    }
+
+    HCIApi.getGoogleAuthConfig().then(function(cfg){
+      if (cfg && cfg.enabled && cfg.clientId) showGoogleUi(cfg.clientId);
+    }).catch(function(){ /* الميزة اختيارية */ });
+  })();
 }
 
 // مزامنة التقدم من السيرفر عند وجود جلسة + توجيه المسار الناقص

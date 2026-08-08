@@ -262,6 +262,22 @@
     return data;
   }
 
+  async function loginWithGoogle(credential) {
+    var body = {
+      credential: credential,
+      visitorKey: getVisitorKey()
+    };
+    var ref = getStoredShareRef();
+    if (ref) body.referredBy = ref;
+    var data = await request('/api/auth/google', { method: 'POST', body: body });
+    setSession(data.token, data.user);
+    return data;
+  }
+
+  async function getGoogleAuthConfig() {
+    return request('/api/auth/google-config');
+  }
+
   async function logout() {
     clearSession();
   }
@@ -532,6 +548,8 @@
     request: request,
     register: register,
     login: login,
+    loginWithGoogle: loginWithGoogle,
+    getGoogleAuthConfig: getGoogleAuthConfig,
     logout: logout,
     setPathType: setPathType,
     markIntroSeen: markIntroSeen,

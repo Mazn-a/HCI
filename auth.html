@@ -67,6 +67,8 @@
       </label>
       <p class="remember-hint">إذا وافقت لاحقاً، نملأ بيانات حسابك تلقائياً عند فتح تسجيل الدخول من نفس الجهاز.</p>
       <button type="submit" class="submit-btn" id="loginSubmit">تسجيل الدخول</button>
+      <div class="auth-divider google-auth-only" hidden><span>أو</span></div>
+      <div class="google-btn-wrap google-auth-only" id="googleLoginBtnWrap" hidden></div>
       <button type="button" class="auth-link-btn" id="forgotOpenBtn">نسيت كلمة المرور؟</button>
     </form>
 
@@ -160,7 +162,20 @@
         </div>
         <p class="field-error" id="signupPassError">لازم 8 أحرف على الأقل</p>
       </div>
+      <div>
+        <label for="signupPassConfirm">تأكيد كلمة المرور</label>
+        <div class="password-field">
+          <input type="password" id="signupPassConfirm" dir="ltr" placeholder="أعد كتابة كلمة المرور" required minlength="8" autocomplete="new-password">
+          <button type="button" class="password-toggle" data-toggle-password="signupPassConfirm" aria-label="إظهار كلمة المرور" aria-pressed="false">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
+          </button>
+        </div>
+        <p class="field-error" id="signupPassConfirmError">كلمتا المرور غير متطابقتين</p>
+      </div>
       <button type="submit" class="submit-btn" id="signupSubmit">إنشاء الحساب</button>
+      <div class="auth-divider google-auth-only" hidden><span>أو</span></div>
+      <div class="google-btn-wrap google-auth-only" id="googleSignupBtnWrap" hidden></div>
     </form>
 
     <p class="status-msg" id="statusMsg"></p>

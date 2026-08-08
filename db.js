@@ -79,6 +79,8 @@ function migrate(cache) {
     if (typeof u.phone_verified === 'undefined') { u.phone_verified = u.role === 'admin'; changed = true; }
     if (!Array.isArray(u.name_history)) { u.name_history = []; changed = true; }
     if (typeof u.referred_by === 'undefined') { u.referred_by = null; changed = true; }
+    if (typeof u.auth_provider === 'undefined') { u.auth_provider = u.google_sub ? 'google' : 'local'; changed = true; }
+    if (typeof u.google_sub === 'undefined') { u.google_sub = null; changed = true; }
     if (typeof u.password_changed_at === 'undefined') {
       u.password_changed_at = u.created_at || new Date().toISOString();
       changed = true;
@@ -179,11 +181,16 @@ const db = {
     return cache.users.find((u) => u.phone === phone) || null;
   },
 
+  findUserByGoogleSub(sub) {
+    if (!sub) return null;
+    return cache.users.find((u) => u.google_sub === String(sub)) || null;
+  },
+
   findAdmin() {
     return cache.users.find((u) => u.role === 'admin') || null;
   },
 
-  createUser({ firstName, lastName, email, phone, passwordHash, role, referredBy }) {
+  createUser({ firstName, lastName, email, phone, passwordHash, role, referredBy, authProvider, googleSub, emailVerified }) {
     const now = new Date().toISOString();
     const refId = referredBy != null && referredBy !== '' ? Number(referredBy) : null;
     const user = {
@@ -196,8 +203,10 @@ const db = {
       role: role || 'student',
       path_type: null,
       intro_seen: false,
-      email_verified: role === 'admin',
+      email_verified: emailVerified != null ? !!emailVerified : role === 'admin',
       phone_verified: role === 'admin',
+      auth_provider: authProvider || 'local',
+      google_sub: googleSub || null,
       password_changed_at: now,
       created_at: now,
       last_login: now,

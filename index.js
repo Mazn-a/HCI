@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -11,6 +12,7 @@ const { db, ensureAdmin, checkPassword, ready, dataDir } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'hci-platform-secret-change-in-production-2026';
+const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -174,6 +176,7 @@ function publicUser(row) {
     introSeen: !!row.intro_seen,
     emailVerified: !!row.email_verified,
     phoneVerified: !!row.phone_verified,
+    authProvider: row.auth_provider || 'local',
     passwordChangedAt: row.password_changed_at || null,
     createdAt: row.created_at,
     lastLogin: row.last_login,
@@ -331,6 +334,137 @@ app.post('/api/auth/login', (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'خطأ أثناء تسجيل الدخول' });
+  }
+});
+
+/* ---------- تسجيل / دخول عبر Google ---------- */
+app.get('/api/auth/google-config', (_req, res) => {
+  res.json({
+    enabled: !!GOOGLE_CLIENT_ID,
+    clientId: GOOGLE_CLIENT_ID || null
+  });
+});
+
+async function verifyGoogleIdToken(credential) {
+  if (!GOOGLE_CLIENT_ID) {
+    const err = new Error('تسجيل جوجل غير مفعّل على السيرفر');
+    err.status = 503;
+    throw err;
+  }
+  const token = String(credential || '').trim();
+  if (!token) {
+    const err = new Error('رمز جوجل مفقود');
+    err.status = 400;
+    throw err;
+  }
+  const url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token);
+  let data;
+  try {
+    const resp = await fetch(url);
+    data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const err = new Error('تعذر التحقق من حساب جوجل');
+      err.status = 401;
+      throw err;
+    }
+  } catch (e) {
+    if (e.status) throw e;
+    const err = new Error('تعذر الاتصال بخوادم جوجل للتحقق');
+    err.status = 502;
+    throw err;
+  }
+  if (String(data.aud || '') !== GOOGLE_CLIENT_ID) {
+    const err = new Error('رمز جوجل غير صالح لهذا الموقع');
+    err.status = 401;
+    throw err;
+  }
+  const email = String(data.email || '').trim().toLowerCase();
+  if (!email || !isValidEmail(email)) {
+    const err = new Error('حساب جوجل بلا بريد صالح');
+    err.status = 400;
+    throw err;
+  }
+  const verified = data.email_verified === true || data.email_verified === 'true';
+  if (!verified) {
+    const err = new Error('بريد جوجل غير موثّق');
+    err.status = 400;
+    throw err;
+  }
+  return data;
+}
+
+function splitGoogleName(payload) {
+  let first = String(payload.given_name || '').trim();
+  let last = String(payload.family_name || '').trim();
+  if (!first && payload.name) {
+    const parts = String(payload.name).trim().split(/\s+/);
+    first = parts[0] || '';
+    last = parts.slice(1).join(' ') || '';
+  }
+  if (first.length < 2) first = first || 'مستخدم';
+  if (first.length < 2) first = 'مستخدم';
+  if (last.length < 2) last = 'جوجل';
+  return { firstName: first.slice(0, 40), lastName: last.slice(0, 40) };
+}
+
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    const payload = await verifyGoogleIdToken(req.body && req.body.credential);
+    const sub = String(payload.sub || '').trim();
+    const email = String(payload.email || '').trim().toLowerCase();
+    const names = splitGoogleName(payload);
+
+    let user = (sub && db.findUserByGoogleSub(sub)) || db.findUserByEmail(email);
+    let isNew = false;
+
+    if (!user) {
+      const referredByRaw = req.body.referredBy != null ? req.body.referredBy : req.body.ref;
+      let referredBy = null;
+      if (referredByRaw != null && referredByRaw !== '') {
+        const n = Number(referredByRaw);
+        if (Number.isFinite(n) && n > 0 && db.findUserById(n)) referredBy = n;
+      }
+
+      user = db.createUser({
+        firstName: names.firstName,
+        lastName: names.lastName,
+        email,
+        phone: null,
+        passwordHash: bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10),
+        role: 'student',
+        referredBy,
+        authProvider: 'google',
+        googleSub: sub || null,
+        emailVerified: true
+      });
+      isNew = true;
+
+      if (referredBy) {
+        try {
+          db.attachShareSignup(referredBy, user.id, req.body.visitorKey || '');
+        } catch (e) { /* */ }
+      }
+    } else {
+      const patch = {
+        last_login: new Date().toISOString(),
+        email_verified: true
+      };
+      if (sub && !user.google_sub) patch.google_sub = sub;
+      if (!user.auth_provider || user.auth_provider === 'local') {
+        if (sub) patch.auth_provider = user.password_hash ? 'local+google' : 'google';
+      }
+      db.updateUser(user.id, patch);
+      user = db.findUserById(user.id);
+    }
+
+    res.json({
+      token: signToken(user),
+      user: publicUser(user),
+      isNew: isNew
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(err.status || 500).json({ error: err.message || 'خطأ أثناء تسجيل الدخول بجوجل' });
   }
 });
 

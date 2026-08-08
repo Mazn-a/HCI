@@ -48,6 +48,33 @@
     }
   }
 
+  function clearLocalProgress() {
+    var keys = [
+      'hci_journey',
+      'hci_quiz',
+      'hci_coding_progress',
+      'hci_coding_stage',
+      'hci_practice_count',
+      'hci_practice_1',
+      'hci_practice_2',
+      'hci_practice_3',
+      'hci_practice_4',
+      'hci_course_satr',
+      'hci_course_google',
+      'hci_course_idf',
+      'hci_course_figma',
+      'hci_book_norman',
+      'hci_book_krug',
+      'hci_book_cooper',
+      'hci_book_eyal',
+      'hci_avatar',
+      'hci_seen_notif_ids'
+    ];
+    keys.forEach(function (k) {
+      try { localStorage.removeItem(k); } catch (e) { /* */ }
+    });
+  }
+
   function clearSession() {
     localStorage.removeItem('hci_token');
     localStorage.removeItem('hci_user_id');
@@ -57,6 +84,7 @@
     localStorage.removeItem('hci_path_type');
     localStorage.removeItem('hci_verified');
     try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
+    clearLocalProgress();
   }
 
   function isVerified() {
@@ -555,6 +583,9 @@
       setTimeout(done, 2500);
     });
   }
+
+  /* زائر بدون جلسة: امسح هوية/تقدّم شخص سابق على نفس المتصفح */
+  if (!getToken()) clearSession();
 
   window.HCIApi = {
     API_BASE: API_BASE,

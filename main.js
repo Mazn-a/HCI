@@ -668,6 +668,8 @@ function annotateChecklists(){
 
 // تهيئة الرحلة — بدون فتح الأساسيات/الترميز قبل أوانها
 function bootstrapUnlockFromHome(){
+  var hasSession = !!(localStorage.getItem('hci_user_name') || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  if (!hasSession) return;
   var j = getJourney();
   if (!j.unlocked) j.unlocked = {};
   if (!j.bootstrapped){
@@ -974,6 +976,9 @@ if (navCtaSlot && loggedInName){
 if (heroCta && loggedInName){
   heroCta.textContent = 'أكمل مسارك ←';
   heroCta.setAttribute('href', '#paths');
+} else if (heroCta && !(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())){
+  heroCta.textContent = 'ابدأ رحلتك ←';
+  heroCta.setAttribute('href', 'auth.html?tab=signup');
 }
 
 // ----- شريط التقدم العام (للمسجّلين فقط) -----
@@ -1026,7 +1031,57 @@ function getCurrentStageId(){
 }
 
 var stationsRoot = document.getElementById('stationsList');
-if (stationsRoot){
+if (stationsRoot && !isLoggedInForProgress){
+  var guestGuideTitle = document.getElementById('pathGuideTitle');
+  var guestGuideHint = document.getElementById('pathGuideHint');
+  var guestGuideCta = document.getElementById('pathGuideCta');
+  var guestGuideKicker = document.getElementById('pathGuideKicker');
+  var guestGuideProfile = document.getElementById('pathGuideProfile');
+  if (guestGuideKicker) guestGuideKicker.textContent = 'قبل ما تبدأ';
+  if (guestGuideTitle) guestGuideTitle.textContent = 'سبعة مسارات بالترتيب — من الفضول إلى الإفادة';
+  if (guestGuideHint) guestGuideHint.textContent = 'التقدم يُحفظ على حسابك فقط. أنشئ حساباً مجاناً عشان يبدأ مسارك من الصفر باسمك.';
+  if (guestGuideCta){
+    guestGuideCta.textContent = 'أنشئ حساب وابدأ ←';
+    guestGuideCta.setAttribute('href', 'auth.html?tab=signup');
+  }
+  if (guestGuideProfile){
+    guestGuideProfile.textContent = 'تسجيل الدخول';
+    guestGuideProfile.setAttribute('href', 'auth.html');
+  }
+  stationsRoot.querySelectorAll('[data-stage]').forEach(function(station){
+    var statusEl = station.querySelector('.station-status');
+    var link = station.querySelector('.station-link');
+    var isFirst = station.getAttribute('data-stage') === 'discover';
+    station.classList.remove('is-done');
+    station.classList.toggle('is-locked', !isFirst);
+    station.removeAttribute('aria-current');
+    if (isFirst){
+      station.setAttribute('aria-current', 'step');
+      if (statusEl){ statusEl.textContent = 'ابدأ من هنا'; statusEl.className = 'station-status open'; }
+      if (link){
+        link.classList.remove('disabled');
+        link.classList.remove('show-lock-reason');
+        link.removeAttribute('aria-disabled');
+        link.setAttribute('href', 'auth.html?tab=signup');
+        link.textContent = 'أنشئ حساب وابدأ ←';
+        link.removeAttribute('title');
+      }
+    } else {
+      if (statusEl){ statusEl.textContent = 'بعد التسجيل'; statusEl.className = 'station-status locked'; }
+      if (link){
+        link.classList.add('disabled');
+        link.classList.add('show-lock-reason');
+        link.setAttribute('aria-disabled', 'true');
+        link.setAttribute('href', 'auth.html?tab=signup');
+        link.title = 'أنشئ حساباً أولاً عشان يُحفظ تقدمك';
+        link.addEventListener('click', function(e){
+          e.preventDefault();
+          location.href = 'auth.html?tab=signup';
+        });
+      }
+    }
+  });
+} else if (stationsRoot){
   var stations = stationsRoot.querySelectorAll('[data-stage]');
   var currentAssigned = false;
   var currentStageId = null;

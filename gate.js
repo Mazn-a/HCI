@@ -17,8 +17,19 @@
 
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     if (!page || page === '/' || page === '') page = 'index.html';
-    var loggedIn = !!localStorage.getItem('hci_token');
     var search = location.search || '';
+    var token = localStorage.getItem('hci_token');
+    var role = localStorage.getItem('hci_user_role') || '';
+    var verifiedFlag = localStorage.getItem('hci_verified') === '1' || role === 'admin';
+    if (token && !verifiedFlag) {
+      try {
+        var sessionUser = JSON.parse(localStorage.getItem('hci_user_json') || 'null');
+        if (sessionUser && (sessionUser.emailVerified || sessionUser.phoneVerified || sessionUser.role === 'admin' || sessionUser.pathType)) {
+          verifiedFlag = true;
+        }
+      } catch (e) { /* */ }
+    }
+    var loggedIn = !!token && verifiedFlag;
 
     // ملفات تحقق قوقل
     if (/^google[a-z0-9]+\.html$/i.test(page)) return;
@@ -58,11 +69,16 @@
 
     if (publicPages[page]) {
       if (page === 'auth.html' && loggedIn) location.replace('index.html');
+      else if (page === 'auth.html' && token && !verifiedFlag) {
+        if (!/(?:\?|&)tab=/.test(search)) location.replace('auth.html?tab=verify');
+      }
       return;
     }
 
-    // باقي المنصة تحتاج حساب
-    if (!loggedIn) location.replace('auth.html');
+    // باقي المنصة تحتاج حساب مكتمل (كلمة مرور + تحقق)
+    if (!loggedIn) {
+      location.replace(token && !verifiedFlag ? 'auth.html?tab=verify' : 'auth.html');
+    }
   } catch (e) {
     /* تجاهل */
   }

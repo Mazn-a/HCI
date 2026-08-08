@@ -306,8 +306,10 @@ app.post('/api/auth/register', (req, res) => {
       } catch (e) { /* */ }
     }
 
-    const token = signToken(user);
-    res.status(201).json({ token, user: publicUser(user) });
+    res.status(201).json({
+      user: publicUser(user),
+      needsVerification: true
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'خطأ أثناء إنشاء الحساب' });
@@ -324,6 +326,9 @@ app.post('/api/auth/login', (req, res) => {
 
     if (!identifier || !password) {
       return res.status(400).json({ error: 'أدخل البريد/الجوال وكلمة المرور' });
+    }
+    if (password.length < 1) {
+      return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
     }
 
     let user = null;
@@ -580,6 +585,10 @@ app.post('/api/auth/request-otp', (req, res) => {
       } catch { /* جلسة اختيارية */ }
     }
 
+    if (purpose === 'verify' && !user) {
+      return res.status(404).json({ error: 'أنشئ الحساب أولاً ثم اطلب رمز التحقق' });
+    }
+
     if (purpose === 'verify' && user) {
       if (resolved.channel === 'email' && user.email !== resolved.email) {
         return res.status(400).json({ error: 'البريد لا يطابق حسابك' });
@@ -641,7 +650,11 @@ app.post('/api/auth/confirm-otp', (req, res) => {
     if (resolved.channel === 'phone') patch.phone_verified = true;
     db.updateUser(user.id, patch);
     const updated = db.findUserById(user.id);
-    res.json({ ok: true, user: publicUser(updated) });
+    res.json({
+      ok: true,
+      token: signToken(updated),
+      user: publicUser(updated)
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر التحقق من الرمز' });

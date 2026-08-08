@@ -32,7 +32,7 @@
     return localStorage.getItem('hci_token') || '';
   }
 
-  function setSession(token, user) {
+  function setSession(token, user, opts) {
     if (token) localStorage.setItem('hci_token', token);
     if (user) {
       localStorage.setItem('hci_user_name', user.fullName || (user.firstName + ' ' + user.lastName));
@@ -41,6 +41,10 @@
       localStorage.setItem('hci_user_json', JSON.stringify(user));
       if (user.pathType) localStorage.setItem('hci_path_type', user.pathType);
       else localStorage.removeItem('hci_path_type');
+      var unlocked = (opts && opts.siteUnlock) ||
+        user.role === 'admin' || !!user.emailVerified || !!user.phoneVerified;
+      if (unlocked) localStorage.setItem('hci_verified', '1');
+      else localStorage.removeItem('hci_verified');
     }
   }
 
@@ -51,6 +55,15 @@
     localStorage.removeItem('hci_user_json');
     localStorage.removeItem('hci_user_name');
     localStorage.removeItem('hci_path_type');
+    localStorage.removeItem('hci_verified');
+    try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
+  }
+
+  function isVerified() {
+    if (isAdmin()) return true;
+    if (localStorage.getItem('hci_verified') === '1') return true;
+    var u = currentUser();
+    return !!(u && (u.emailVerified || u.phoneVerified || u.pathType));
   }
 
   function getPathType() {
@@ -63,7 +76,7 @@
   }
 
   function isLoggedIn() {
-    return !!getToken();
+    return !!getToken() && isVerified();
   }
 
   function currentUser() {
@@ -249,7 +262,7 @@
     if (ref && body.referredBy == null) body.referredBy = ref;
     body.visitorKey = getVisitorKey();
     var data = await request('/api/auth/register', { method: 'POST', body: body });
-    setSession(data.token, data.user);
+    if (data && data.token) setSession(data.token, data.user);
     return data;
   }
 
@@ -258,7 +271,7 @@
       method: 'POST',
       body: { identifier: identifier, password: password }
     });
-    setSession(data.token, data.user);
+    setSession(data.token, data.user, { siteUnlock: true });
     return data;
   }
 
@@ -541,6 +554,7 @@
     setSession: setSession,
     clearSession: clearSession,
     isLoggedIn: isLoggedIn,
+    isVerified: isVerified,
     currentUser: currentUser,
     isAdmin: isAdmin,
     getPathType: getPathType,

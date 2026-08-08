@@ -1534,6 +1534,18 @@ function validateField(input, errorEl, checkFn){
 if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var params = new URLSearchParams(window.location.search);
   if (params.get('tab') === 'signup'){ showTab('signup'); }
+  if (params.get('tab') === 'verify'){ showTab('verify'); }
+  try {
+    var pendingVerify = sessionStorage.getItem('hci_pending_verify') || '';
+    var verifyIdField = document.getElementById('verifyIdentifier');
+    if (pendingVerify && verifyIdField && !verifyIdField.value) {
+      verifyIdField.value = pendingVerify;
+      showTab('verify');
+    } else if (params.get('tab') === 'verify' && verifyIdField && !verifyIdField.value) {
+      var cu = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
+      if (cu) verifyIdField.value = cu.email || cu.phone || '';
+    }
+  } catch (e) { /* */ }
 
   tabLogin.addEventListener('click', function(){ showTab('login'); });
   tabSignup.addEventListener('click', function(){ showTab('signup'); });
@@ -1833,21 +1845,19 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     signupSubmit.textContent = 'جاري الإنشاء…';
     statusMsg.classList.remove('show');
     try {
-      var reg = await HCIApi.register({
+      var pendingId = contactMode === 'email'
+        ? signupEmail.value.trim().toLowerCase()
+        : normalizePhoneLocal(signupPhone.value);
+      await HCIApi.register({
         firstName: signupFirst.value.trim(),
         lastName: signupLast.value.trim(),
-        email: contactMode === 'email' ? signupEmail.value.trim().toLowerCase() : null,
-        phone: contactMode === 'phone' ? normalizePhoneLocal(signupPhone.value) : null,
+        email: contactMode === 'email' ? pendingId : null,
+        phone: contactMode === 'phone' ? pendingId : null,
         password: signupPass.value
       });
-      try { await HCIApi.syncProgress(); } catch (syncErr) { /* تجاهل */ }
-      // بعد التسجيل: تحقق من البريد/الجوال ثم اختيار المسار
+      try { sessionStorage.setItem('hci_pending_verify', pendingId); } catch (e) { /* */ }
       var verifyIdentifier = document.getElementById('verifyIdentifier');
-      if (verifyIdentifier) {
-        verifyIdentifier.value = contactMode === 'email'
-          ? (signupEmail.value.trim())
-          : (normalizePhoneLocal(signupPhone.value));
-      }
+      if (verifyIdentifier) verifyIdentifier.value = pendingId;
       showTab('verify');
       statusMsg.textContent = 'الحساب جاهز — أكّد ملكية البريد أو رقم الهاتف برمز التحقق';
       statusMsg.classList.add('show');
@@ -1991,7 +2001,12 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
             purpose: 'verify'
           }
         });
-        if (conf.user) HCIApi.setSession(HCIApi.getToken(), conf.user);
+        if (conf.token && conf.user) {
+          HCIApi.setSession(conf.token, conf.user, { siteUnlock: true });
+        } else if (conf.user) {
+          HCIApi.setSession(HCIApi.getToken(), conf.user, { siteUnlock: true });
+        }
+        try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
         statusMsg.textContent = 'تم التأكيد. جاري فتح مسارك…';
         statusMsg.classList.add('show');
         var dest = await HCIApi.afterAuthFlow(conf.user || HCIApi.currentUser(), true);

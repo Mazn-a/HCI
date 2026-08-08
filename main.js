@@ -854,10 +854,15 @@ if (navCtaSlot && loggedInName){
   var adminLinkHtml = (window.HCIApi && HCIApi.isAdmin())
     ? '<a href="admin.html" class="nav-dropdown-admin">لوحة الإدارة</a>'
     : '';
+  var navAccountHref = 'profile.html';
+  try {
+    var navUser = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
+    if (navUser && navUser.pathType === 'curious' && !navUser.introSeen) navAccountHref = 'settings.html';
+  } catch (e) { /* */ }
   /* ملاحظة: زر الإدارة الذهبي يظهر مرة واحدة بجانب الحساب — القائمة احتياطي */
   navCtaSlot.innerHTML =
     '<span class="nav-user-wrap">' +
-      '<a href="profile.html" class="nav-user" id="navUserProfileLink" aria-label="الملف الشخصي">' +
+      '<a href="' + navAccountHref + '" class="nav-user" id="navUserProfileLink" aria-label="الملف الشخصي">' +
         '<span class="chip-avatar" id="navAvatarChip">' + loggedInName.charAt(0) + '</span>' +
         '<span class="nav-user-name">' + loggedInName + '</span>' +
       '</a>' +
@@ -2145,11 +2150,15 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
 
     // صفحات عامة: لو ما اختار مساره أو ما شاف التعريف، نوجّهه
     var page = (location.pathname.split('/').pop() || '').toLowerCase();
-    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'profile.html'].indexOf(page) !== -1;
+    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html'].indexOf(page) !== -1;
     if (!skipRedirect && !HCIApi.isAdmin()){
       var u = HCIApi.currentUser();
       if (u && !u.pathType){
         location.href = 'path-choice.html';
+        return;
+      }
+      if (u && u.pathType === 'curious' && !u.introSeen){
+        location.href = 'intro.html';
         return;
       }
       if (u && u.pathType === 'specialist'){
@@ -2994,6 +3003,15 @@ var settingsThemeRow = document.getElementById('settingsThemeRow');
 
 bindLettersOnlyName(settingsFirstName);
 bindLettersOnlyName(settingsLastName);
+
+var settingsBack = document.querySelector('.settings-page .page-back');
+if (settingsBack && window.HCIApi && HCIApi.currentUser){
+  var backUser = HCIApi.currentUser();
+  if (backUser && backUser.pathType === 'curious' && !backUser.introSeen){
+    settingsBack.setAttribute('href', 'intro.html');
+    settingsBack.textContent = 'رجوع للتعريف';
+  }
+}
 
 if (settingsFirstName && settingsLastName){
   var u = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;

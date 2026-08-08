@@ -209,6 +209,12 @@ function resolveIdentifier(raw) {
   return { identifier: phone, channel: 'phone', email: null, phone: phone };
 }
 
+function isValidPersonName(v) {
+  const s = String(v || '').trim().replace(/\s+/g, ' ');
+  if (s.length < 2 || s.length > 40) return false;
+  return /^[A-Za-z\u0621-\u063A\u0641-\u064A]+(?: [A-Za-z\u0621-\u063A\u0641-\u064A]+)*$/.test(s);
+}
+
 function isValidEmail(v) {
   if (typeof v !== 'string') return false;
   const s = v.trim().toLowerCase();
@@ -253,6 +259,9 @@ app.post('/api/auth/register', (req, res) => {
     }
     if (!lastName || lastName.length < 2) {
       return res.status(400).json({ error: 'الاسم الثاني مطلوب (حرفين على الأقل)' });
+    }
+    if (!isValidPersonName(firstName) || !isValidPersonName(lastName)) {
+      return res.status(400).json({ error: 'الاسم حروف عربية أو إنجليزية فقط — بدون أرقام أو رموز' });
     }
     if (!email && !phone) {
       return res.status(400).json({ error: 'أدخل البريد الإلكتروني أو رقم الجوال' });
@@ -394,6 +403,14 @@ async function verifyGoogleIdToken(credential) {
 }
 
 function splitGoogleName(payload) {
+  function cleanName(raw, fallback) {
+    const s = String(raw || '')
+      .replace(/[^A-Za-z\u0621-\u063A\u0641-\u064A\s]/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .slice(0, 40);
+    return isValidPersonName(s) ? s : fallback;
+  }
   let first = String(payload.given_name || '').trim();
   let last = String(payload.family_name || '').trim();
   if (!first && payload.name) {
@@ -401,10 +418,10 @@ function splitGoogleName(payload) {
     first = parts[0] || '';
     last = parts.slice(1).join(' ') || '';
   }
-  if (first.length < 2) first = first || 'مستخدم';
-  if (first.length < 2) first = 'مستخدم';
-  if (last.length < 2) last = 'جوجل';
-  return { firstName: first.slice(0, 40), lastName: last.slice(0, 40) };
+  return {
+    firstName: cleanName(first, 'مستخدم'),
+    lastName: cleanName(last, 'جوجل')
+  };
 }
 
 app.post('/api/auth/google', async (req, res) => {

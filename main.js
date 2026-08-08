@@ -1400,6 +1400,32 @@ function normalizePhoneLocal(value){
   return digits;
 }
 
+function isValidPersonName(value){
+  var s = String(value || '').trim().replace(/\s+/g, ' ');
+  if (s.length < 2 || s.length > 40) return false;
+  return /^[A-Za-z\u0621-\u063A\u0641-\u064A]+(?: [A-Za-z\u0621-\u063A\u0641-\u064A]+)*$/.test(s);
+}
+
+function onlyPersonNameChars(value){
+  return String(value || '')
+    .replace(/[^A-Za-z\u0621-\u063A\u0641-\u064A\s]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function bindLettersOnlyName(input){
+  if (!input) return;
+  function applyName(){
+    var v = onlyPersonNameChars(input.value);
+    if (input.value !== v) input.value = v;
+  }
+  input.setAttribute('maxlength', '40');
+  input.addEventListener('input', applyName);
+  input.addEventListener('blur', function(){
+    input.value = onlyPersonNameChars(input.value).trim();
+  });
+  input.addEventListener('paste', function(){ setTimeout(applyName, 0); });
+}
+
 function isValidPhone(value){
   // جوال سعودي: 05xxxxxxxx بالضبط — أرقام إنجليزية فقط
   return /^05[0-9]{8}$/.test(normalizePhoneLocal(value));
@@ -1726,6 +1752,9 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var signupPassConfirmError = document.getElementById('signupPassConfirmError');
   var signupSubmit = document.getElementById('signupSubmit');
 
+  bindLettersOnlyName(signupFirst);
+  bindLettersOnlyName(signupLast);
+
   // حدود وصيغة مباشرة أثناء الكتابة
   if (signupEmail){
     signupEmail.addEventListener('input', function(){
@@ -1767,8 +1796,8 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
 
   formSignup.addEventListener('submit', async function(event){
     event.preventDefault();
-    var firstOk = validateField(signupFirst, signupFirstError, function(v){ return v.trim().length >= 2; });
-    var lastOk = validateField(signupLast, signupLastError, function(v){ return v.trim().length >= 2; });
+    var firstOk = validateField(signupFirst, signupFirstError, isValidPersonName);
+    var lastOk = validateField(signupLast, signupLastError, isValidPersonName);
     var passOk = validateField(signupPass, signupPassError, function(v){ return v.length >= 8; });
     var confirmOk = validateField(signupPassConfirm, signupPassConfirmError, function(v){
       return v.length >= 8 && v === String(signupPass && signupPass.value || '');
@@ -2949,6 +2978,9 @@ var settingsSizeRow = document.getElementById('settingsSizeRow');
 var settingsSwatchRow = document.getElementById('settingsSwatchRow');
 var settingsThemeRow = document.getElementById('settingsThemeRow');
 
+bindLettersOnlyName(settingsFirstName);
+bindLettersOnlyName(settingsLastName);
+
 if (settingsFirstName && settingsLastName){
   var u = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
   if (u){
@@ -3105,6 +3137,10 @@ if (settingsSaveAll){
     var last = settingsLastName ? settingsLastName.value.trim() : '';
     if (first.length < 2 || last.length < 2){
       if (settingsSaveNote) settingsSaveNote.textContent = 'أدخل الاسم الأول واسم العائلة (حرفان على الأقل لكل منهما).';
+      return;
+    }
+    if (!isValidPersonName(first) || !isValidPersonName(last)){
+      if (settingsSaveNote) settingsSaveNote.textContent = 'الاسم حروف عربية أو إنجليزية فقط — بدون أرقام أو رموز.';
       return;
     }
 

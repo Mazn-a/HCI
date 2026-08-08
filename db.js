@@ -247,6 +247,10 @@ const db = {
     if (nextFirst.length < 2 || nextLast.length < 2) {
       return { error: 'الاسم الأول والثاني مطلوبان (حرفان على الأقل لكل منهما)' };
     }
+    var nameOk = /^[A-Za-z\u0621-\u063A\u0641-\u064A]+(?: [A-Za-z\u0621-\u063A\u0641-\u064A]+)*$/;
+    if (!nameOk.test(nextFirst.replace(/\s+/g, ' ')) || !nameOk.test(nextLast.replace(/\s+/g, ' '))) {
+      return { error: 'الاسم حروف عربية أو إنجليزية فقط — بدون أرقام أو رموز' };
+    }
     if (!user.name_history) user.name_history = [];
     const oldFirst = user.first_name;
     const oldLast = user.last_name;

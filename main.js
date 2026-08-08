@@ -697,7 +697,7 @@ function annotateChecklists(){
     if (!list.querySelector('.checklist-hint')){
       var hint = document.createElement('p');
       hint.className = 'checklist-hint';
-      hint.innerHTML = 'حدّد كل البنود، ثم اضغط <strong>التالي</strong> للمتابعة.';
+      hint.innerHTML = 'حدّد كل البنود، ثم اضغط الزر للمتابعة.';
       var h4 = list.querySelector('h4');
       if (h4) h4.insertAdjacentElement('afterend', hint);
       else list.insertBefore(hint, list.firstChild);

@@ -424,12 +424,105 @@
       .replace(/"/g, '&quot;');
   }
 
+  var ADMIN_TABS = ['tabOverview', 'tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'];
+  var BLOCK_ORDER_KEY = 'hci_admin_block_order';
+  var STAT_ORDER_KEY = 'hci_admin_stat_order';
+  var DEFAULT_BLOCKS = ['attention', 'stats', 'insights'];
+  var DEFAULT_STATS = ['students', 'active', 'newWeek', 'completed', 'certificates', 'stalled', 'quiz', 'articlesPub'];
+
+  function readOrder(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      var arr = raw ? JSON.parse(raw) : null;
+      if (!Array.isArray(arr) || !arr.length) return fallback.slice();
+      var clean = [];
+      arr.forEach(function (id) {
+        if (fallback.indexOf(id) !== -1 && clean.indexOf(id) === -1) clean.push(id);
+      });
+      fallback.forEach(function (id) {
+        if (clean.indexOf(id) === -1) clean.push(id);
+      });
+      return clean;
+    } catch (e) {
+      return fallback.slice();
+    }
+  }
+
+  function saveOrder(key, arr) {
+    try { localStorage.setItem(key, JSON.stringify(arr)); } catch (e) { /* */ }
+  }
+
+  function applyBlockOrder() {
+    var stack = document.getElementById('adminOverviewStack');
+    if (!stack) return;
+    var order = readOrder(BLOCK_ORDER_KEY, DEFAULT_BLOCKS);
+    order.forEach(function (id) {
+      var el = stack.querySelector('[data-admin-block="' + id + '"]');
+      if (el) stack.appendChild(el);
+    });
+    // refresh numbers in titles
+    var labels = { attention: 'يحتاج انتباهك الآن', stats: 'أرقام سريعة', insights: 'صورة أوضح' };
+    order.forEach(function (id, i) {
+      var el = stack.querySelector('[data-admin-block="' + id + '"] h2');
+      if (el && labels[id]) el.textContent = (i + 1) + ') ' + labels[id];
+    });
+  }
+
+  function moveBlock(id, dir) {
+    var order = readOrder(BLOCK_ORDER_KEY, DEFAULT_BLOCKS);
+    var i = order.indexOf(id);
+    if (i < 0) return;
+    var j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    var tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+    saveOrder(BLOCK_ORDER_KEY, order);
+    applyBlockOrder();
+  }
+
+  function applyStatOrder() {
+    var root = document.getElementById('adminStats');
+    if (!root) return;
+    var order = readOrder(STAT_ORDER_KEY, DEFAULT_STATS);
+    order.forEach(function (id) {
+      var el = root.querySelector('[data-stat="' + id + '"]');
+      if (el) root.appendChild(el);
+    });
+    root.querySelectorAll('.stat-box').forEach(function (box) {
+      var move = box.querySelector('.stat-move');
+      if (!move) {
+        move = document.createElement('div');
+        move.className = 'stat-move';
+        move.innerHTML =
+          '<button type="button" class="stat-up" aria-label="للأعلى">↑</button>' +
+          '<button type="button" class="stat-down" aria-label="للأسفل">↓</button>';
+        box.insertBefore(move, box.firstChild);
+      }
+    });
+  }
+
+  function moveStat(id, dir) {
+    var order = readOrder(STAT_ORDER_KEY, DEFAULT_STATS);
+    var i = order.indexOf(id);
+    if (i < 0) return;
+    var j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    var tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+    saveOrder(STAT_ORDER_KEY, order);
+    applyStatOrder();
+  }
+
   function setAdminTab(active, opts) {
     opts = opts || {};
-    ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'].forEach(function (id) {
+    ADMIN_TABS.forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle('active', id === active);
     });
+    var panelOverview = document.getElementById('panelOverview');
+    if (panelOverview) panelOverview.hidden = active !== 'tabOverview';
     document.getElementById('panelUsers').hidden = active !== 'tabUsers';
     var panelShare = document.getElementById('panelShare');
     if (panelShare) panelShare.hidden = active !== 'tabShare';
@@ -456,6 +549,8 @@
   function openTabFromHash() {
     var h = (location.hash || '').replace(/^#/, '');
     var map = {
+      overview: 'tabOverview',
+      '': 'tabOverview',
       users: 'tabUsers',
       share: 'tabShare',
       messages: 'tabMessages',
@@ -463,16 +558,46 @@
       contacts: 'tabContacts',
       articles: 'tabArticles'
     };
-    if (map[h]) setAdminTab(map[h], { skipHash: true });
+    setAdminTab(map[h] || 'tabOverview', { skipHash: true });
   }
 
-  ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'].forEach(function (id) {
+  ADMIN_TABS.forEach(function (id) {
     var el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('click', function () {
       setAdminTab(id);
     });
   });
+
+  document.querySelectorAll('[data-block-up]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      moveBlock(btn.getAttribute('data-block-up'), -1);
+    });
+  });
+  document.querySelectorAll('[data-block-down]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      moveBlock(btn.getAttribute('data-block-down'), 1);
+    });
+  });
+
+  var statsRoot = document.getElementById('adminStats');
+  var toggleStatsEdit = document.getElementById('toggleStatsEdit');
+  if (toggleStatsEdit && statsRoot) {
+    toggleStatsEdit.addEventListener('click', function () {
+      var on = statsRoot.classList.toggle('edit-mode');
+      toggleStatsEdit.textContent = on ? 'إنهاء الترتيب' : 'ترتيب الأرقام';
+    });
+    statsRoot.addEventListener('click', function (e) {
+      var up = e.target.closest('.stat-up');
+      var down = e.target.closest('.stat-down');
+      if (!up && !down) return;
+      var box = e.target.closest('[data-stat]');
+      if (!box) return;
+      moveStat(box.getAttribute('data-stat'), up ? -1 : 1);
+    });
+  }
+  applyBlockOrder();
+  applyStatOrder();
 
   document.querySelectorAll('[data-admin-tab]').forEach(function (card) {
     card.addEventListener('click', function (e) {
@@ -1075,3 +1200,4 @@
     console.warn('تعذر تحميل بيانات الإدارة:', err && err.message);
   }
 })();
+

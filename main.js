@@ -2166,10 +2166,6 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     var googleBusy = false;
 
     function showGoogleUi(clientId){
-      document.querySelectorAll('.google-auth-only').forEach(function(el){
-        el.hidden = false;
-      });
-
       function loadGis(cb){
         if (window.google && google.accounts && google.accounts.id) {
           cb();
@@ -2186,12 +2182,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         s.defer = true;
         s.setAttribute('data-hci-gis', '1');
         s.onload = cb;
-        s.onerror = function(){
-          if (statusMsg){
-            statusMsg.textContent = 'تعذر تحميل خدمة جوجل — أعد تحميل الصفحة';
-            statusMsg.classList.add('show');
-          }
-        };
+        s.onerror = function(){ /* جوجل اختياري — نخفي الفاصل */ };
         document.head.appendChild(s);
       }
 
@@ -2243,13 +2234,12 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
           var signupWrap = document.getElementById('googleSignupBtnWrap');
           if (loginWrap) google.accounts.id.renderButton(loginWrap, opts);
           if (signupWrap) google.accounts.id.renderButton(signupWrap, opts);
+          /* لا تُظهر «أو» إلا بعد ما يظهر زر جوجل فعلياً */
+          document.querySelectorAll('.google-auth-only').forEach(function(el){
+            el.hidden = false;
+          });
           googleReady = true;
-        } catch (e) {
-          if (statusMsg){
-            statusMsg.textContent = 'تعذر تهيئة زر جوجل';
-            statusMsg.classList.add('show');
-          }
-        }
+        } catch (e) { /* جوجل اختياري */ }
       });
     }
 

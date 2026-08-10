@@ -3870,6 +3870,11 @@ body[data-theme="light"] .settings-side-link{
   opacity: 0.75; cursor: wait; filter: none; transform: none;
 }
 
+.auth-divider[hidden],
+.google-auth-only[hidden],
+.google-btn-wrap[hidden]{
+  display: none !important;
+}
 .auth-divider{
   display: flex;
   align-items: center;

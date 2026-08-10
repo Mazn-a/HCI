@@ -3190,6 +3190,46 @@ if (lessonList && codingProgressFill && codingProgressNote){
   renderLessons();
 }
 
+// ----- محرر «جرّب بنفسك» -----
+document.querySelectorAll('.try-lab').forEach(function(lab){
+  var codeBox = lab.querySelector('.try-code');
+  var frame = lab.querySelector('.try-frame');
+  var resetBtn = lab.querySelector('.try-reset');
+  if (!codeBox || !frame) return;
+  var originalCode = codeBox.value;
+  var renderTimer = null;
+
+  function renderTry(){
+    var src = codeBox.value;
+    if (!/<html|<body/i.test(src)){
+      src = '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;margin:12px;color:#111;font-size:14px}</style></head><body>' + src + '</body></html>';
+    }
+    frame.srcdoc = src;
+  }
+
+  codeBox.addEventListener('input', function(){
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(renderTry, 250);
+  });
+
+  if (resetBtn){
+    resetBtn.addEventListener('click', function(){
+      codeBox.value = originalCode;
+      renderTry();
+    });
+  }
+
+  renderTry();
+});
+
+var projectDoneBtn = document.getElementById('projectDoneBtn');
+if (projectDoneBtn){
+  projectDoneBtn.addEventListener('click', function(){
+    projectDoneBtn.textContent = 'أنجزتها ✓';
+    showUnlockToast('مبروك! بنيت أول صفحة ويب بنفسك 🎉');
+  });
+}
+
 // ----- الإعدادات -----
 var settingsFirstName = document.getElementById('settingsFirstName');
 var settingsLastName = document.getElementById('settingsLastName');

@@ -492,6 +492,14 @@ const db = {
     return row;
   },
 
+  deleteContact(id) {
+    const before = cache.contacts.length;
+    cache.contacts = cache.contacts.filter((x) => x.id !== Number(id));
+    if (cache.contacts.length === before) return false;
+    persist();
+    return true;
+  },
+
   countContacts() {
     return cache.contacts.filter((c) => c.status === 'new').length;
   },

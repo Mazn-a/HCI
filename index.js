@@ -1429,6 +1429,12 @@ app.patch('/api/admin/contacts/:id/done', adminRequired, (req, res) => {
   res.json({ ok: true });
 });
 
+app.delete('/api/admin/contacts/:id', adminRequired, (req, res) => {
+  const ok = db.deleteContact(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'الرسالة غير موجودة' });
+  res.json({ ok: true });
+});
+
 /* ---------- بلاغات المشاكل (من أي زائر أو طالب) ---------- */
 app.post('/api/reports', (req, res) => {
   upload.single('media')(req, res, function (err) {

@@ -720,12 +720,20 @@
               (c.status === 'new'
                 ? '<button type="button" class="done-contact-btn" data-id="' + c.id + '">تم الاطلاع</button>'
                 : '') +
+              '<button type="button" class="del-btn del-contact-btn" data-id="' + c.id + '" data-name="' + escapeHtml(c.name) + '">حذف</button>' +
             '</div>' +
             (!c.canNotify
               ? '<p class="admin-contact-hint">ما لقينا حساب مرتبط — الرد يُحفظ هنا، والتنبيه يوصل فقط لو كان مسجّل.</p>'
               : '<p class="admin-contact-hint">التنبيه يوصل مباشرة لجرس الإشعارات عنده.</p>') +
           '</div>';
       }
+
+      var deleteOnly =
+        c.reply
+          ? '<div class="admin-contact-reply-actions" style="margin-top:10px;">' +
+              '<button type="button" class="del-btn del-contact-btn" data-id="' + c.id + '" data-name="' + escapeHtml(c.name) + '">حذف الرسالة</button>' +
+            '</div>'
+          : '';
 
       card.innerHTML =
         '<div class="admin-contact-top">' +
@@ -735,7 +743,7 @@
         '</div>' +
         '<div class="admin-contact-meta" dir="ltr">' + escapeHtml(c.contact || '—') + '</div>' +
         '<p class="admin-contact-msg">' + escapeHtml(c.message) + '</p>' +
-        replyBlock;
+        replyBlock + deleteOnly;
       list.appendChild(card);
     });
 
@@ -771,6 +779,20 @@
         await HCIApi.request('/api/admin/contacts/' + b.getAttribute('data-id') + '/done', { method: 'PATCH' });
         await loadStats();
         await loadContacts();
+      });
+    });
+
+    list.querySelectorAll('.del-contact-btn').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var name = b.getAttribute('data-name') || 'هذي الرسالة';
+        if (!confirm('حذف رسالة «' + name + '» نهائياً؟')) return;
+        try {
+          await HCIApi.request('/api/admin/contacts/' + b.getAttribute('data-id'), { method: 'DELETE' });
+          await loadStats();
+          await loadContacts();
+        } catch (err) {
+          alert(err.message || 'تعذر الحذف');
+        }
       });
     });
   }

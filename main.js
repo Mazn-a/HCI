@@ -3660,10 +3660,18 @@ if (spotOptions.length){
       if (!correct) opt.classList.add('is-wrong');
 
       if (feedback){
-        feedback.textContent = correct
-          ? '✓ ممتاز — فكرت كمصمم HCI!'
-          : '✕ مو هذي — شوف الخيار الصحيح ولماذا أفضل.';
-        feedback.style.color = correct ? 'var(--line-green)' : 'var(--error)';
+        var whyChosen = opt.getAttribute('data-why') || '';
+        if (correct){
+          feedback.innerHTML = '<strong>✓ صح!</strong> ' + (whyChosen || 'فكرت كمصمم HCI.');
+          feedback.style.color = 'var(--line-green)';
+        } else {
+          var rightOpt = scene.querySelector('.spot-option[data-correct="true"]');
+          var rightWhy = rightOpt ? (rightOpt.getAttribute('data-why') || '') : '';
+          var rightText = rightOpt ? rightOpt.textContent.trim() : '';
+          feedback.innerHTML = '<strong>✕ ليش غلط؟</strong> ' + (whyChosen || 'هذا الخيار ما يخدم المستخدم.') +
+            '<br><span style="color:var(--line-green)"><strong>✓ الصح:</strong> «' + rightText + '» — ' + rightWhy + '</span>';
+          feedback.style.color = 'var(--error)';
+        }
       }
 
       // تتبع تقدم التمارين

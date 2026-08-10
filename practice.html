@@ -46,17 +46,17 @@
       <div class="lesson-head reveal">
         <span class="eyebrow">/// محطة 05 — تعلّم بالمرح</span>
         <h1>اختَر الأفضل… وخلّ المبدأ يلصق بذهنك</h1>
-        <p>كل تمرين سيناريو واقعي. ما فيه درجات مرعبة — فيه فهم. أكمل 3 تمارين عشان تُحتسب المرحلة مكتملة.</p>
+        <p>14 تمرين — كل واحد سيناريو واقعي، وأغلبها من أفكار الكتب اللي لخصناها لك. ما فيه درجات مرعبة: جاوب، وسواء أصبت أو أخطأت بيطلع لك شرح ليش. أكمل 3 عشان تُحتسب المرحلة، وكمّلها كلها عشان يثبت الفهم.</p>
       </div>
 
       <div class="practice-scene reveal" data-scene="1">
         <h3>01 — رسالة خطأ في نموذج تسجيل</h3>
         <p class="ps-hint">أي صياغة تحترم مبدأ «ساعد المستخدم يتعرف على الخطأ ويتعافى منه»؟</p>
         <div class="spot-grid">
-          <button type="button" class="spot-option" data-correct="false">Error 422: Validation failed</button>
-          <button type="button" class="spot-option" data-correct="true">رقم الجوال ناقص خانة — كمّله لـ 10 أرقام</button>
-          <button type="button" class="spot-option" data-correct="false">حدث خطأ. حاول لاحقاً.</button>
-          <button type="button" class="spot-option" data-correct="false">Invalid phone</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="رمز تقني ما يفهمه غير المبرمج — المستخدم ما يعرف وش المشكلة ولا كيف يصلحها.">Error 422: Validation failed</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="حددت المشكلة بالضبط (ناقص خانة) وأعطيت الحل الفوري (كمّله لـ 10) بلغة إنسان.">رقم الجوال ناقص خانة — كمّله لـ 10 أرقام</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="غامضة تماماً — ما تقول وين الخطأ ولا وش يسوي المستخدم عشان يتعافى منه.">حدث خطأ. حاول لاحقاً.</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="مختصرة وبالإنجليزي — ما توضح وش الغلط بالضبط ولا كيف يُصلح.">Invalid phone</button>
         </div>
         <p class="spot-feedback" aria-live="polite"></p>
       </div>
@@ -65,10 +65,10 @@
         <h3>02 — زر الإرسال بعد الضغط</h3>
         <p class="ps-hint">المستخدم ضغط «إرسال الطلب». أي سلوك يحترم «رؤية حالة النظام»؟</p>
         <div class="spot-grid">
-          <button type="button" class="spot-option" data-correct="false">الزر يختفي فجأة بدون أي رسالة</button>
-          <button type="button" class="spot-option" data-correct="true">الزر يصير «جاري الإرسال…» مع تعطيل الضغط المتكرر</button>
-          <button type="button" class="spot-option" data-correct="false">الصفحة تعيد التحميل بصمت</button>
-          <button type="button" class="spot-option" data-correct="false">يطلع صوت فقط بدون تغيير بصري</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="اختفاء بدون تفسير يخلي المستخدم تايه: هل أرسل طلبي ولا لا؟ غالباً بيحدّث الصفحة ويكرر الطلب.">الزر يختفي فجأة بدون أي رسالة</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="المستخدم يشوف حالة النظام لحظة بلحظة، وتعطيل الزر يمنع الإرسال المكرر بالغلط.">الزر يصير «جاري الإرسال…» مع تعطيل الضغط المتكرر</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="ما فيه أي إشارة توضح وش صار — رؤية حالة النظام هنا معدومة.">الصفحة تعيد التحميل بصمت</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="الصوت ممكن يكون مكتوماً، أو المستخدم أصم — التغذية الراجعة تحتاج إشارة بصرية واضحة.">يطلع صوت فقط بدون تغيير بصري</button>
         </div>
         <p class="spot-feedback" aria-live="polite"></p>
       </div>
@@ -77,10 +77,10 @@
         <h3>03 — كثافة الخيارات</h3>
         <p class="ps-hint">شاشة إعدادات فيها 40 خيار بنفس الوزن البصري. وش أسوأ أثر على المستخدم؟ (قانون هيك / حمل معرفي)</p>
         <div class="spot-grid">
-          <button type="button" class="spot-option" data-correct="true">يزيد وقت القرار ويُرهق الانتباه — المستخدم يؤجل أو يغلط</button>
-          <button type="button" class="spot-option" data-correct="false">يحسّن الإحساس بالسيطرة دائماً</button>
-          <button type="button" class="spot-option" data-correct="false">ما له أثر طالما الألوان حلوة</button>
-          <button type="button" class="spot-option" data-correct="false">يقلل الحاجة لأي بحث</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="هذا قانون هيك بالضبط: كل خيار إضافي يرفع وقت القرار ويزيد الحمل المعرفي.">يزيد وقت القرار ويُرهق الانتباه — المستخدم يؤجل أو يغلط</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="الخيارات الزايدة بنفس الوزن البصري تشتت أكثر ما تعطي سيطرة — المستخدم يتوه بينها.">يحسّن الإحساس بالسيطرة دائماً</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="الجمال ما يعالج مشكلة معرفية — 40 خيار متساوٍ يظل مرهقاً مهما كانت الألوان.">ما له أثر طالما الألوان حلوة</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="العكس: كثرة الخيارات تخلي المستخدم يدور أكثر عشان يلقى اللي يبيه.">يقلل الحاجة لأي بحث</button>
         </div>
         <p class="spot-feedback" aria-live="polite"></p>
       </div>
@@ -99,8 +99,118 @@
           </div>
         </div>
         <div class="spot-grid">
-          <button type="button" class="spot-option" data-correct="false">الأيقونات وحدها دائماً أذكى وأحدث</button>
-          <button type="button" class="spot-option" data-correct="true">الاتساق + التسميات يقللان الاعتماد على الذاكرة</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="الأيقونة بدون نص تعتمد على تخمين المستخدم — والتخمين يختلف من شخص لشخص.">الأيقونات وحدها دائماً أذكى وأحدث</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="النص يزيل التخمين، والاتساق يخلي اللي تعلمته بصفحة ينفعك بكل الصفحات — تعرّف بدل ما تتذكر.">الاتساق + التسميات يقللان الاعتماد على الذاكرة</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="5">
+        <h3>05 — باب بدون كلمات <span class="ps-book">من كتاب نورمان</span></h3>
+        <p class="ps-hint">وقفت قدام باب زجاجي عليه لوح معدني مسطح من جهتك، بدون أي كلمة مكتوبة. وش يقول لك التصميم؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="true" data-why="اللوح المسطح ما يمديك تمسكه — شكله نفسه يوحي بالدفع. هذي «الإتاحة» Affordance: العنصر يشرح استخدامه بشكله.">ادفعني — اللوح المسطح ما ينمسك</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="السحب يحتاج مقبض تقدر تلف أصابعك حوله — اللوح المسطح ما يوفر هذي الإمكانية أصلاً.">اسحبني</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="لو التصميم واضح ما احتجنا ملصق. نورمان يقول: الملصقات غالباً اعتراف بفشل التصميم.">ما يقول شي — لازم يحطون ملصق «ادفع»</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="6">
+        <h3>06 — عيون البوتاجاز <span class="ps-book">من كتاب نورمان</span></h3>
+        <p class="ps-hint">أزرار البوتاجاز مصفوفة بخط مستقيم، والعيون مرتبة مربع 2×2. الكل يشغّل العين الغلط. وش الحل الجذري؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="الملصقات تساعد شوي لكنها تعالج العَرَض مو السبب: الترتيب نفسه غير مطابق، والمستخدم المستعجل ما يقرأ.">ملصقات أوضح فوق كل زر</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="هذي «المطابقة» Mapping: لما ترتيب الأزرار يطابق ترتيب العيون، اليد تروح للزر الصح بدون تفكير.">رتّب الأزرار مربع 2×2 بنفس شكل العيون</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="هذا لوم للمستخدم — وفكرة الكتاب المحورية: لا تدرّب الناس على تصميم سيئ، أصلح التصميم.">درّب أهل البيت على الترتيب الحالي</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="7">
+        <h3>07 — «تسحيل» بدل «تسجيل» <span class="ps-book">من كتاب نورمان</span></h3>
+        <p class="ps-hint">كتبت «تسحيل» وأنت مستعجل رغم إنك تعرف الإملاء الصح. حسب تصنيف نورمان للأخطاء، هذي:</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="true" data-why="الزلة: تعرف الصح بس التنفيذ خانك. علاجها التصميمي: تدقيق تلقائي، تأكيد قبل الإرسال، وزر تراجع.">زلة (Slip) — النية صح والتنفيذ غلط</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="الغلطة Mistake تكون لما فهمك نفسه خطأ (تحسب هذا الحقل لشي ثاني). هنا أنت فاهم الصح تماماً.">غلطة (Mistake) — فهمك كان خطأ</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="هذا لوم للمستخدم — أول درس بالكتاب: الخطأ المتكرر مؤشر على التصميم، مو على غباء الناس.">ضعف إملائي عند المستخدم</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="8">
+        <h3>08 — فقرة ترحيبية من 6 أسطر <span class="ps-book">من كتاب كروغ</span></h3>
+        <p class="ps-hint">حطيت مقدمة طويلة وجميلة بأعلى صفحتك الرئيسية. حسب كروغ، وش اللي بيصير فعلياً؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="هذا اللي نتمناه، لكن الواقع اللي يثبته كروغ بالاختبارات: الناس ما تقرأ صفحات الويب.">بيقرأونها كلمة كلمة لأنها أول شي بالصفحة</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="الناس تمسح الصفحة مسح سريع تدور على شي يشبه هدفها. نصيحة كروغ: احذف نص المقدمات، ثم احذف نص اللي باقي.">أغلبهم بيتجاوزونها كأنها مو موجودة</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="العكس: النص الطويل يأخر المستخدم عن هدفه ويزيد إحساسه إن الموقع متعب.">كل ما طالت زادت ثقتهم بالموقع</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="9">
+        <h3>09 — أول خيار معقول <span class="ps-book">من كتاب كروغ</span></h3>
+        <p class="ps-hint">مستخدم يدور «إلغاء الاشتراك» وشاف رابطين: «إدارة التفضيلات» و«حسابي». وش المتوقع يسوي؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="المستخدم الحقيقي مستعجل — المقارنة الدقيقة تصير نادراً، خصوصاً بمهمة بسيطة.">يقارن الرابطين بعناية ويحلل أيهم أدق</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="هذا «الاكتفاء بالمقبول» Satisficing: أول خيار يبدو معقول ينضغط. الدرس: خلّ الخيار الصح هو الأوضح والأقرب لكلمات المستخدم.">يضغط أول رابط يبدو معقول حتى لو مو متأكد</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="خريطة الموقع آخر مكان يروحه المستخدم — إذا وصلها فغالباً التنقل عندك فاشل.">يفتح خريطة الموقع ويقرأها</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="10">
+        <h3>10 — ميزانية اختبار = صفر <span class="ps-book">من كتاب كروغ</span></h3>
+        <p class="ps-hint">تبي تختبر موقعك وما عندك ميزانية ولا مختبر. وش يقترح كروغ؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="الانتظار للاختبار المثالي معناه ما فيه اختبار أبداً — وكروغ يقول: اختبار متواضع اليوم أفضل من مثالي ما يصير.">أجّل الاختبار لين توفر مختبر UX و30 مشارك</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="أنت أسوأ شخص يختبر موقعك: تعرف وين كل شي، فما راح تتعثر مثل المستخدم الجديد.">اكتفِ برأيك — أنت المصمم وتعرف موقعك</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="وصفة كروغ الشهيرة: 3 أشخاص من أي مكان يكشفون أغلب المشاكل الكبيرة. المهم تسكت وتراقبهم يتعثرون.">جيب 3 أشخاص يجربون قدامك وأنت ساكت تراقب</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="11">
+        <h3>11 — تطبيق «لكل الناس» <span class="ps-book">من كتاب كوبر</span></h3>
+        <p class="ps-hint">فريقك قرر يصمم التطبيق ليناسب «جميع المستخدمين». حسب كوبر، وش المشكلة؟</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="توسيع الجمهور بدون تحديد يذوّب المنتج: تحاول ترضي الكل فتطلع بواجهة مليانة تنازلات ما ترضي أحد.">ما فيه مشكلة — كل ما زاد الجمهور زاد النجاح</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="مبدأ كوبر: صمم لشخصية Persona محددة مبنية على مقابلات حقيقية — لما ترضيها بعمق، غالباً أرضيت شريحة واسعة معها.">التصميم للجميع يرضي محد — ابنِ شخصية محددة وصمم لها</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="المبرمجون مستخدمون غير طبيعيين — خبرتهم التقنية تخفي عنهم مشاكل المستخدم العادي.">اسأل المبرمجين وش يحتاجون ويكفي</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="12">
+        <h3>12 — 6 خطوات قبل ما يشوف الأكل <span class="ps-book">من كتاب كوبر</span></h3>
+        <p class="ps-hint">تطبيق توصيل يجبرك تنشئ حساباً من 6 خطوات قبل ما يوريك أي مطعم. حسب كوبر، هذا اسمه:</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="true" data-why="الضريبة Excise: شغل ما يخدم هدف المستخدم (يشوف الأكل ويطلب). الحل: خلّه يتصفح أول، وأجّل التسجيل للحظة الطلب.">«ضريبة» تعيق هدف المستخدم — أخّرها أو قصّها</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="الأمان ما يحتاج 6 خطوات قبل مجرد التصفح — التصفح ما فيه بيانات حساسة أصلاً.">إجراء أمني ضروري دائماً</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="اللي يصير فعلياً: أغلب المستخدمين يملّون ويحذفون التطبيق قبل ما يكملون الخطوة الثالثة.">يزيد التزام المستخدم النفسي بالتطبيق</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="13">
+        <h3>13 — ليش السحب للتحديث إدماني؟ <span class="ps-book">من كتاب Hooked</span></h3>
+        <p class="ps-hint">تسحب الشاشة لتحديث المحتوى… وتكررها كل شوي بدون ما تحس. حسب نموذج Hooked، السر:</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="الحركة نفسها عادية — لو كانت النتيجة دايم نفسها ما كررتها بهالشكل.">الحركة نفسها ممتعة للأصابع</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="المكافأة المتغيرة: كل سحبة ممكن تطلع شي جديد ممتع أو لا شيء — نفس آلية ماكينة الحظ، وعدم التوقع هو اللي يخلي الدماغ يطلب المزيد.">المكافأة غير مضمونة — ممكن يطلع جديد وممكن لا</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="تقنياً فيه طرق تحديث تلقائية أسرع — التصميم هذا اختير لأثره النفسي مو لسرعته.">لأنها أسرع طريقة تحديث تقنياً</button>
+        </div>
+        <p class="spot-feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="practice-scene reveal" data-scene="14">
+        <h3>14 — ميزة تجيب استخداماً بلا فايدة <span class="ps-book">من كتاب Hooked</span></h3>
+        <p class="ps-hint">صممت ميزة تخلي الناس يفتحون تطبيقك كل ساعة، بس بدون فايدة حقيقية لهم. حسب اختبار إيال الأخلاقي:</p>
+        <div class="spot-grid">
+          <button type="button" class="spot-option" data-correct="false" data-why="الاستخدام المرتفع بلا قيمة ينهار مع الوقت — وأول ما يوعى المستخدم يحس إنه اتخُدع ويترك التطبيق.">نجاح — أي زيادة بالاستخدام مكسب</button>
+          <button type="button" class="spot-option" data-correct="true" data-why="اختبار إيال بسؤالين: هل أستخدم منتجي بنفسي؟ وهل يحسّن حياة المستخدم فعلاً؟ إذا الجواب لا، فأنت تتلاعب مو تصمم.">تلاعب — لازم تعيد التصميم بحيث يفيد المستخدم فعلاً</button>
+          <button type="button" class="spot-option" data-correct="false" data-why="«المستخدم حر» حجة تتجاهل إن التصميم يستغل آليات نفسية لا واعية — والمسؤولية على المصمم اللي يعرف اللعبة.">عادي — المستخدم حر بوقته</button>
         </div>
         <p class="spot-feedback" aria-live="polite"></p>
       </div>

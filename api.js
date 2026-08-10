@@ -55,10 +55,6 @@
       'hci_coding_progress',
       'hci_coding_stage',
       'hci_practice_count',
-      'hci_practice_1',
-      'hci_practice_2',
-      'hci_practice_3',
-      'hci_practice_4',
       'hci_course_satr',
       'hci_course_google',
       'hci_course_idf',
@@ -73,6 +69,13 @@
     keys.forEach(function (k) {
       try { localStorage.removeItem(k); } catch (e) { /* */ }
     });
+    /* مفاتيح التمارين ديناميكية (hci_practice_1 .. n) */
+    try {
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('hci_practice_') === 0) localStorage.removeItem(k);
+      }
+    } catch (e) { /* */ }
   }
 
   function clearSession() {
@@ -386,9 +389,14 @@
     var practice = {};
     var practiceCount = localStorage.getItem('hci_practice_count');
     if (practiceCount) practice.count = practiceCount;
-    ['1', '2', '3', '4'].forEach(function (id) {
-      if (localStorage.getItem('hci_practice_' + id)) practice[id] = true;
-    });
+    try {
+      for (var pi = 0; pi < localStorage.length; pi++) {
+        var pk = localStorage.key(pi);
+        if (pk && pk.indexOf('hci_practice_') === 0 && pk !== 'hci_practice_count') {
+          practice[pk.slice('hci_practice_'.length)] = true;
+        }
+      }
+    } catch (e) { /* */ }
 
     var courses = {};
     ['satr', 'google', 'idf', 'figma'].forEach(function (id) {

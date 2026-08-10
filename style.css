@@ -2060,6 +2060,18 @@ body.nav-open{ overflow: hidden; }
   background: var(--card-bg-panel); margin-bottom:28px;
 }
 .practice-scene h3{ font-size:1.15rem; margin-bottom:8px; }
+.ps-book{
+  display:inline-block;
+  margin-inline-start: 8px;
+  padding: 2px 10px;
+  border: 1px solid rgba(var(--gold-rgb),0.4);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--gold);
+  vertical-align: middle;
+  white-space: nowrap;
+}
 .practice-scene .ps-hint{ color: var(--text-mid); font-size:0.88rem; margin-bottom:20px; line-height:1.65; }
 .compare-block{
   display:grid; grid-template-columns: 1fr 1fr; gap: var(--block-gap); margin: 18px 0 28px;
@@ -2222,8 +2234,8 @@ body.nav-open{ overflow: hidden; }
   background-size: 12px;
 }
 .spot-feedback{
-  margin-top:14px; font-size:0.9rem; font-weight:600; min-height:1.4em;
-  transition: opacity 0.3s;
+  margin-top:14px; font-size:0.88rem; font-weight:500; min-height:1.4em;
+  transition: opacity 0.3s; line-height:1.8;
 }
 
 @media (max-width: 640px){

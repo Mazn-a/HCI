@@ -945,27 +945,55 @@ function parseJsonSafe(raw, fallback) {
 }
 
 /* ---------- لوحة الإدارة ---------- */
+app.get('/api/admin/attention', adminRequired, (_req, res) => {
+  const articles = db.countPendingCommunityArticles();
+  const contacts = db.countContacts();
+  const reports = db.countReports();
+  res.json({
+    articles,
+    contacts,
+    reports,
+    total: articles + contacts + reports
+  });
+});
+
 app.get('/api/admin/stats', adminRequired, (req, res) => {
   const students = db.getUsers().filter((u) => u.role === 'student');
   const missMap = {};
   let quizAttempts = 0;
   let quizPasses = 0;
+  let pathCompleted = 0;
+  let startedPath = 0;
+  let newThisWeek = 0;
+  let stalled = 0;
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  const stageFunnel = {};
+  STAGE_ORDER.forEach((id) => { stageFunnel[id] = 0; });
+  const stopBuckets = {};
 
   students.forEach((u) => {
+    if (u.created_at && new Date(u.created_at).getTime() >= weekAgo) newThisWeek += 1;
     const p = db.getProgress(u.id);
+    const journey = parseJsonSafe(p && p.journey_json, {});
     const quiz = parseJsonSafe(p && p.quiz_json, {});
+    const done = journey.done || {};
+    const doneCount = Object.keys(done).filter((k) => done[k]).length;
+    if (doneCount > 0) startedPath += 1;
+    if (STAGE_ORDER.every((id) => !!done[id])) pathCompleted += 1;
+    STAGE_ORDER.forEach((id) => {
+      if (done[id]) stageFunnel[id] += 1;
+    });
+    const stop = journeyStopPoint(journey);
+    const stopKey = stop.label || 'لم يبدأ';
+    stopBuckets[stopKey] = (stopBuckets[stopKey] || 0) + 1;
+    const last = u.last_login ? new Date(u.last_login).getTime() : 0;
+    if (doneCount > 0 && (!last || last < twoWeeksAgo)) stalled += 1;
+
     const fund = quiz.fundamentals;
     if (!fund) return;
     quizAttempts += 1;
     if (fund.passed) quizPasses += 1;
-    (fund.answers || []).forEach((a) => {
-      if (!a || a.ok) return;
-      const key = a.qid || a.id || a.title || 'unknown';
-      if (!missMap[key]) {
-        missMap[key] = { qid: key, title: a.title || key, wrong: 0, total: 0 };
-      }
-      missMap[key].wrong += 1;
-    });
     (fund.answers || []).forEach((a) => {
       if (!a) return;
       const key = a.qid || a.id || a.title || 'unknown';
@@ -973,6 +1001,7 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
         missMap[key] = { qid: key, title: a.title || key, wrong: 0, total: 0 };
       }
       missMap[key].total += 1;
+      if (!a.ok) missMap[key].wrong += 1;
     });
   });
 
@@ -990,29 +1019,73 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
       lastLogin: u.last_login
     }));
 
+  const articlesPending = db.countPendingCommunityArticles();
+  const contacts = db.countContacts();
+  const reports = db.countReports();
+
   res.json({
     students: db.countStudents(),
     admins: db.countAdmins(),
     messages: db.countMessages(),
-    reports: db.countReports(),
-    contacts: db.countContacts(),
-    articlesPending: db.countPendingCommunityArticles(),
+    reports,
+    contacts,
+    articlesPending,
+    articlesPublished: db.countApprovedCommunityArticles(),
+    certificates: db.countCertificates(),
     activeWeek: db.countActiveWeek(),
+    newThisWeek,
+    startedPath,
+    pathCompleted,
+    stalled,
     quizAttempts,
     quizPasses,
+    stageFunnel,
+    stopBuckets,
     mostMissed,
     recentLogins,
+    attention: {
+      articles: articlesPending,
+      contacts,
+      reports,
+      total: articlesPending + contacts + reports
+    },
     generatedAt: new Date().toISOString()
   });
 });
 
-/* ---------- مقالات المجتمع (بعد الفهم — تحتاج موافقة المشرف) ---------- */
+/* ---------- مقالات المتعلمين (مسودة، ثم مراجعة المشرف بعد إكمال المسار) ---------- */
 function sanitizeArticleText(s, max) {
   return String(s || '')
     .replace(/<[^>]*>/g, '')
     .replace(/\r\n/g, '\n')
     .trim()
     .slice(0, max);
+}
+
+function userJourneyComplete(userId) {
+  const user = db.findUserById(userId);
+  if (user && (user.role === 'admin' || user.path_type === 'specialist')) return true;
+  const { pct, journey } = computeProgressPercent(userId);
+  if (pct >= 100) return true;
+  const done = (journey && journey.done) || {};
+  return STAGE_ORDER.every((id) => !!done[id]);
+}
+
+function articleAuthorName(user) {
+  return (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
+}
+
+function notifyAdminArticlePending(row, authorName) {
+  const admin = db.findAdmin();
+  if (!admin) return;
+  db.createNotification({
+    userId: admin.id,
+    type: 'article_pending',
+    title: 'مقال جديد بانتظار موافقتك',
+    body: authorName + ': «' + row.title + '»',
+    link: 'admin.html#articles',
+    refId: row.id
+  });
 }
 
 app.get('/api/articles/published', (_req, res) => {
@@ -1057,12 +1130,18 @@ app.get('/api/articles/mine', authRequired, (req, res) => {
     const list = db.getCommunityArticles({ userId: req.user.id }).map((a) => ({
       id: a.id,
       title: a.title,
+      body: a.body,
       status: a.status,
       rejectReason: a.reject_reason || '',
       createdAt: a.created_at,
+      updatedAt: a.updated_at || a.created_at,
       publishedAt: a.published_at
     }));
-    res.json({ articles: list });
+    res.json({
+      articles: list,
+      canSubmit: userJourneyComplete(req.user.id),
+      pathComplete: userJourneyComplete(req.user.id)
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'تعذر جلب مقالاتك' });
@@ -1071,8 +1150,33 @@ app.get('/api/articles/mine', authRequired, (req, res) => {
 
 app.post('/api/articles', authRequired, (req, res) => {
   try {
+    const asDraft = !!req.body.asDraft || req.body.status === 'draft';
     const title = sanitizeArticleText(req.body.title, 120);
     const body = sanitizeArticleText(req.body.body, 8000);
+    if (asDraft) {
+      if (title.length < 3 && body.length < 20) {
+        return res.status(400).json({ error: 'اكتب عنواناً أو بضعة أسطر قبل حفظ المسودة' });
+      }
+      const drafts = db.getCommunityArticles({ userId: req.user.id, status: 'draft' });
+      if (drafts.length >= 3) {
+        return res.status(400).json({ error: 'عندك ٣ مسودات — عدّل واحدة منها أو أرسلها للمراجعة' });
+      }
+      const authorName = articleAuthorName(req.user);
+      const row = db.createCommunityArticle({
+        userId: req.user.id,
+        title: title || 'مسودة بلا عنوان',
+        body,
+        authorName,
+        status: 'draft'
+      });
+      return res.status(201).json({ ok: true, id: row.id, status: row.status });
+    }
+
+    if (!userJourneyComplete(req.user.id)) {
+      return res.status(403).json({
+        error: 'تقدر تحفظ مسودة الآن. إرسال المقال للمراجعة يفتح بعد إكمال كل دروس المسار.'
+      });
+    }
     if (title.length < 8) {
       return res.status(400).json({ error: 'عنوان المقال قصير جداً (٨ أحرف على الأقل)' });
     }
@@ -1083,24 +1187,15 @@ app.post('/api/articles', authRequired, (req, res) => {
     if (pending.length >= 3) {
       return res.status(400).json({ error: 'عندك ٣ مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
     }
-    const authorName = (req.user.first_name + (req.user.last_name ? ' ' + req.user.last_name : '')).trim() || 'متعلم HCI';
+    const authorName = articleAuthorName(req.user);
     const row = db.createCommunityArticle({
       userId: req.user.id,
       title,
       body,
-      authorName
+      authorName,
+      status: 'pending'
     });
-    const admin = db.findAdmin();
-    if (admin) {
-      db.createNotification({
-        userId: admin.id,
-        type: 'article_pending',
-        title: 'مقال جديد بانتظار موافقتك',
-        body: authorName + ': «' + title + '»',
-        link: 'admin.html#articles',
-        refId: row.id
-      });
-    }
+    notifyAdminArticlePending(row, authorName);
     res.status(201).json({ ok: true, id: row.id, status: row.status });
   } catch (e) {
     console.error(e);
@@ -1108,9 +1203,71 @@ app.post('/api/articles', authRequired, (req, res) => {
   }
 });
 
+app.put('/api/articles/:id', authRequired, (req, res) => {
+  try {
+    const title = sanitizeArticleText(req.body.title, 120);
+    const body = sanitizeArticleText(req.body.body, 8000);
+    if (title.length < 3 && body.length < 20) {
+      return res.status(400).json({ error: 'اكتب عنواناً أو بضعة أسطر قبل حفظ المسودة' });
+    }
+    const row = db.updateCommunityArticle(req.params.id, {
+      userId: req.user.id,
+      title: title || 'مسودة بلا عنوان',
+      body
+    });
+    if (!row) {
+      return res.status(404).json({ error: 'ما قدرت تعدّل هالمسودة (أو إنها تحت المراجعة)' });
+    }
+    res.json({ ok: true, id: row.id, status: row.status });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر حفظ المسودة' });
+  }
+});
+
+app.post('/api/articles/:id/submit', authRequired, (req, res) => {
+  try {
+    if (!userJourneyComplete(req.user.id)) {
+      return res.status(403).json({
+        error: 'كمّل كل دروس المسار أولاً — بعدها تقدر ترسل مقالك للمراجعة والنشر.'
+      });
+    }
+    const existing = db.getCommunityArticleById(req.params.id);
+    if (!existing || Number(existing.user_id) !== Number(req.user.id)) {
+      return res.status(404).json({ error: 'المقال غير موجود' });
+    }
+    const title = sanitizeArticleText(req.body.title != null ? req.body.title : existing.title, 120);
+    const body = sanitizeArticleText(req.body.body != null ? req.body.body : existing.body, 8000);
+    if (title.length < 8) {
+      return res.status(400).json({ error: 'عنوان المقال قصير جداً (٨ أحرف على الأقل)' });
+    }
+    if (body.length < 120) {
+      return res.status(400).json({ error: 'نص المقال قصير جداً — اكتب شرحاً أوضح (١٢٠ حرفاً على الأقل)' });
+    }
+    const pending = db.getCommunityArticles({ userId: req.user.id, status: 'pending' });
+    if (pending.length >= 3) {
+      return res.status(400).json({ error: 'عندك ٣ مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
+    }
+    db.updateCommunityArticle(req.params.id, {
+      userId: req.user.id,
+      title,
+      body
+    });
+    const row = db.submitCommunityArticle(req.params.id, { userId: req.user.id });
+    if (!row) {
+      return res.status(400).json({ error: 'ما قدرت ترسل هالمقال للمراجعة' });
+    }
+    notifyAdminArticlePending(row, row.author_name || articleAuthorName(req.user));
+    res.json({ ok: true, id: row.id, status: row.status });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر إرسال المقال للمراجعة' });
+  }
+});
+
 app.get('/api/admin/articles', adminRequired, (_req, res) => {
   try {
-    const list = db.getCommunityArticles().map((a) => {
+    const list = db.getCommunityArticles({ excludeStatus: 'draft' }).map((a) => {
       const u = db.findUserById(a.user_id);
       return {
         id: a.id,
@@ -1513,6 +1670,39 @@ app.post('/api/admin/message', adminRequired, (req, res) => {
   });
 
   res.status(201).json({ id: msg.id, ok: true });
+});
+
+app.post('/api/admin/broadcast', adminRequired, (req, res) => {
+  try {
+    const subject = String(req.body.subject || '').trim();
+    const body = String(req.body.body || '').trim();
+    if (!subject || !body) {
+      return res.status(400).json({ error: 'الموضوع ونص الرسالة مطلوبان' });
+    }
+    const students = db.getUsers().filter((u) => u.role === 'student');
+    let sent = 0;
+    students.forEach((u) => {
+      const msg = db.createMessage({
+        adminId: req.user.id,
+        userId: u.id,
+        subject,
+        body
+      });
+      db.createNotification({
+        userId: u.id,
+        type: 'admin_message',
+        title: subject,
+        body: body.length > 160 ? body.slice(0, 160) + '…' : body,
+        link: 'profile.html#inbox',
+        refId: msg.id
+      });
+      sent += 1;
+    });
+    res.status(201).json({ ok: true, sent });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر إرسال الرسالة للجميع' });
+  }
 });
 
 app.get('/api/admin/messages', adminRequired, (req, res) => {

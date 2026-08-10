@@ -851,17 +851,26 @@ if (menuBtn && navLinks){
 // ----- حساب المستخدم -----
 var loggedInName = localStorage.getItem('hci_user_name');
 
-/* للزائر: اخفِ الرئيسية والمسارات — يظهران بعد تسجيل الدخول / إنشاء حساب */
-(function hideGuestNavLinks(){
+/* شريط نظيف: رابطان فقط — (افهم أولاً أو المسارات) + المقالات. الباقي في الشعار/التذييل */
+(function tidyNavLinks(){
   var links = document.getElementById('navLinks');
   if (!links) return;
   var isLoggedIn = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
-  if (isLoggedIn) return;
+  var foundationDone = false;
+  try { foundationDone = isFoundationDone(); } catch (e) { foundationDone = false; }
+  var showPaths = isLoggedIn && foundationDone;
   Array.prototype.slice.call(links.querySelectorAll('a')).forEach(function(a){
     var t = (a.textContent || '').replace(/\s+/g, ' ').trim();
-    if (t === 'الرئيسية' || t === 'المسارات' || t === 'المعجم') {
+    var hide = false;
+    if (t === 'الرئيسية' || t === 'المعجم') hide = true;
+    else if (t === 'المسارات') hide = !showPaths;
+    else if (t === 'افهم أولاً') hide = showPaths;
+    if (hide) {
       a.setAttribute('hidden', '');
       a.style.display = 'none';
+    } else {
+      a.removeAttribute('hidden');
+      a.style.display = '';
     }
   });
 })();
@@ -977,18 +986,43 @@ if (navCtaSlot && loggedInName){
     if (oldFab) oldFab.remove();
 
     /* زر إدارة واحد فقط — بجانب الحساب */
-    if (!document.getElementById('navAdminBtn')){
-      var adminBtn = document.createElement('a');
+    var adminBtn = document.getElementById('navAdminBtn');
+    if (!adminBtn){
+      adminBtn = document.createElement('a');
       adminBtn.href = 'admin.html';
       adminBtn.id = 'navAdminBtn';
       adminBtn.className = 'nav-admin-btn';
-      adminBtn.textContent = 'الإدارة';
+      adminBtn.innerHTML = 'الإدارة<span class="nav-admin-badge" id="navAdminBadge" hidden></span>';
       adminBtn.setAttribute('aria-label', 'لوحة الإدارة');
       navCtaSlot.insertBefore(adminBtn, navCtaSlot.firstChild);
     }
+    refreshAdminAttentionBadge();
   }
+
+  function refreshAdminAttentionBadge(){
+    if (!(window.HCIApi && HCIApi.isAdmin && HCIApi.isAdmin())) return;
+    var badge = document.getElementById('navAdminBadge');
+    var btn = document.getElementById('navAdminBtn');
+    if (!badge || !btn) return;
+    HCIApi.request('/api/admin/attention').then(function (data) {
+      var total = data && data.total != null ? Number(data.total) : 0;
+      if (total > 0) {
+        badge.hidden = false;
+        badge.textContent = total > 99 ? '99+' : String(total);
+        btn.setAttribute('aria-label', 'لوحة الإدارة — ' + total + ' تحتاج انتباهك');
+        btn.title = total + ' تحتاج مراجعتك';
+      } else {
+        badge.hidden = true;
+        badge.textContent = '';
+        btn.setAttribute('aria-label', 'لوحة الإدارة');
+        btn.removeAttribute('title');
+      }
+    }).catch(function () { /* صامت */ });
+  }
+
   ensureAdminNavControls();
   window.HCIEnsureAdminNav = ensureAdminNavControls;
+  window.HCIRefreshAdminBadge = refreshAdminAttentionBadge;
   applyAvatarToEl(document.getElementById('navAvatarChip'), loggedInName);
 
   var navUserMenuBtn = document.getElementById('navUserMenuBtn');

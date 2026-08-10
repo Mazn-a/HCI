@@ -20,9 +20,9 @@
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
       <nav class="nav-links" id="navLinks">
-        <a href="index.html">الرئيسية</a>
+        <a href="foundation.html">افهم أولاً</a>
+        <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
-        <a href="glossary.html">المعجم</a>
       </nav>
       <span id="navCtaSlot" class="nav-auth">
         <a href="auth.html" class="nav-login">تسجيل الدخول</a>
@@ -36,7 +36,7 @@
     <div class="wrap">
       <a href="articles.html" class="page-back">المقالات</a>
       <div class="lesson-head reveal" id="articleHead">
-        <span class="eyebrow">/// من المجتمع</span>
+        <span class="eyebrow">/// مقال متعلم</span>
         <h1 id="cArticleTitle">جاري التحميل…</h1>
         <p class="article-meta" id="cArticleMeta"></p>
       </div>
@@ -82,8 +82,9 @@
       titleEl.textContent = a.title;
       document.title = a.title + ' — HCI';
       var d = a.publishedAt ? new Date(a.publishedAt) : null;
-      metaEl.textContent = (a.authorName || 'متعلم HCI') +
-        (d ? (' · ' + d.toLocaleDateString('ar-SA')) : '');
+      metaEl.innerHTML = 'متعلم · ' + String(a.authorName || 'متعلم HCI').replace(/</g, '&lt;') +
+        (d ? (' · ' + d.toLocaleDateString('ar-SA')) : '') +
+        '<span class="article-byline">نُشر بعد مراجعة المشرف</span>';
       bodyEl.innerHTML = String(a.body || '')
         .split(/\n{2,}/)
         .map(function (p) {

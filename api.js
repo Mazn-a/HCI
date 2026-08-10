@@ -653,7 +653,25 @@
     fetchPublishedArticles: function () { return request('/api/articles/published'); },
     fetchPublishedArticle: function (id) { return request('/api/articles/published/' + encodeURIComponent(id)); },
     fetchMyArticles: function () { return request('/api/articles/mine'); },
-    submitArticle: function (title, body) {
+    saveArticleDraft: function (title, body, id) {
+      if (id) {
+        return request('/api/articles/' + encodeURIComponent(id), {
+          method: 'PUT',
+          body: { title: title, body: body }
+        });
+      }
+      return request('/api/articles', {
+        method: 'POST',
+        body: { title: title, body: body, asDraft: true }
+      });
+    },
+    submitArticle: function (title, body, id) {
+      if (id) {
+        return request('/api/articles/' + encodeURIComponent(id) + '/submit', {
+          method: 'POST',
+          body: { title: title, body: body }
+        });
+      }
       return request('/api/articles', { method: 'POST', body: { title: title, body: body } });
     },
     adminFetchArticles: function () { return request('/api/admin/articles'); },

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>اكتب مقالاً — HCI</title>
-<meta name="description" content="اكتب مقالاً عن HCI بعد إكمال الفهم. يُراجع قبل النشر للجميع.">
+<meta name="description" content="احفظ مسودة مقالك أثناء التعلم، وأرسله للمراجعة بعد إكمال المسار.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="application-name" content="HCI">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,8 +19,8 @@
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
       <nav class="nav-links" id="navLinks">
-        <a href="index.html">الرئيسية</a>
         <a href="foundation.html">افهم أولاً</a>
+        <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
       </nav>
       <span id="navCtaSlot" class="nav-auth">
@@ -32,36 +32,47 @@
   </header>
 
   <main class="lesson" id="main">
-    <div class="wrap" style="max-width:720px;">
+    <div class="wrap write-article-wrap">
       <a href="articles.html" class="page-back">المقالات</a>
 
       <div class="lesson-head reveal">
-        <span class="eyebrow">/// بعد الفهم</span>
-        <h1>اكتب مقالاً من فهمك</h1>
-        <p>بعد ما تكمّل خطوات الفهم، اشرح مفهوم HCI بكلامك. المقال ما ينشر مباشرة — يراجعه المشرف أولاً: يوافق أو يرفض.</p>
+        <span class="eyebrow">/// مساحة النشر</span>
+        <h1>اكتب مقالك من فهمك</h1>
+        <p>احفظ مسودة في أي وقت. النشر للجميع يمر بخطوتين: إكمال كل دروس المسار، ثم موافقة المشرف.</p>
       </div>
 
-      <div class="profile-card reveal" id="writeGate" hidden>
-        <p class="progress-note" id="writeGateMsg">كمّل خطوات الفهم أولاً ثم ارجع هنا.</p>
-        <a href="foundation.html" class="btn-primary" style="margin-top:12px;display:inline-flex;">اذهب للفهم ←</a>
+      <div class="profile-card reveal" id="writeLoginGate" hidden>
+        <p class="progress-note" id="writeLoginMsg">سجّل دخولك عشان تحفظ مسودتك وترسلها لاحقاً للمراجعة.</p>
+        <a href="auth.html?next=write-article.html" class="btn-primary" style="margin-top:12px;display:inline-flex;">تسجيل الدخول ←</a>
       </div>
 
-      <form id="writeArticleForm" class="reveal" novalidate hidden>
+      <div class="articles-boost reveal" id="writeMotivate" hidden>
+        <span class="eyebrow">/// تحفيز</span>
+        <h2>يمديك تكتب الحين… وتنشر بعد ما تخلّص</h2>
+        <p id="writeMotivateText">ابدأ مسودتك اليوم. لما تكمّل كل دروس المسار، زر الإرسال للمراجعة ينفتح — ومقالك ما يظهر للجميع إلا بعد موافقة المشرف.</p>
+        <a href="index.html#paths" class="btn-ghost btn-compact">كمّل المسار ←</a>
+      </div>
+
+      <form id="writeArticleForm" class="reveal write-article-form" novalidate hidden>
+        <input type="hidden" id="articleId" value="">
         <div>
           <label for="articleTitle">عنوان المقال</label>
-          <input type="text" id="articleTitle" maxlength="120" required placeholder="مثال: ليش سهولة الاستخدام أهم من الشكل؟">
+          <input type="text" id="articleTitle" maxlength="120" required placeholder="مثال: ليش وضوح الزر أهم من شكله؟">
         </div>
-        <div style="margin-top:14px;">
+        <div class="write-field">
           <label for="articleBody">نص المقال</label>
-          <textarea id="articleBody" rows="14" maxlength="8000" required placeholder="اشرح الفكرة بوضوح، بمثال من حياتك إن قدرت…"></textarea>
-          <p class="field-hint" style="color:var(--text-mid);font-size:0.78rem;margin-top:6px;">١٢٠ حرفاً على الأقل · بدون روابط إعلانية أو نسخ حرفي طويل</p>
+          <textarea id="articleBody" rows="12" maxlength="8000" required placeholder="اشرح الفكرة بوضوح، وبمثال من استخدامك اليومي إن قدرت…"></textarea>
+          <p class="field-hint write-hint">المسودة تُحفظ لك. للإرسال النهائي: عنوان ٨ أحرف على الأقل ونص ١٢٠ حرفاً على الأقل.</p>
         </div>
-        <button type="submit" class="btn-primary" id="articleSubmitBtn" style="margin-top:18px;">أرسل للمراجعة ←</button>
-        <p class="status-msg" id="articleStatus" style="margin-top:12px;"></p>
+        <div class="write-actions">
+          <button type="button" class="btn-ghost" id="articleDraftBtn">حفظ مسودة</button>
+          <button type="submit" class="btn-primary" id="articleSubmitBtn">أرسل للمراجعة ←</button>
+        </div>
+        <p class="status-msg" id="articleStatus"></p>
       </form>
 
-      <section class="reveal" style="margin-top:36px;" id="myArticlesSection" hidden>
-        <h2 style="font-size:1.1rem;color:var(--gold);margin-bottom:12px;">مقالاتك</h2>
+      <section class="reveal write-mine" id="myArticlesSection" hidden>
+        <h2>مقالاتك ومسوداتك</h2>
         <div id="myArticlesList"></div>
       </section>
     </div>
@@ -88,82 +99,195 @@
   <script>
   (function () {
     var form = document.getElementById('writeArticleForm');
-    var gate = document.getElementById('writeGate');
-    var gateMsg = document.getElementById('writeGateMsg');
+    var loginGate = document.getElementById('writeLoginGate');
+    var motivate = document.getElementById('writeMotivate');
+    var motivateText = document.getElementById('writeMotivateText');
     var statusEl = document.getElementById('articleStatus');
     var mySection = document.getElementById('myArticlesSection');
     var myList = document.getElementById('myArticlesList');
+    var titleEl = document.getElementById('articleTitle');
+    var bodyEl = document.getElementById('articleBody');
+    var idEl = document.getElementById('articleId');
+    var draftBtn = document.getElementById('articleDraftBtn');
+    var submitBtn = document.getElementById('articleSubmitBtn');
+    var LOCAL_DRAFT = 'hci_article_local_draft';
+    var canSubmit = false;
 
-    function foundationOk() {
+    function showStatus(msg, ok) {
+      statusEl.textContent = msg || '';
+      statusEl.classList.add('show');
+      statusEl.style.color = ok ? 'var(--gold)' : '';
+    }
+
+    function pathCompleteLocal() {
       try {
-        var data = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
-        var r = data.read || {};
-        return !!(r.hci && r.uxui && r.nielsen);
+        if (window.HCIApi && (HCIApi.isAdmin && HCIApi.isAdmin() || HCIApi.isSpecialist && HCIApi.isSpecialist())) {
+          return true;
+        }
+        var j = JSON.parse(localStorage.getItem('hci_journey') || '{}');
+        var done = j.done || {};
+        var order = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
+        return order.every(function (k) { return !!done[k]; });
       } catch (e) { return false; }
     }
 
-    if (!window.HCIApi || !HCIApi.isLoggedIn()) {
-      gate.hidden = false;
-      gateMsg.textContent = 'سجّل دخولك أولاً عشان ترسل مقالاً للمراجعة.';
-      gate.querySelector('a').textContent = 'تسجيل الدخول ←';
-      gate.querySelector('a').href = 'auth.html';
-      return;
+    function loadLocalDraft() {
+      try {
+        var raw = localStorage.getItem(LOCAL_DRAFT);
+        if (!raw) return;
+        var d = JSON.parse(raw);
+        if (d && (d.title || d.body) && !titleEl.value && !bodyEl.value) {
+          titleEl.value = d.title || '';
+          bodyEl.value = d.body || '';
+          if (d.id) idEl.value = String(d.id);
+        }
+      } catch (e) { /* */ }
     }
 
-    if (!(HCIApi.isAdmin && HCIApi.isAdmin()) && !(HCIApi.isSpecialist && HCIApi.isSpecialist()) && !foundationOk()) {
-      gate.hidden = false;
+    function saveLocalDraft() {
+      try {
+        localStorage.setItem(LOCAL_DRAFT, JSON.stringify({
+          id: idEl.value || '',
+          title: titleEl.value,
+          body: bodyEl.value,
+          savedAt: Date.now()
+        }));
+      } catch (e) { /* */ }
+    }
+
+    function clearLocalDraft() {
+      try { localStorage.removeItem(LOCAL_DRAFT); } catch (e) { /* */ }
+    }
+
+    function setSubmitEnabled(on) {
+      canSubmit = !!on;
+      submitBtn.disabled = !canSubmit;
+      submitBtn.title = canSubmit
+        ? 'يُرسل للمشرف للمراجعة قبل النشر'
+        : 'يفتح بعد إكمال كل دروس المسار';
+      if (motivate) motivate.hidden = canSubmit;
+    }
+
+    function statusLabel(s) {
+      if (s === 'approved') return 'منشور ✓';
+      if (s === 'rejected') return 'مرفوض — عدّل وأعد الإرسال';
+      if (s === 'draft') return 'مسودة';
+      return 'بانتظار المراجعة';
+    }
+
+    function fillEditor(a) {
+      idEl.value = String(a.id || '');
+      titleEl.value = a.title || '';
+      bodyEl.value = a.body || '';
+      saveLocalDraft();
+      window.scrollTo({ top: form.offsetTop - 80, behavior: 'smooth' });
+    }
+
+    function loadMine() {
+      return HCIApi.fetchMyArticles().then(function (data) {
+        var list = (data && data.articles) || [];
+        if (data && typeof data.canSubmit === 'boolean') {
+          setSubmitEnabled(data.canSubmit);
+        } else {
+          setSubmitEnabled(pathCompleteLocal());
+        }
+        if (!list.length) {
+          myList.innerHTML = '<p class="progress-note">ما عندك مقالات أو مسودات بعد.</p>';
+          return;
+        }
+        myList.innerHTML = list.map(function (a) {
+          var extra = a.status === 'rejected' && a.rejectReason
+            ? '<p class="write-reject">السبب: ' + String(a.rejectReason).replace(/</g, '&lt;') + '</p>'
+            : '';
+          var link = a.status === 'approved'
+            ? ' · <a href="community-article.html?id=' + a.id + '">عرض</a>'
+            : '';
+          var edit = (a.status === 'draft' || a.status === 'rejected')
+            ? ' · <button type="button" class="footer-text-link my-edit" data-id="' + a.id + '">عدّل</button>'
+            : '';
+          return '<article class="content-card write-mine-card" data-id="' + a.id + '">' +
+            '<h3>' + String(a.title || 'مسودة').replace(/</g, '&lt;') + '</h3>' +
+            '<p class="cc-meta">' + statusLabel(a.status) + link + edit + '</p>' +
+            extra +
+            '</article>';
+        }).join('');
+
+        myList.querySelectorAll('.my-edit').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var id = Number(btn.getAttribute('data-id'));
+            var found = list.filter(function (x) { return Number(x.id) === id; })[0];
+            if (found) fillEditor(found);
+          });
+        });
+      }).catch(function () {
+        setSubmitEnabled(pathCompleteLocal());
+        myList.innerHTML = '<p class="progress-note">تعذر تحميل مقالاتك.</p>';
+      });
+    }
+
+    if (!window.HCIApi || !HCIApi.isLoggedIn()) {
+      loginGate.hidden = false;
       return;
     }
 
     form.hidden = false;
     mySection.hidden = false;
+    motivate.hidden = false;
+    setSubmitEnabled(pathCompleteLocal());
+    loadLocalDraft();
 
-    function statusLabel(s) {
-      if (s === 'approved') return 'منشور ✓';
-      if (s === 'rejected') return 'مرفوض';
-      return 'بانتظار المراجعة';
+    var saveTimer = null;
+    function queueLocalSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveLocalDraft, 400);
     }
+    titleEl.addEventListener('input', queueLocalSave);
+    bodyEl.addEventListener('input', queueLocalSave);
 
-    function loadMine() {
-      HCIApi.fetchMyArticles().then(function (data) {
-        var list = (data && data.articles) || [];
-        if (!list.length) {
-          myList.innerHTML = '<p class="progress-note">ما أرسلت مقالات بعد.</p>';
-          return;
-        }
-        myList.innerHTML = list.map(function (a) {
-          var extra = a.status === 'rejected' && a.rejectReason
-            ? '<br><span style="color:var(--error)">السبب: ' + a.rejectReason.replace(/</g, '&lt;') + '</span>'
-            : '';
-          var link = a.status === 'approved'
-            ? ' · <a href="community-article.html?id=' + a.id + '" style="color:var(--gold)">عرض</a>'
-            : '';
-          return '<article class="content-card" style="margin-bottom:10px;">' +
-            '<h3 style="margin:0 0 6px;font-size:1rem;">' + String(a.title || '').replace(/</g, '&lt;') + '</h3>' +
-            '<p class="cc-meta">' + statusLabel(a.status) + link + '</p>' + extra +
-            '</article>';
-        }).join('');
-      }).catch(function () {
-        myList.innerHTML = '<p class="progress-note">تعذر تحميل مقالاتك.</p>';
+    draftBtn.addEventListener('click', function () {
+      var title = titleEl.value.trim();
+      var body = bodyEl.value.trim();
+      var id = idEl.value ? Number(idEl.value) : null;
+      draftBtn.disabled = true;
+      showStatus('جاري حفظ المسودة…');
+      HCIApi.saveArticleDraft(title, body, id).then(function (res) {
+        if (res && res.id) idEl.value = String(res.id);
+        saveLocalDraft();
+        showStatus('اتحفظت المسودة. كمّل متى ما جاهز.', true);
+        loadMine();
+      }).catch(function (err) {
+        saveLocalDraft();
+        showStatus((err && err.message) || 'تعذر الحفظ على السيرفر — المسودة محفوظة على جهازك');
+      }).finally(function () {
+        draftBtn.disabled = false;
       });
-    }
+    });
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var title = document.getElementById('articleTitle').value.trim();
-      var body = document.getElementById('articleBody').value.trim();
-      var btn = document.getElementById('articleSubmitBtn');
-      btn.disabled = true;
-      statusEl.textContent = 'جاري الإرسال…';
-      statusEl.classList.add('show');
-      HCIApi.submitArticle(title, body).then(function () {
-        statusEl.textContent = 'وصل المقال للمراجعة. يصلك تنبيه عند الموافقة أو الرفض.';
+      if (!canSubmit) {
+        showStatus('يمديك تحفظ مسودة الآن. إرسال المراجعة يفتح بعد إكمال كل دروس المسار.');
+        motivate.hidden = false;
+        if (motivateText) {
+          motivateText.textContent = 'أنت قريب. خلّص باقي الدروس، وبعدها مقالك يطلع للمراجعة والنشر باحتراف.';
+        }
+        return;
+      }
+      var title = titleEl.value.trim();
+      var body = bodyEl.value.trim();
+      var id = idEl.value ? Number(idEl.value) : null;
+      submitBtn.disabled = true;
+      showStatus('جاري الإرسال للمراجعة…');
+      HCIApi.submitArticle(title, body, id).then(function () {
+        showStatus('وصل المقال للمراجعة. يصلك تنبيه عند الموافقة أو الرفض.', true);
         form.reset();
+        idEl.value = '';
+        clearLocalDraft();
         loadMine();
       }).catch(function (err) {
-        statusEl.textContent = (err && err.message) || 'تعذر الإرسال';
+        showStatus((err && err.message) || 'تعذر الإرسال');
       }).finally(function () {
-        btn.disabled = false;
+        setSubmitEnabled(canSubmit);
       });
     });
 

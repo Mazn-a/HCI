@@ -106,20 +106,88 @@
     });
   }
 
+  var STAGE_LABELS = {
+    discover: 'اكتشف التخصص',
+    fundamentals: 'أساسيات HCI',
+    coding: 'ترميز HTML & CSS',
+    courses: 'الدورات',
+    books: 'الكتب',
+    practice: 'تعلّم بالمرح',
+    contribute: 'أفد غيرك'
+  };
+  var STAGE_ORDER_UI = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
+  var cachedUsers = [];
+
+  function setBadge(id, n) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var num = Number(n) || 0;
+    if (num > 0) {
+      el.hidden = false;
+      el.textContent = String(num > 99 ? '99+' : num);
+    } else {
+      el.hidden = true;
+      el.textContent = '0';
+    }
+  }
+
+  function markAttentionCard(selector, n) {
+    var card = document.querySelector(selector);
+    if (!card) return;
+    card.classList.toggle('has-items', Number(n) > 0);
+  }
+
+  function renderFunnel(funnel, totalStudents) {
+    var root = document.getElementById('adminFunnel');
+    if (!root) return;
+    var max = Math.max(1, Number(totalStudents) || 1);
+    root.innerHTML = STAGE_ORDER_UI.map(function (id) {
+      var n = funnel && funnel[id] != null ? Number(funnel[id]) : 0;
+      var pct = Math.round((n / max) * 100);
+      return '<li>' +
+        '<span class="label">' + escapeHtml(STAGE_LABELS[id] || id) + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="count">' + n + '</span>' +
+        '</li>';
+    }).join('');
+  }
+
   async function loadStats() {
     var s = await HCIApi.request('/api/admin/stats');
     document.getElementById('statStudents').textContent = s.students;
     document.getElementById('statActive').textContent = s.activeWeek;
-    document.getElementById('statMessages').textContent = s.messages;
-    document.getElementById('statReports').textContent = s.reports;
-    var contactsStat = document.getElementById('statContacts');
-    if (contactsStat) contactsStat.textContent = s.contacts != null ? s.contacts : '—';
-    var articlesStat = document.getElementById('statArticles');
-    if (articlesStat) articlesStat.textContent = s.articlesPending != null ? s.articlesPending : '—';
-    var qa = document.getElementById('statQuizAttempts');
+    var nw = document.getElementById('statNewWeek');
+    if (nw) nw.textContent = s.newThisWeek != null ? s.newThisWeek : '—';
+    var done = document.getElementById('statCompleted');
+    if (done) done.textContent = s.pathCompleted != null ? s.pathCompleted : '—';
+    var certs = document.getElementById('statCertificates');
+    if (certs) certs.textContent = s.certificates != null ? s.certificates : '—';
+    var stalled = document.getElementById('statStalled');
+    if (stalled) stalled.textContent = s.stalled != null ? s.stalled : '—';
     var qp = document.getElementById('statQuizPasses');
-    if (qa) qa.textContent = s.quizAttempts != null ? s.quizAttempts : '—';
     if (qp) qp.textContent = s.quizPasses != null ? s.quizPasses : '—';
+    var ap = document.getElementById('statArticlesPub');
+    if (ap) ap.textContent = s.articlesPublished != null ? s.articlesPublished : '—';
+
+    var attn = s.attention || {};
+    var aN = attn.articles != null ? attn.articles : s.articlesPending;
+    var cN = attn.contacts != null ? attn.contacts : s.contacts;
+    var rN = attn.reports != null ? attn.reports : s.reports;
+    var attnA = document.getElementById('attnArticles');
+    var attnC = document.getElementById('attnContacts');
+    var attnR = document.getElementById('attnReports');
+    if (attnA) attnA.textContent = aN != null ? aN : '—';
+    if (attnC) attnC.textContent = cN != null ? cN : '—';
+    if (attnR) attnR.textContent = rN != null ? rN : '—';
+    markAttentionCard('[data-admin-tab="tabArticles"]', aN);
+    markAttentionCard('[data-admin-tab="tabContacts"]', cN);
+    markAttentionCard('[data-admin-tab="tabReports"]', rN);
+    setBadge('badgeArticles', aN);
+    setBadge('badgeContacts', cN);
+    setBadge('badgeReports', rN);
+
+    renderFunnel(s.stageFunnel || {}, s.students);
+
     var miss = document.getElementById('mostMissedQ');
     if (miss) {
       if (s.mostMissed && s.mostMissed.title) {
@@ -129,7 +197,7 @@
       }
     }
     var gen = document.getElementById('adminGeneratedAt');
-    if (gen) gen.textContent = s.generatedAt ? ('آخر تحديث للإحصائيات: ' + formatDate(s.generatedAt)) : '';
+    if (gen) gen.textContent = s.generatedAt ? ('آخر تحديث: ' + formatDate(s.generatedAt)) : '';
 
     var loginList = document.getElementById('recentLoginsList');
     if (loginList) {
@@ -179,21 +247,47 @@
     });
   }
 
-  async function loadUsers() {
-    var data = await HCIApi.request('/api/admin/users');
+  function userMatchesFilters(u, q, filter) {
+    if (q) {
+      var hay = [u.fullName, u.email, u.phone, u.stopPoint].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    var twoWeeks = Date.now() - 14 * 24 * 60 * 60 * 1000;
+    var last = u.lastLogin ? new Date(u.lastLogin).getTime() : 0;
+    if (filter === 'active') return !!(last && last >= weekAgo);
+    if (filter === 'stalled') return (u.doneStages > 0) && (!last || last < twoWeeks);
+    if (filter === 'done') return Number(u.progressPercent) >= 100 || Number(u.doneStages) >= 7;
+    if (filter === 'quiz') return !!u.quizPassed;
+    if (filter === 'noquiz') return !u.quizScore;
+    return true;
+  }
+
+  function renderUsers() {
     var body = document.getElementById('usersBody');
     var mobile = document.getElementById('usersMobile');
     var empty = document.getElementById('usersEmpty');
+    var searchEl = document.getElementById('usersSearch');
+    var filterEl = document.getElementById('usersFilter');
+    var q = searchEl ? String(searchEl.value || '').trim().toLowerCase() : '';
+    var filter = filterEl ? filterEl.value : 'all';
     body.innerHTML = '';
     if (mobile) mobile.innerHTML = '';
 
-    if (!data.users.length) {
+    var list = cachedUsers.filter(function (u) { return userMatchesFilters(u, q, filter); });
+    if (!cachedUsers.length) {
       empty.style.display = 'block';
+      empty.textContent = 'لا يوجد طلاب مسجّلون حالياً.';
+      return;
+    }
+    if (!list.length) {
+      empty.style.display = 'block';
+      empty.textContent = 'ما في نتائج مطابقة للبحث أو التصفية.';
       return;
     }
     empty.style.display = 'none';
 
-    data.users.forEach(function (u) {
+    list.forEach(function (u) {
       var contact = u.email || u.phone || '—';
       var pathLabel = u.pathType === 'specialist' ? 'متخصص' : (u.pathType === 'curious' ? 'مهتم' : '—');
       var stopLabel = u.stopPoint || '—';
@@ -203,15 +297,15 @@
       var actions =
         '<div class="admin-actions">' +
           '<button type="button" class="view-btn" data-id="' + u.id + '">تفاصيل</button>' +
-          '<button type="button" class="msg-btn" data-id="' + u.id + '" data-name="' + u.fullName + '">رسالة</button>' +
-          '<button type="button" class="del-btn" data-id="' + u.id + '" data-name="' + u.fullName + '">حذف</button>' +
+          '<button type="button" class="msg-btn" data-id="' + u.id + '" data-name="' + escapeHtml(u.fullName) + '">رسالة</button>' +
+          '<button type="button" class="del-btn" data-id="' + u.id + '" data-name="' + escapeHtml(u.fullName) + '">حذف</button>' +
         '</div>';
 
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><strong>' + u.fullName + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel +
-          (u.nameChanged ? ' · تغيّر الاسم' : '') + '<br dir="ltr">' + contact + '</span></td>' +
-        '<td><span class="pct-pill">' + stopLabel + '</span></td>' +
+        '<td><strong>' + escapeHtml(u.fullName) + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel +
+          (u.nameChanged ? ' · تغيّر الاسم' : '') + '<br dir="ltr">' + escapeHtml(contact) + '</span></td>' +
+        '<td><span class="pct-pill">' + escapeHtml(stopLabel) + '</span></td>' +
         '<td><span class="pct-pill">' + u.progressPercent + '% · ' + u.doneStages + '/7</span></td>' +
         '<td>' + quizLabel + (u.quizWrong != null && u.quizScore ? '<br><span style="font-size:0.72rem;color:var(--text-mid)">صح ' + u.quizCorrect + ' · خطأ ' + u.quizWrong + '</span>' : '') + '</td>' +
         '<td>' + formatDate(u.lastLogin) + '</td>' +
@@ -223,8 +317,8 @@
         var card = document.createElement('div');
         card.className = 'admin-user-card';
         card.innerHTML =
-          '<div class="admin-user-card-top"><strong>' + u.fullName + '</strong><span>' + u.progressPercent + '%</span></div>' +
-          '<p style="color:var(--text-mid);font-size:0.85rem;margin:6px 0;">توقف عند: ' + stopLabel + '</p>' +
+          '<div class="admin-user-card-top"><strong>' + escapeHtml(u.fullName) + '</strong><span>' + u.progressPercent + '%</span></div>' +
+          '<p style="color:var(--text-mid);font-size:0.85rem;margin:6px 0;">توقف عند: ' + escapeHtml(stopLabel) + '</p>' +
           '<p style="color:var(--text-mid);font-size:0.85rem;margin:0 0 6px;">اختبار: ' + quizLabel + '</p>' +
           '<p style="color:var(--text-mid);font-size:0.8rem;margin:0 0 10px;">آخر دخول: ' + formatDate(u.lastLogin) + ' · تحديث: ' + formatDate(u.progressUpdated) + '</p>' +
           actions;
@@ -233,6 +327,12 @@
     });
     bindUserActions(body);
     if (mobile) bindUserActions(mobile);
+  }
+
+  async function loadUsers() {
+    var data = await HCIApi.request('/api/admin/users');
+    cachedUsers = data.users || [];
+    renderUsers();
   }
 
   async function loadMessages() {
@@ -324,7 +424,8 @@
       .replace(/"/g, '&quot;');
   }
 
-  function setAdminTab(active) {
+  function setAdminTab(active, opts) {
+    opts = opts || {};
     ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle('active', id === active);
@@ -338,40 +439,88 @@
     if (panelContacts) panelContacts.hidden = active !== 'tabContacts';
     var panelArticles = document.getElementById('panelArticles');
     if (panelArticles) panelArticles.hidden = active !== 'tabArticles';
+
+    var tabBtn = document.getElementById(active);
+    var hash = tabBtn && tabBtn.getAttribute('data-hash');
+    if (hash && !opts.skipHash) {
+      try { history.replaceState(null, '', '#' + hash); } catch (e) { location.hash = hash; }
+    }
+
+    if (active === 'tabShare') loadShareAdmin().catch(function (e) { alert(e.message); });
+    if (active === 'tabMessages') loadMessages().catch(function (e) { alert(e.message); });
+    if (active === 'tabReports') loadReports().catch(function (e) { alert(e.message); });
+    if (active === 'tabContacts') loadContacts().catch(function (e) { alert(e.message); });
+    if (active === 'tabArticles') loadCommunityArticles().catch(function (e) { alert(e.message); });
   }
 
-  document.getElementById('tabUsers').addEventListener('click', function () {
-    setAdminTab('tabUsers');
-  });
+  function openTabFromHash() {
+    var h = (location.hash || '').replace(/^#/, '');
+    var map = {
+      users: 'tabUsers',
+      share: 'tabShare',
+      messages: 'tabMessages',
+      reports: 'tabReports',
+      contacts: 'tabContacts',
+      articles: 'tabArticles'
+    };
+    if (map[h]) setAdminTab(map[h], { skipHash: true });
+  }
 
-  var tabShare = document.getElementById('tabShare');
-  if (tabShare) {
-    tabShare.addEventListener('click', function () {
-      setAdminTab('tabShare');
-      loadShareAdmin().catch(function (e) { alert(e.message); });
+  ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', function () {
+      setAdminTab(id);
     });
-  }
-
-  document.getElementById('tabMessages').addEventListener('click', function () {
-    setAdminTab('tabMessages');
-    loadMessages().catch(function (e) { alert(e.message); });
   });
 
-  document.getElementById('tabReports').addEventListener('click', function () {
-    setAdminTab('tabReports');
-    loadReports().catch(function (e) { alert(e.message); });
+  document.querySelectorAll('[data-admin-tab]').forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      e.preventDefault();
+      setAdminTab(card.getAttribute('data-admin-tab'));
+      var panel = document.getElementById('panel' + card.getAttribute('data-admin-tab').replace('tab', ''));
+      if (panel && panel.scrollIntoView) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   });
 
-  document.getElementById('tabContacts').addEventListener('click', function () {
-    setAdminTab('tabContacts');
-    loadContacts().catch(function (e) { alert(e.message); });
-  });
+  var usersSearch = document.getElementById('usersSearch');
+  var usersFilter = document.getElementById('usersFilter');
+  if (usersSearch) usersSearch.addEventListener('input', renderUsers);
+  if (usersFilter) usersFilter.addEventListener('change', renderUsers);
 
-  var tabArticles = document.getElementById('tabArticles');
-  if (tabArticles) {
-    tabArticles.addEventListener('click', function () {
-      setAdminTab('tabArticles');
-      loadCommunityArticles().catch(function (e) { alert(e.message); });
+  var broadcastModal = document.getElementById('broadcastModal');
+  var broadcastOpenBtn = document.getElementById('broadcastOpenBtn');
+  if (broadcastOpenBtn && broadcastModal) {
+    broadcastOpenBtn.addEventListener('click', function () {
+      broadcastModal.classList.add('open');
+    });
+    document.getElementById('broadcastCancel').addEventListener('click', function () {
+      broadcastModal.classList.remove('open');
+    });
+    broadcastModal.addEventListener('click', function (e) {
+      if (e.target === broadcastModal) broadcastModal.classList.remove('open');
+    });
+    document.getElementById('broadcastSend').addEventListener('click', async function () {
+      var subject = document.getElementById('broadcastSubject').value.trim();
+      var body = document.getElementById('broadcastBody').value.trim();
+      if (!subject || !body) { alert('اكتب الموضوع والرسالة'); return; }
+      if (!confirm('إرسال هالرسالة لكل الطلاب؟')) return;
+      try {
+        var res = await HCIApi.request('/api/admin/broadcast', {
+          method: 'POST',
+          body: { subject: subject, body: body }
+        });
+        broadcastModal.classList.remove('open');
+        document.getElementById('broadcastSubject').value = '';
+        document.getElementById('broadcastBody').value = '';
+        alert('تم الإرسال لـ ' + (res.sent || 0) + ' طالب ✓');
+        await loadMessages();
+        await loadStats();
+      } catch (err) {
+        alert(err.message || 'تعذر الإرسال');
+      }
     });
   }
 
@@ -395,7 +544,7 @@
       var card = document.createElement('article');
       card.className = 'profile-card';
       card.style.marginBottom = '14px';
-      var statusAr = a.status === 'approved' ? 'منشور' : (a.status === 'rejected' ? 'مرفوض' : 'بانتظارك');
+      var statusAr = a.status === 'approved' ? 'منشور' : (a.status === 'rejected' ? 'مرفوض' : (a.status === 'draft' ? 'مسودة' : 'بانتظارك'));
       var actions = a.status === 'pending'
         ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' +
           '<button type="button" class="btn-primary article-approve" data-id="' + a.id + '" style="padding:8px 14px;font-size:0.85rem;">موافقة ونشر</button>' +
@@ -898,10 +1047,8 @@
   try {
     await loadStats();
     await loadUsers();
-    if (location.hash === '#articles' && tabArticles) {
-      setAdminTab('tabArticles');
-      await loadCommunityArticles();
-    }
+    openTabFromHash();
+    window.addEventListener('hashchange', openTabFromHash);
   } catch (err) {
     console.warn('تعذر تحميل بيانات الإدارة:', err && err.message);
   }

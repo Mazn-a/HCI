@@ -496,16 +496,18 @@ const db = {
     return cache.contacts.filter((c) => c.status === 'new').length;
   },
 
-  createCommunityArticle({ userId, title, body, authorName }) {
+  createCommunityArticle({ userId, title, body, authorName, status }) {
+    const st = status === 'draft' ? 'draft' : 'pending';
     const row = {
       id: cache.nextCommunityArticleId++,
       user_id: Number(userId),
       title: String(title || '').trim(),
       body: String(body || '').trim(),
       author_name: String(authorName || '').trim(),
-      status: 'pending',
+      status: st,
       reject_reason: '',
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       reviewed_at: null,
       published_at: null
     };
@@ -519,6 +521,9 @@ const db = {
     if (filter && filter.status) {
       list = list.filter((a) => a.status === filter.status);
     }
+    if (filter && filter.excludeStatus) {
+      list = list.filter((a) => a.status !== filter.excludeStatus);
+    }
     if (filter && filter.userId != null) {
       list = list.filter((a) => a.user_id === Number(filter.userId));
     }
@@ -529,9 +534,40 @@ const db = {
     return cache.community_articles.find((a) => a.id === Number(id)) || null;
   },
 
+  updateCommunityArticle(id, { userId, title, body }) {
+    const row = cache.community_articles.find((a) => a.id === Number(id));
+    if (!row) return null;
+    if (Number(row.user_id) !== Number(userId)) return null;
+    if (row.status !== 'draft' && row.status !== 'rejected') return null;
+    if (title != null) row.title = String(title || '').trim();
+    if (body != null) row.body = String(body || '').trim();
+    row.status = 'draft';
+    row.reject_reason = '';
+    row.updated_at = new Date().toISOString();
+    row.reviewed_at = null;
+    row.published_at = null;
+    persist();
+    return row;
+  },
+
+  submitCommunityArticle(id, { userId }) {
+    const row = cache.community_articles.find((a) => a.id === Number(id));
+    if (!row) return null;
+    if (Number(row.user_id) !== Number(userId)) return null;
+    if (row.status !== 'draft' && row.status !== 'rejected') return null;
+    row.status = 'pending';
+    row.reject_reason = '';
+    row.updated_at = new Date().toISOString();
+    row.reviewed_at = null;
+    row.published_at = null;
+    persist();
+    return row;
+  },
+
   reviewCommunityArticle(id, { status, rejectReason }) {
     const row = cache.community_articles.find((a) => a.id === Number(id));
     if (!row) return null;
+    if (row.status === 'draft') return null;
     if (status !== 'approved' && status !== 'rejected') return null;
     row.status = status;
     row.reviewed_at = new Date().toISOString();
@@ -631,6 +667,14 @@ const db = {
       if (u.role !== 'student' || !u.last_login) return false;
       return new Date(u.last_login).getTime() >= weekAgo;
     }).length;
+  },
+
+  countCertificates() {
+    return (cache.certificates || []).length;
+  },
+
+  countApprovedCommunityArticles() {
+    return (cache.community_articles || []).filter((a) => a.status === 'approved').length;
   },
 
   /** ينشئ رمز تحقق 6 أرقام — يُرجع الرمز مرة واحدة فقط */

@@ -141,11 +141,72 @@
     color:var(--gold); font-family:var(--font-mono); font-size:0.95rem;
     direction:ltr; text-align:left; word-break:break-all;
   }
+  .admin-attention{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:20px;
+  }
+  .admin-attn-card{
+    display:block; text-align:right; text-decoration:none; color:inherit;
+    border:1px solid var(--ink-3); border-radius:14px; padding:14px 14px 12px;
+    background:var(--ink-2); transition:border-color .15s, background .15s;
+    min-height:88px;
+  }
+  .admin-attn-card:hover{ border-color:rgba(var(--gold-rgb),0.55); background:rgba(var(--gold-rgb),0.06); }
+  .admin-attn-card.has-items{ border-color:rgba(var(--gold-rgb),0.45); }
+  .admin-attn-card .k{ color:var(--text-mid); font-size:0.78rem; margin-bottom:6px; }
+  .admin-attn-card .n{ font-family:var(--font-mono); font-size:1.6rem; color:var(--gold); font-weight:700; line-height:1; }
+  .admin-attn-card .h{ margin-top:8px; color:var(--text-mid); font-size:0.78rem; line-height:1.4; }
+  .admin-funnel{ display:flex; flex-direction:column; gap:10px; margin:0; padding:0; list-style:none; }
+  .admin-funnel li{ display:grid; grid-template-columns:7.5rem 1fr 2.2rem; gap:10px; align-items:center; }
+  .admin-funnel .label{ font-size:0.8rem; color:var(--text-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .admin-funnel .track{ height:8px; border-radius:999px; background:var(--ink-3); overflow:hidden; }
+  .admin-funnel .fill{ height:100%; background:var(--gold); border-radius:999px; min-width:0; }
+  .admin-funnel .count{ font-family:var(--font-mono); font-size:0.78rem; color:var(--gold); text-align:left; }
+  .admin-toolbar{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .admin-search{
+    flex:1 1 220px; min-height:44px; border-radius:10px; border:1px solid var(--ink-3);
+    background:var(--ink); color:var(--text-hi); padding:10px 14px; font-family:var(--font-body);
+    font-size:0.92rem; outline:none;
+  }
+  .admin-search:focus{ border-color:var(--gold); }
+  .admin-filter{
+    min-height:44px; border-radius:10px; border:1px solid var(--ink-3);
+    background:var(--ink); color:var(--text-hi); padding:0 12px; font-family:var(--font-body);
+  }
+  .admin-tab-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:1.25rem; height:1.25rem; padding:0 5px; margin-inline-start:6px;
+    border-radius:999px; background:var(--gold); color:var(--on-accent);
+    font-size:0.68rem; font-weight:700; vertical-align:middle;
+  }
+  .admin-tabs{ overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:nowrap; }
+  .admin-tabs::-webkit-scrollbar{ display:none; }
+  .admin-tabs .size-btn{ flex:0 0 auto; white-space:nowrap; }
+  .admin-panel-head{ margin:0 0 14px; }
+  .admin-panel-head h3{ margin:0 0 6px; color:var(--gold); font-size:1.05rem; }
+  .admin-panel-head p{ margin:0; color:var(--text-mid); font-size:0.85rem; line-height:1.55; }
   @media(max-width:900px){
     .admin-insight-grid{ grid-template-columns:1fr; }
+    .admin-attention{ grid-template-columns:1fr; gap:8px; }
+    .admin-funnel li{ grid-template-columns:5.8rem 1fr 2rem; gap:8px; }
   }
   @media(max-width:560px){
-    .admin-stats{ grid-template-columns:1fr 1fr; }
+    .admin-stats{ grid-template-columns:1fr 1fr; gap:8px; }
+    .stat-box{ padding:12px 10px; }
+    .stat-box .n{ font-size:1.3rem; }
+    .stat-box .l{ font-size:0.72rem; line-height:1.35; }
+    .admin-attn-card{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      grid-template-areas:"n k" "n h";
+      column-gap:12px; row-gap:2px; align-items:center;
+      min-height:64px; padding:12px 14px;
+    }
+    .admin-attn-card .n{ grid-area:n; font-size:1.35rem; min-width:2rem; }
+    .admin-attn-card .k{ grid-area:k; margin:0; font-size:0.8rem; }
+    .admin-attn-card .h{ grid-area:h; margin:0; font-size:0.75rem; }
     .admin-table{ display:none !important; }
     .admin-users-mobile{ display:flex; flex-direction:column; gap:12px; padding:12px; }
     .admin-user-card{
@@ -153,10 +214,17 @@
     }
     .admin-user-card strong{ display:block; margin-bottom:6px; }
     .admin-user-card .meta{ color:var(--text-mid); font-size:0.82rem; line-height:1.65; margin-bottom:10px; }
-    .admin-user-card .admin-actions button{ min-height:40px; }
-    .admin-tabs .size-btn{ flex:1; min-height:42px; font-size:0.78rem; }
+    .admin-user-card .admin-actions{ display:flex; gap:8px; }
+    .admin-user-card .admin-actions button{ min-height:40px; flex:1; }
+    .admin-tabs{ margin-bottom:16px; padding-bottom:2px; }
+    .admin-tabs .size-btn{ min-height:42px; font-size:0.78rem; }
     .admin-contact-reply-actions .btn-primary{ flex:1; width:100%; }
     .admin-contact-reply-actions .done-contact-btn{ flex:1; }
+    .admin-toolbar{ flex-direction:column; align-items:stretch; }
+    .admin-search, .admin-filter{ width:100%; font-size:16px; }
+    .admin-funnel .label{ font-size:0.72rem; }
+    #broadcastOpenBtn{ width:100%; }
+    .modal{ max-width:100%; }
   }
 </style>
 <script src="gate.js"></script>
@@ -180,46 +248,81 @@
     <div class="wrap">
       <div id="adminContent">
         <div class="lesson-head">
-          <span class="eyebrow">/// لوحة المدير</span>
+          <span class="eyebrow">/// مركز الإدارة</span>
           <h1 id="adminWelcomeTitle">أهلاً بك</h1>
-          <p id="adminWelcomeLead">هنا تشوف دخول الطلاب، وين وقفوا، ونتائج الاختبارات، والرسائل والبلاغات.</p>
+          <p id="adminWelcomeLead">هنا تدير المنصة فعلياً: وش يحتاج موافقتك، وين وقف الطلاب، والرسائل والبلاغات والمقالات.</p>
         </div>
+
+        <section aria-labelledby="attnTitle">
+          <h2 id="attnTitle" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">يحتاج انتباهك</h2>
+          <div class="admin-attention" id="adminAttention">
+            <a href="#articles" class="admin-attn-card" data-admin-tab="tabArticles">
+              <div class="k">مقالات بانتظارك</div>
+              <div class="n" id="attnArticles">—</div>
+              <div class="h">وافق أو ارفض قبل النشر</div>
+            </a>
+            <a href="#contacts" class="admin-attn-card" data-admin-tab="tabContacts">
+              <div class="k">رسائل تواصل</div>
+              <div class="n" id="attnContacts">—</div>
+              <div class="h">عروض / استفسارات واردة</div>
+            </a>
+            <a href="#reports" class="admin-attn-card" data-admin-tab="tabReports">
+              <div class="k">بلاغات جديدة</div>
+              <div class="n" id="attnReports">—</div>
+              <div class="h">مشاكل بلّغ عنها المستخدمون</div>
+            </a>
+          </div>
+        </section>
 
         <div class="admin-stats" id="adminStats">
           <div class="stat-box"><div class="n" id="statStudents">—</div><div class="l">طلاب مسجّلون</div></div>
           <div class="stat-box"><div class="n" id="statActive">—</div><div class="l">نشطون آخر 7 أيام</div></div>
-          <div class="stat-box"><div class="n" id="statQuizAttempts">—</div><div class="l">محاولات اختبار الأساسيات</div></div>
-          <div class="stat-box"><div class="n" id="statQuizPasses">—</div><div class="l">اجتازوا الاختبار</div></div>
-          <div class="stat-box"><div class="n" id="statMessages">—</div><div class="l">رسائل مرسلة</div></div>
-          <div class="stat-box"><div class="n" id="statReports">—</div><div class="l">بلاغات جديدة</div></div>
-          <div class="stat-box"><div class="n" id="statContacts">—</div><div class="l">رسائل تواصل</div></div>
-          <div class="stat-box"><div class="n" id="statArticles">—</div><div class="l">مقالات بانتظارك</div></div>
+          <div class="stat-box"><div class="n" id="statNewWeek">—</div><div class="l">تسجيلات هذا الأسبوع</div></div>
+          <div class="stat-box"><div class="n" id="statCompleted">—</div><div class="l">أكملوا المسار</div></div>
+          <div class="stat-box"><div class="n" id="statCertificates">—</div><div class="l">شهادات صادرة</div></div>
+          <div class="stat-box"><div class="n" id="statStalled">—</div><div class="l">توقفوا +١٤ يوم</div></div>
+          <div class="stat-box"><div class="n" id="statQuizPasses">—</div><div class="l">اجتازوا اختبار الأساسيات</div></div>
+          <div class="stat-box"><div class="n" id="statArticlesPub">—</div><div class="l">مقالات متعلمين منشورة</div></div>
         </div>
 
         <div class="admin-insight-grid">
-          <div class="admin-insight profile-card" id="adminInsight" style="max-width:none; margin:0;">
-            <h3 style="margin-bottom:8px; color:var(--gold);">أبرز سؤال يُجاب عنه خطأ</h3>
-            <p id="mostMissedQ" style="color:var(--text-mid); margin:0;">ما فيه بيانات اختبار بعد — لما الطلاب يحلّون الأساسيات تظهر هنا.</p>
-            <p id="adminGeneratedAt" style="color:var(--text-mid); font-size:0.8rem; margin:10px 0 0;"></p>
+          <div class="admin-insight profile-card" style="max-width:none; margin:0;">
+            <h3 style="margin-bottom:10px; color:var(--gold);">قمع التقدّم</h3>
+            <p style="color:var(--text-mid);font-size:0.82rem;margin:0 0 12px;">كم طالب أكمل كل مرحلة (يتراكم للأعلى).</p>
+            <ul class="admin-funnel" id="adminFunnel"></ul>
+            <p id="adminGeneratedAt" style="color:var(--text-mid); font-size:0.78rem; margin:12px 0 0;"></p>
           </div>
           <div class="admin-insight profile-card" style="max-width:none; margin:0;">
-            <h3 style="margin-bottom:8px; color:var(--gold);">آخر دخول للطلاب</h3>
+            <h3 style="margin-bottom:8px; color:var(--gold);">آخر دخول</h3>
             <ul class="recent-logins-list" id="recentLoginsList">
               <li style="color:var(--text-mid)">جاري التحميل…</li>
             </ul>
+            <h3 style="margin:18px 0 8px; color:var(--gold); font-size:0.95rem;">أصعب سؤال في الاختبار</h3>
+            <p id="mostMissedQ" style="color:var(--text-mid); margin:0; font-size:0.88rem; line-height:1.6;">ما فيه بيانات اختبار بعد.</p>
           </div>
         </div>
 
-        <div class="admin-tabs">
-          <button type="button" class="size-btn active" id="tabUsers">المستخدمون</button>
-          <button type="button" class="size-btn" id="tabShare">المشاركة</button>
-          <button type="button" class="size-btn" id="tabMessages">الرسائل</button>
-          <button type="button" class="size-btn" id="tabReports">بلاغات المشاكل</button>
-          <button type="button" class="size-btn" id="tabContacts">التواصل معي</button>
-          <button type="button" class="size-btn" id="tabArticles">مقالات المجتمع</button>
+        <div class="admin-tabs" role="tablist" aria-label="أقسام الإدارة">
+          <button type="button" class="size-btn active" id="tabUsers" data-hash="users">الطلاب</button>
+          <button type="button" class="size-btn" id="tabArticles" data-hash="articles">المقالات<span class="admin-tab-badge" id="badgeArticles" hidden>0</span></button>
+          <button type="button" class="size-btn" id="tabContacts" data-hash="contacts">التواصل<span class="admin-tab-badge" id="badgeContacts" hidden>0</span></button>
+          <button type="button" class="size-btn" id="tabReports" data-hash="reports">البلاغات<span class="admin-tab-badge" id="badgeReports" hidden>0</span></button>
+          <button type="button" class="size-btn" id="tabMessages" data-hash="messages">الرسائل</button>
+          <button type="button" class="size-btn" id="tabShare" data-hash="share">المشاركة</button>
         </div>
 
         <div id="panelUsers">
+          <div class="admin-toolbar">
+            <input type="search" class="admin-search" id="usersSearch" placeholder="ابحث بالاسم أو الإيميل أو الجوال…" autocomplete="off">
+            <select class="admin-filter" id="usersFilter" aria-label="تصفية الطلاب">
+              <option value="all">كل الطلاب</option>
+              <option value="active">نشطون (٧ أيام)</option>
+              <option value="stalled">متوقفون (+١٤ يوم)</option>
+              <option value="done">أكملوا المسار</option>
+              <option value="quiz">اجتازوا الاختبار</option>
+              <option value="noquiz">ما اختبروا بعد</option>
+            </select>
+          </div>
           <div class="profile-card" style="max-width:none; padding:0; overflow:hidden;">
             <table class="admin-table" id="usersTable">
               <thead>
@@ -297,6 +400,13 @@
         </div>
 
         <div id="panelMessages" hidden>
+          <div class="admin-panel-head">
+            <h3>رسائلك للطلاب</h3>
+            <p>أرسل لطالب واحد من قائمة الطلاب، أو أرسل تنبيهاً لكل الطلاب دفعة واحدة.</p>
+          </div>
+          <div class="admin-toolbar" style="justify-content:flex-start;">
+            <button type="button" class="btn-primary" id="broadcastOpenBtn" style="min-height:44px;">رسالة للجميع ←</button>
+          </div>
           <div class="profile-card" style="max-width:none;">
             <div id="messagesList"></div>
             <p id="messagesEmpty" style="color:var(--text-mid); display:none;">لم تُرسل رسائل بعد.</p>
@@ -340,6 +450,21 @@
       <div class="modal-actions">
         <button type="button" class="btn-ghost" id="msgCancel">إلغاء</button>
         <button type="button" class="btn-primary" id="msgSend">إرسال</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="broadcastModal" role="dialog" aria-modal="true" aria-labelledby="broadcastTitle">
+    <div class="modal">
+      <h3 id="broadcastTitle">رسالة لكل الطلاب</h3>
+      <p class="sub">توصل كتنبيه وصندوق وارد لكل حساب طالب. استخدمها للإعلانات المهمة فقط.</p>
+      <label for="broadcastSubject">الموضوع</label>
+      <input type="text" id="broadcastSubject" placeholder="مثال: تحديث مهم على المسار">
+      <label for="broadcastBody">الرسالة</label>
+      <textarea id="broadcastBody" placeholder="اكتب الإعلان بوضوح…"></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="broadcastCancel">إلغاء</button>
+        <button type="button" class="btn-primary" id="broadcastSend">إرسال للجميع</button>
       </div>
     </div>
   </div>

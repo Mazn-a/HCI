@@ -33,6 +33,9 @@ function defaultDb() {
     share_hits: [],
     certificates: [],
     community_articles: [],
+    partners: [],
+    offers: [],
+    offer_interests: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
@@ -41,7 +44,10 @@ function defaultDb() {
     nextOtpId: 1,
     nextShareHitId: 1,
     nextCertificateId: 1,
-    nextCommunityArticleId: 1
+    nextCommunityArticleId: 1,
+    nextPartnerId: 1,
+    nextOfferId: 1,
+    nextOfferInterestId: 1
   };
 }
 
@@ -92,6 +98,12 @@ function migrate(cache) {
   if (!cache.nextCertificateId) { cache.nextCertificateId = 1; changed = true; }
   if (!cache.community_articles) { cache.community_articles = []; changed = true; }
   if (!cache.nextCommunityArticleId) { cache.nextCommunityArticleId = 1; changed = true; }
+  if (!cache.partners) { cache.partners = []; changed = true; }
+  if (!cache.nextPartnerId) { cache.nextPartnerId = 1; changed = true; }
+  if (!cache.offers) { cache.offers = []; changed = true; }
+  if (!cache.nextOfferId) { cache.nextOfferId = 1; changed = true; }
+  if (!cache.offer_interests) { cache.offer_interests = []; changed = true; }
+  if (!cache.nextOfferInterestId) { cache.nextOfferInterestId = 1; changed = true; }
   cache.users.forEach(function (u) {
     if (typeof u.path_type === 'undefined') { u.path_type = null; changed = true; }
     if (typeof u.intro_seen === 'undefined') { u.intro_seen = false; changed = true; }
@@ -592,6 +604,153 @@ const db = {
 
   countPendingCommunityArticles() {
     return cache.community_articles.filter((a) => a.status === 'pending').length;
+  },
+
+  /* ----- شركاء وعروض تدريب ----- */
+  createPartner({ name, contactName, email, phone, website, notes }) {
+    const row = {
+      id: cache.nextPartnerId++,
+      name: String(name || '').trim(),
+      contact_name: String(contactName || '').trim(),
+      email: String(email || '').trim(),
+      phone: String(phone || '').trim(),
+      website: String(website || '').trim(),
+      notes: String(notes || '').trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    cache.partners.push(row);
+    persist();
+    return row;
+  },
+
+  updatePartner(id, data) {
+    const row = cache.partners.find((p) => p.id === Number(id));
+    if (!row) return null;
+    if (data.name != null) row.name = String(data.name || '').trim();
+    if (data.contactName != null) row.contact_name = String(data.contactName || '').trim();
+    if (data.email != null) row.email = String(data.email || '').trim();
+    if (data.phone != null) row.phone = String(data.phone || '').trim();
+    if (data.website != null) row.website = String(data.website || '').trim();
+    if (data.notes != null) row.notes = String(data.notes || '').trim();
+    row.updated_at = new Date().toISOString();
+    persist();
+    return row;
+  },
+
+  deletePartner(id) {
+    const before = cache.partners.length;
+    cache.partners = cache.partners.filter((p) => p.id !== Number(id));
+    if (cache.partners.length === before) return false;
+    persist();
+    return true;
+  },
+
+  getPartners() {
+    return cache.partners.slice().sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+
+  getPartnerById(id) {
+    return cache.partners.find((p) => p.id === Number(id)) || null;
+  },
+
+  createOffer(data) {
+    const row = {
+      id: cache.nextOfferId++,
+      partner_id: data.partnerId != null ? Number(data.partnerId) : null,
+      company_name: String(data.companyName || '').trim(),
+      title: String(data.title || '').trim(),
+      summary: String(data.summary || '').trim(),
+      link: String(data.link || '').trim(),
+      mode: String(data.mode || 'online').trim(), // online | onsite | hybrid
+      city: String(data.city || '').trim(),
+      status: data.status === 'published' ? 'published' : 'draft',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      published_at: data.status === 'published' ? new Date().toISOString() : null
+    };
+    cache.offers.push(row);
+    persist();
+    return row;
+  },
+
+  updateOffer(id, data) {
+    const row = cache.offers.find((o) => o.id === Number(id));
+    if (!row) return null;
+    if (data.partnerId !== undefined) row.partner_id = data.partnerId != null ? Number(data.partnerId) : null;
+    if (data.companyName != null) row.company_name = String(data.companyName || '').trim();
+    if (data.title != null) row.title = String(data.title || '').trim();
+    if (data.summary != null) row.summary = String(data.summary || '').trim();
+    if (data.link != null) row.link = String(data.link || '').trim();
+    if (data.mode != null) row.mode = String(data.mode || 'online').trim();
+    if (data.city != null) row.city = String(data.city || '').trim();
+    if (data.status === 'published' || data.status === 'draft' || data.status === 'archived') {
+      if (data.status === 'published' && row.status !== 'published') {
+        row.published_at = new Date().toISOString();
+      }
+      row.status = data.status;
+    }
+    row.updated_at = new Date().toISOString();
+    persist();
+    return row;
+  },
+
+  deleteOffer(id) {
+    const before = cache.offers.length;
+    cache.offers = cache.offers.filter((o) => o.id !== Number(id));
+    if (cache.offers.length === before) return false;
+    cache.offer_interests = cache.offer_interests.filter((i) => i.offer_id !== Number(id));
+    persist();
+    return true;
+  },
+
+  getOffers(filter) {
+    var list = cache.offers.slice();
+    if (filter && filter.status) list = list.filter((o) => o.status === filter.status);
+    return list.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+
+  getOfferById(id) {
+    return cache.offers.find((o) => o.id === Number(id)) || null;
+  },
+
+  createOfferInterest({ offerId, userId, name, contact, note }) {
+    const existing = cache.offer_interests.find(
+      (i) => i.offer_id === Number(offerId) && i.user_id === Number(userId)
+    );
+    if (existing) return existing;
+    const row = {
+      id: cache.nextOfferInterestId++,
+      offer_id: Number(offerId),
+      user_id: Number(userId),
+      name: String(name || '').trim(),
+      contact: String(contact || '').trim(),
+      note: String(note || '').trim(),
+      status: 'new',
+      created_at: new Date().toISOString()
+    };
+    cache.offer_interests.push(row);
+    persist();
+    return row;
+  },
+
+  getOfferInterests(filter) {
+    var list = cache.offer_interests.slice();
+    if (filter && filter.status) list = list.filter((i) => i.status === filter.status);
+    if (filter && filter.offerId != null) list = list.filter((i) => i.offer_id === Number(filter.offerId));
+    return list.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+
+  updateOfferInterest(id, { status }) {
+    const row = cache.offer_interests.find((i) => i.id === Number(id));
+    if (!row) return null;
+    if (status === 'new' || status === 'contacted' || status === 'done') row.status = status;
+    persist();
+    return row;
+  },
+
+  countNewOfferInterests() {
+    return cache.offer_interests.filter((i) => i.status === 'new').length;
   },
 
   createNotification({ userId, type, title, body, link, refId }) {

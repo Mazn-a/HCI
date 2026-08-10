@@ -173,18 +173,24 @@
     var aN = attn.articles != null ? attn.articles : s.articlesPending;
     var cN = attn.contacts != null ? attn.contacts : s.contacts;
     var rN = attn.reports != null ? attn.reports : s.reports;
+    var iN = attn.interests != null ? attn.interests : s.offerInterestsNew;
     var attnA = document.getElementById('attnArticles');
     var attnC = document.getElementById('attnContacts');
     var attnR = document.getElementById('attnReports');
+    var attnI = document.getElementById('attnInterests');
     if (attnA) attnA.textContent = aN != null ? aN : '—';
     if (attnC) attnC.textContent = cN != null ? cN : '—';
     if (attnR) attnR.textContent = rN != null ? rN : '—';
+    if (attnI) attnI.textContent = iN != null ? iN : '—';
     markAttentionCard('[data-admin-tab="tabArticles"]', aN);
     markAttentionCard('[data-admin-tab="tabContacts"]', cN);
     markAttentionCard('[data-admin-tab="tabReports"]', rN);
+    markAttentionCard('[data-admin-tab="tabOffers"]', iN);
     setBadge('badgeArticles', aN);
     setBadge('badgeContacts', cN);
     setBadge('badgeReports', rN);
+    setBadge('badgeOffers', iN);
+    setBadge('badgeOffersInner', iN);
 
     renderFunnel(s.stageFunnel || {}, s.students);
 
@@ -424,7 +430,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  var ADMIN_TABS = ['tabOverview', 'tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'];
+  var ADMIN_TABS = ['tabOverview', 'tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles', 'tabOffers'];
   var BLOCK_ORDER_KEY = 'hci_admin_block_order';
   var STAT_ORDER_KEY = 'hci_admin_stat_order';
   var DEFAULT_BLOCKS = ['attention', 'stats', 'insights'];
@@ -532,6 +538,8 @@
     if (panelContacts) panelContacts.hidden = active !== 'tabContacts';
     var panelArticles = document.getElementById('panelArticles');
     if (panelArticles) panelArticles.hidden = active !== 'tabArticles';
+    var panelOffers = document.getElementById('panelOffers');
+    if (panelOffers) panelOffers.hidden = active !== 'tabOffers';
 
     var tabBtn = document.getElementById(active);
     var hash = tabBtn && tabBtn.getAttribute('data-hash');
@@ -544,6 +552,7 @@
     if (active === 'tabReports') loadReports().catch(function (e) { alert(e.message); });
     if (active === 'tabContacts') loadContacts().catch(function (e) { alert(e.message); });
     if (active === 'tabArticles') loadCommunityArticles().catch(function (e) { alert(e.message); });
+    if (active === 'tabOffers') loadOffersAdmin().catch(function (e) { alert(e.message); });
   }
 
   function openTabFromHash() {
@@ -556,7 +565,8 @@
       messages: 'tabMessages',
       reports: 'tabReports',
       contacts: 'tabContacts',
-      articles: 'tabArticles'
+      articles: 'tabArticles',
+      offers: 'tabOffers'
     };
     setAdminTab(map[h] || 'tabOverview', { skipHash: true });
   }
@@ -968,6 +978,260 @@
       });
     });
   }
+
+  function modeLabel(m) {
+    if (m === 'onsite') return 'حضوري';
+    if (m === 'hybrid') return 'مدمج';
+    return 'عن بعد';
+  }
+
+  function setOffersSub(which) {
+    var map = {
+      offers: 'offersPaneOffers',
+      interests: 'offersPaneInterests',
+      partners: 'offersPanePartners'
+    };
+    Object.keys(map).forEach(function (k) {
+      var pane = document.getElementById(map[k]);
+      if (pane) pane.hidden = k !== which;
+    });
+    var bO = document.getElementById('offersSubOffers');
+    var bI = document.getElementById('offersSubInterests');
+    var bP = document.getElementById('offersSubPartners');
+    if (bO) bO.classList.toggle('active', which === 'offers');
+    if (bI) bI.classList.toggle('active', which === 'interests');
+    if (bP) bP.classList.toggle('active', which === 'partners');
+  }
+
+  async function loadOffersAdmin() {
+    var data = await HCIApi.request('/api/admin/offers');
+    var offers = data.offers || [];
+    var interests = data.interests || [];
+    var partners = data.partners || [];
+
+    var partnerSelect = document.getElementById('offerPartner');
+    if (partnerSelect) {
+      var cur = partnerSelect.value;
+      partnerSelect.innerHTML = '<option value="">— بدون —</option>' +
+        partners.map(function (p) {
+          return '<option value="' + p.id + '">' + escapeHtml(p.name) + '</option>';
+        }).join('');
+      if (cur) partnerSelect.value = cur;
+    }
+
+    var offersList = document.getElementById('offersList');
+    var offersEmpty = document.getElementById('offersEmpty');
+    if (offersList) {
+      offersList.innerHTML = '';
+      if (!offers.length) {
+        if (offersEmpty) offersEmpty.hidden = false;
+      } else if (offersEmpty) offersEmpty.hidden = true;
+      offers.forEach(function (o) {
+        var statusAr = o.status === 'published' ? 'منشور' : (o.status === 'archived' ? 'مؤرشف' : 'مسودة');
+        var card = document.createElement('article');
+        card.className = 'admin-contact-card';
+        var actions = '';
+        if (o.status !== 'published') {
+          actions += '<button type="button" class="btn-primary offer-publish" data-id="' + o.id + '" style="padding:8px 12px;font-size:0.82rem;">نشر</button>';
+        } else {
+          actions += '<button type="button" class="btn-ghost offer-unpublish" data-id="' + o.id + '" style="padding:8px 12px;font-size:0.82rem;">إخفاء</button>';
+        }
+        actions += '<button type="button" class="del-btn offer-del" data-id="' + o.id + '">حذف</button>';
+        card.innerHTML =
+          '<div class="admin-contact-top">' +
+            '<strong>' + escapeHtml(o.title) + '</strong>' +
+            '<span>' + statusAr + ' · ' + (o.newInterests || 0) + ' اهتمام جديد</span>' +
+          '</div>' +
+          '<p class="admin-contact-meta">' + escapeHtml(o.companyName) + ' · ' + modeLabel(o.mode) +
+            (o.city ? ' · ' + escapeHtml(o.city) : '') +
+            ' · إجمالي الاهتمام: ' + (o.interestCount || 0) + '</p>' +
+          '<p class="admin-contact-msg">' + escapeHtml(o.summary) + '</p>' +
+          (o.link ? '<p style="margin:0 0 10px;"><a href="' + escapeHtml(o.link) + '" target="_blank" rel="noopener" style="color:var(--gold)">رابط العرض ↗</a></p>' : '') +
+          '<div class="admin-contact-reply-actions">' + actions + '</div>';
+        offersList.appendChild(card);
+      });
+
+      offersList.querySelectorAll('.offer-publish').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('نشر العرض للطلاب؟')) return;
+          var doNotify = confirm('تبي كمان تنبّه كل الطلاب بهالعرض؟');
+          try {
+            await HCIApi.request('/api/admin/offers/' + btn.getAttribute('data-id'), {
+              method: 'PATCH',
+              body: { status: 'published', notifyStudents: doNotify }
+            });
+            await loadOffersAdmin();
+            await loadStats();
+          } catch (err) { alert(err.message); }
+        });
+      });
+      offersList.querySelectorAll('.offer-unpublish').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await HCIApi.request('/api/admin/offers/' + btn.getAttribute('data-id'), {
+              method: 'PATCH',
+              body: { status: 'draft' }
+            });
+            await loadOffersAdmin();
+            await loadStats();
+          } catch (err) { alert(err.message); }
+        });
+      });
+      offersList.querySelectorAll('.offer-del').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('حذف هذا العرض وكل الاهتمامات المرتبطة؟')) return;
+          try {
+            await HCIApi.request('/api/admin/offers/' + btn.getAttribute('data-id'), { method: 'DELETE' });
+            await loadOffersAdmin();
+            await loadStats();
+          } catch (err) { alert(err.message); }
+        });
+      });
+    }
+
+    var interestsList = document.getElementById('interestsList');
+    var interestsEmpty = document.getElementById('interestsEmpty');
+    if (interestsList) {
+      interestsList.innerHTML = '';
+      if (!interests.length) {
+        if (interestsEmpty) interestsEmpty.hidden = false;
+      } else if (interestsEmpty) interestsEmpty.hidden = true;
+      interests.forEach(function (i) {
+        var st = i.status === 'done' ? 'تم' : (i.status === 'contacted' ? 'تم التواصل' : 'جديد');
+        var card = document.createElement('div');
+        card.className = 'admin-contact-card';
+        card.innerHTML =
+          '<div class="admin-contact-top">' +
+            '<strong>' + escapeHtml(i.name) + '</strong>' +
+            '<span>' + st + ' · ' + formatDate(i.createdAt) + '</span>' +
+          '</div>' +
+          '<p class="admin-contact-meta">العرض: ' + escapeHtml(i.offerTitle) + '</p>' +
+          '<p class="admin-contact-meta" dir="ltr">' + escapeHtml(i.contact || '—') + '</p>' +
+          (i.note ? '<p class="admin-contact-msg">' + escapeHtml(i.note) + '</p>' : '') +
+          '<div class="admin-contact-reply-actions">' +
+            '<button type="button" class="btn-primary interest-msg" data-uid="' + i.userId + '" data-name="' + escapeHtml(i.name) + '" data-offer="' + escapeHtml(i.offerTitle) + '">راسل عبر المنصة</button>' +
+            (i.status === 'new' ? '<button type="button" class="btn-ghost interest-mark" data-id="' + i.id + '" data-st="contacted">تم التواصل</button>' : '') +
+            (i.status !== 'done' ? '<button type="button" class="done-contact-btn interest-mark" data-id="' + i.id + '" data-st="done">أرشف</button>' : '') +
+          '</div>';
+        interestsList.appendChild(card);
+      });
+      interestsList.querySelectorAll('.interest-msg').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          openMsgModal(btn.getAttribute('data-uid'), btn.getAttribute('data-name'));
+          document.getElementById('msgSubject').value = 'بخصوص عرض: ' + (btn.getAttribute('data-offer') || '');
+        });
+      });
+      interestsList.querySelectorAll('.interest-mark').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await HCIApi.request('/api/admin/offer-interests/' + btn.getAttribute('data-id'), {
+              method: 'PATCH',
+              body: { status: btn.getAttribute('data-st') }
+            });
+            await loadOffersAdmin();
+            await loadStats();
+          } catch (err) { alert(err.message); }
+        });
+      });
+    }
+
+    var partnersList = document.getElementById('partnersList');
+    var partnersEmpty = document.getElementById('partnersEmpty');
+    if (partnersList) {
+      var fullPartners = await HCIApi.request('/api/admin/partners');
+      var plist = (fullPartners && fullPartners.partners) || [];
+      partnersList.innerHTML = '';
+      if (!plist.length) {
+        if (partnersEmpty) partnersEmpty.hidden = false;
+      } else if (partnersEmpty) partnersEmpty.hidden = true;
+      plist.forEach(function (p) {
+        var card = document.createElement('div');
+        card.className = 'admin-contact-card';
+        card.innerHTML =
+          '<div class="admin-contact-top"><strong>' + escapeHtml(p.name) + '</strong>' +
+          '<button type="button" class="del-btn partner-del" data-id="' + p.id + '">حذف</button></div>' +
+          '<p class="admin-contact-meta">' + escapeHtml(p.contactName || '—') +
+            (p.phone ? ' · ' + escapeHtml(p.phone) : '') +
+            (p.email ? ' · ' + escapeHtml(p.email) : '') + '</p>' +
+          (p.website ? '<p style="margin:0 0 8px;"><a href="' + escapeHtml(p.website) + '" target="_blank" rel="noopener" style="color:var(--gold)" dir="ltr">' + escapeHtml(p.website) + '</a></p>' : '') +
+          (p.notes ? '<p class="admin-contact-msg">' + escapeHtml(p.notes) + '</p>' : '');
+        partnersList.appendChild(card);
+      });
+      partnersList.querySelectorAll('.partner-del').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('حذف هالشركة من القائمة؟')) return;
+          try {
+            await HCIApi.request('/api/admin/partners/' + btn.getAttribute('data-id'), { method: 'DELETE' });
+            await loadOffersAdmin();
+          } catch (err) { alert(err.message); }
+        });
+      });
+    }
+  }
+
+  (function wireOffersForms() {
+    var subO = document.getElementById('offersSubOffers');
+    var subI = document.getElementById('offersSubInterests');
+    var subP = document.getElementById('offersSubPartners');
+    if (subO) subO.addEventListener('click', function () { setOffersSub('offers'); });
+    if (subI) subI.addEventListener('click', function () { setOffersSub('interests'); });
+    if (subP) subP.addEventListener('click', function () { setOffersSub('partners'); });
+
+    async function createOffer(publish) {
+      var body = {
+        companyName: document.getElementById('offerCompany').value.trim(),
+        title: document.getElementById('offerTitle').value.trim(),
+        summary: document.getElementById('offerSummary').value.trim(),
+        mode: document.getElementById('offerMode').value,
+        city: document.getElementById('offerCity').value.trim(),
+        link: document.getElementById('offerLink').value.trim(),
+        partnerId: document.getElementById('offerPartner').value || null,
+        publish: !!publish,
+        notifyStudents: !!(publish && document.getElementById('offerNotify').checked)
+      };
+      await HCIApi.request('/api/admin/offers', { method: 'POST', body: body });
+      document.getElementById('offerCreateForm').reset();
+      await loadOffersAdmin();
+      await loadStats();
+      alert(publish ? 'نُشر العرض للطلاب ✓' : 'اتحفظت المسودة ✓');
+    }
+
+    var form = document.getElementById('offerCreateForm');
+    if (form) {
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        try { await createOffer(false); } catch (err) { alert(err.message); }
+      });
+    }
+    var pubBtn = document.getElementById('offerPublishBtn');
+    if (pubBtn) {
+      pubBtn.addEventListener('click', async function () {
+        try { await createOffer(true); } catch (err) { alert(err.message); }
+      });
+    }
+    var pForm = document.getElementById('partnerCreateForm');
+    if (pForm) {
+      pForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        try {
+          await HCIApi.request('/api/admin/partners', {
+            method: 'POST',
+            body: {
+              name: document.getElementById('partnerName').value.trim(),
+              contactName: document.getElementById('partnerContact').value.trim(),
+              phone: document.getElementById('partnerPhone').value.trim(),
+              email: document.getElementById('partnerEmail').value.trim(),
+              website: document.getElementById('partnerWeb').value.trim(),
+              notes: document.getElementById('partnerNotes').value.trim()
+            }
+          });
+          pForm.reset();
+          await loadOffersAdmin();
+          alert('تم حفظ الشركة ✓');
+        } catch (err) { alert(err.message); }
+      });
+    }
+  })();
 
   var msgModal = document.getElementById('msgModal');
   function openMsgModal(id, name) {

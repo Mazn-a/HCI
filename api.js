@@ -683,6 +683,13 @@
         method: 'POST',
         body: { reason: reason || '' }
       });
+    },
+    fetchOffers: function () { return request('/api/offers'); },
+    expressOfferInterest: function (id, note) {
+      return request('/api/offers/' + encodeURIComponent(id) + '/interest', {
+        method: 'POST',
+        body: { note: note || '' }
+      });
     }
   };
 })();

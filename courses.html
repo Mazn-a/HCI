@@ -154,6 +154,16 @@
 
       </div>
 
+      <section class="articles-block reveal" id="offers" style="margin-top:40px;" aria-labelledby="partnerOffersTitle">
+        <div class="section-head articles-block-head">
+          <span class="eyebrow">/// عروض من شركات وشركاء</span>
+          <h2 id="partnerOffersTitle">فرص تدريب ودورات من جهات خارجية</h2>
+          <p>عروض ينشرها المشرف. سجّل اهتمامك ويتواصلون معك عبر تنبيهات المنصة.</p>
+        </div>
+        <div class="content-grid" id="partnerOffersGrid"></div>
+        <p class="progress-note" id="partnerOffersEmpty" hidden>ما فيه عروض منشورة حالياً — راجع لاحقاً.</p>
+      </section>
+
       <div class="lesson-nav-footer">
         <a href="coding.html" class="btn-ghost">← الترميز</a>
         <a href="books.html" class="btn-primary" data-next-stage="books">التالي: الكتب والمراجع →</a>
@@ -207,5 +217,64 @@
   <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
   <script src="api.js"></script>
 <script src="main.js"></script>
+<script>
+(function () {
+  var grid = document.getElementById('partnerOffersGrid');
+  var empty = document.getElementById('partnerOffersEmpty');
+  if (!grid || !window.HCIApi || !HCIApi.fetchOffers) return;
+
+  function modeAr(m) {
+    if (m === 'onsite') return 'حضوري';
+    if (m === 'hybrid') return 'مدمج';
+    return 'عن بعد';
+  }
+
+  HCIApi.fetchOffers().then(function (data) {
+    var list = (data && data.offers) || [];
+    if (!list.length) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    grid.innerHTML = list.map(function (o) {
+      var title = String(o.title || '').replace(/</g, '&lt;');
+      var company = String(o.companyName || '').replace(/</g, '&lt;');
+      var summary = String(o.summary || '').replace(/</g, '&lt;');
+      var meta = company + ' · ' + modeAr(o.mode) + (o.city ? ' · ' + String(o.city).replace(/</g, '&lt;') : '');
+      var linkBtn = o.link
+        ? '<a href="' + String(o.link).replace(/"/g, '') + '" target="_blank" rel="noopener" class="btn-primary btn-compact">التفاصيل ↗</a>'
+        : '';
+      return '<article class="content-card" data-offer-id="' + o.id + '">' +
+        '<div class="cc-top"><div><h3>' + title + '</h3>' +
+        '<p class="cc-meta">' + meta + '</p></div>' +
+        '<span class="cc-badge">عرض</span></div>' +
+        '<p>' + summary + '</p>' +
+        '<div class="cc-actions">' + linkBtn +
+        '<button type="button" class="btn-ghost btn-compact offer-interest-btn" data-id="' + o.id + '">أنا مهتم ←</button>' +
+        '</div></article>';
+    }).join('');
+
+    grid.querySelectorAll('.offer-interest-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!HCIApi.isLoggedIn()) {
+          location.href = 'auth.html?tab=signup&next=courses.html%23offers';
+          return;
+        }
+        btn.disabled = true;
+        HCIApi.expressOfferInterest(btn.getAttribute('data-id'), '').then(function () {
+          btn.textContent = 'تم تسجيل اهتمامك ✓';
+        }).catch(function (err) {
+          alert((err && err.message) || 'تعذر التسجيل');
+          btn.disabled = false;
+        });
+      });
+    });
+  }).catch(function () {
+    if (empty) {
+      empty.hidden = false;
+      empty.textContent = 'تعذر تحميل العروض حالياً.';
+    }
+  });
+})();
+</script>
 </body>
 </html>

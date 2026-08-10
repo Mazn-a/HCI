@@ -214,8 +214,20 @@
     direction:ltr; text-align:left; word-break:break-all;
   }
   .admin-attention{
-    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:20px;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:0;
   }
+  .admin-offer-form{
+    display:grid; gap:10px; margin-bottom:18px;
+  }
+  .admin-offer-form input, .admin-offer-form textarea, .admin-offer-form select{
+    width:100%; background:var(--ink); border:1px solid var(--ink-3); border-radius:8px;
+    padding:11px 12px; color:var(--text-hi); font-family:var(--font-body); font-size:0.92rem;
+  }
+  .admin-offer-form textarea{ min-height:90px; resize:vertical; }
+  .admin-offer-form label{ font-size:0.8rem; color:var(--text-mid); }
+  .admin-offer-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .admin-subtabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .admin-subtabs .size-btn{ min-height:38px; font-size:0.8rem; }
   .admin-attn-card{
     display:block; text-align:right; text-decoration:none; color:inherit;
     border:1px solid var(--ink-3); border-radius:14px; padding:14px 14px 12px;
@@ -262,6 +274,7 @@
   @media(max-width:900px){
     .admin-insight-grid{ grid-template-columns:1fr; }
     .admin-attention{ grid-template-columns:1fr; gap:8px; }
+    .admin-offer-row{ grid-template-columns:1fr; }
     .admin-funnel li{ grid-template-columns:5.8rem 1fr 2rem; gap:8px; }
   }
   @media(max-width:560px){
@@ -325,6 +338,7 @@
         <button type="button" class="admin-top-btn" id="tabArticles" data-hash="articles">المقالات<span class="admin-tab-badge" id="badgeArticles" hidden>0</span></button>
         <button type="button" class="admin-top-btn" id="tabContacts" data-hash="contacts">التواصل<span class="admin-tab-badge" id="badgeContacts" hidden>0</span></button>
         <button type="button" class="admin-top-btn" id="tabReports" data-hash="reports">البلاغات<span class="admin-tab-badge" id="badgeReports" hidden>0</span></button>
+        <button type="button" class="admin-top-btn" id="tabOffers" data-hash="offers">عروض وشراكات<span class="admin-tab-badge" id="badgeOffers" hidden>0</span></button>
         <button type="button" class="admin-top-btn" id="tabMessages" data-hash="messages">الرسائل</button>
         <button type="button" class="admin-top-btn" id="tabShare" data-hash="share">المشاركة</button>
       </nav>
@@ -337,7 +351,7 @@
         <div class="admin-welcome">
           <span class="eyebrow">/// مركز الإدارة</span>
           <h1 id="adminWelcomeTitle">أهلاً بك</h1>
-          <p id="adminWelcomeLead">الأهم فوق. الباقي مرتّب بهدوء. تقدر تغيّر ترتيب الأرقام بنفسك.</p>
+          <p id="adminWelcomeLead">الأهم فوق. من هنا تدير الطلاب والعروض والشراكات والتواصل داخل المنصة.</p>
         </div>
 
         <div id="panelOverview">
@@ -359,10 +373,15 @@
                   <div class="n" id="attnArticles">—</div>
                   <div class="h">وافق أو ارفض قبل النشر</div>
                 </a>
+                <a href="#offers" class="admin-attn-card" data-admin-tab="tabOffers">
+                  <div class="k">اهتمام بعروض تدريب</div>
+                  <div class="n" id="attnInterests">—</div>
+                  <div class="h">طلاب مهتمون — راسلهم من المنصة</div>
+                </a>
                 <a href="#contacts" class="admin-attn-card" data-admin-tab="tabContacts">
                   <div class="k">رسائل تواصل</div>
                   <div class="n" id="attnContacts">—</div>
-                  <div class="h">عروض / استفسارات واردة</div>
+                  <div class="h">استفسارات واردة</div>
                 </a>
                 <a href="#reports" class="admin-attn-card" data-admin-tab="tabReports">
                   <div class="k">بلاغات جديدة</div>
@@ -547,6 +566,114 @@
             <p style="color:var(--text-mid);font-size:0.88rem;margin:0 0 16px;">وافق عشان ينشر للجميع، أو ارفض مع سبب مختصر يوصل لكاتب المقال.</p>
             <div id="articlesList"></div>
             <p id="articlesEmpty" style="color:var(--text-mid); display:none;">لا توجد مقالات للمراجعة حالياً.</p>
+          </div>
+        </div>
+
+        <div id="panelOffers" hidden>
+          <div class="admin-panel-head">
+            <h3>عروض تدريب وشراكات شركات</h3>
+            <p>أضف شركة أو عرض تدريب، انشره للطلاب، ولما يهتمون راسلهم من حساب المنصة.</p>
+          </div>
+          <div class="admin-subtabs">
+            <button type="button" class="size-btn active" id="offersSubOffers">العروض</button>
+            <button type="button" class="size-btn" id="offersSubInterests">الاهتمامات<span class="admin-tab-badge" id="badgeOffersInner" hidden>0</span></button>
+            <button type="button" class="size-btn" id="offersSubPartners">الشركات</button>
+          </div>
+
+          <div id="offersPaneOffers">
+            <div class="admin-block" style="margin-bottom:16px;">
+              <h3 style="margin:0 0 12px;color:var(--gold);font-size:0.95rem;">أضف عرض تدريب</h3>
+              <form class="admin-offer-form" id="offerCreateForm">
+                <div>
+                  <label for="offerCompany">اسم الشركة / الجهة</label>
+                  <input id="offerCompany" required maxlength="120" placeholder="مثال: أكاديمية …">
+                </div>
+                <div>
+                  <label for="offerTitle">عنوان العرض</label>
+                  <input id="offerTitle" required maxlength="140" placeholder="مثال: دورة UX Research حضورية">
+                </div>
+                <div>
+                  <label for="offerSummary">الوصف</label>
+                  <textarea id="offerSummary" required maxlength="1200" placeholder="وش العرض، لمن يناسب، وش يستفيد الطالب…"></textarea>
+                </div>
+                <div class="admin-offer-row">
+                  <div>
+                    <label for="offerMode">طريقة التقديم</label>
+                    <select id="offerMode">
+                      <option value="online">عن بعد</option>
+                      <option value="onsite">حضوري</option>
+                      <option value="hybrid">مدمج</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="offerCity">المدينة (اختياري)</label>
+                    <input id="offerCity" maxlength="80" placeholder="مكة / الرياض…">
+                  </div>
+                </div>
+                <div>
+                  <label for="offerLink">رابط التسجيل أو التفاصيل (اختياري)</label>
+                  <input id="offerLink" dir="ltr" maxlength="400" placeholder="https://…">
+                </div>
+                <div>
+                  <label for="offerPartner">اربط بشركة محفوظة (اختياري)</label>
+                  <select id="offerPartner"><option value="">— بدون —</option></select>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                  <input type="checkbox" id="offerNotify" style="width:auto;">
+                  تنبيه كل الطلاب عند النشر
+                </label>
+                <div class="admin-contact-reply-actions">
+                  <button type="submit" class="btn-primary" id="offerSaveDraft">حفظ كمسودة</button>
+                  <button type="button" class="btn-ghost" id="offerPublishBtn">نشر للطلاب ←</button>
+                </div>
+              </form>
+            </div>
+            <div id="offersList"></div>
+            <p id="offersEmpty" class="progress-note" hidden>ما أضفت عروض بعد.</p>
+          </div>
+
+          <div id="offersPaneInterests" hidden>
+            <div id="interestsList"></div>
+            <p id="interestsEmpty" class="progress-note" hidden>ما وصل اهتمام بعرض بعد.</p>
+          </div>
+
+          <div id="offersPanePartners" hidden>
+            <div class="admin-block" style="margin-bottom:16px;">
+              <h3 style="margin:0 0 12px;color:var(--gold);font-size:0.95rem;">أضف شركة / شريك</h3>
+              <form class="admin-offer-form" id="partnerCreateForm">
+                <div>
+                  <label for="partnerName">اسم الشركة</label>
+                  <input id="partnerName" required maxlength="120" placeholder="اسم الجهة">
+                </div>
+                <div class="admin-offer-row">
+                  <div>
+                    <label for="partnerContact">اسم مسؤول التواصل</label>
+                    <input id="partnerContact" maxlength="80">
+                  </div>
+                  <div>
+                    <label for="partnerPhone">جوال</label>
+                    <input id="partnerPhone" dir="ltr" maxlength="40">
+                  </div>
+                </div>
+                <div class="admin-offer-row">
+                  <div>
+                    <label for="partnerEmail">بريد</label>
+                    <input id="partnerEmail" dir="ltr" maxlength="120">
+                  </div>
+                  <div>
+                    <label for="partnerWeb">موقع</label>
+                    <input id="partnerWeb" dir="ltr" maxlength="200" placeholder="https://…">
+                  </div>
+                </div>
+                <div>
+                  <label for="partnerNotes">ملاحظات داخلية</label>
+                  <textarea id="partnerNotes" maxlength="800" placeholder="تفاصيل الاتفاق، تواريخ، ملاحظاتك…"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">حفظ الشركة ←</button>
+              </form>
+            </div>
+            <div id="partnersList"></div>
+            <p id="partnersEmpty" class="progress-note" hidden>ما أضفت شركات بعد.</p>
           </div>
         </div>
       </div>

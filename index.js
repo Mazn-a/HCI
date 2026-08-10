@@ -949,11 +949,13 @@ app.get('/api/admin/attention', adminRequired, (_req, res) => {
   const articles = db.countPendingCommunityArticles();
   const contacts = db.countContacts();
   const reports = db.countReports();
+  const interests = db.countNewOfferInterests();
   res.json({
     articles,
     contacts,
     reports,
-    total: articles + contacts + reports
+    interests,
+    total: articles + contacts + reports + interests
   });
 });
 
@@ -1022,6 +1024,7 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
   const articlesPending = db.countPendingCommunityArticles();
   const contacts = db.countContacts();
   const reports = db.countReports();
+  const interests = db.countNewOfferInterests();
 
   res.json({
     students: db.countStudents(),
@@ -1032,6 +1035,9 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
     articlesPending,
     articlesPublished: db.countApprovedCommunityArticles(),
     certificates: db.countCertificates(),
+    offersPublished: db.getOffers({ status: 'published' }).length,
+    offerInterestsNew: interests,
+    partners: db.getPartners().length,
     activeWeek: db.countActiveWeek(),
     newThisWeek,
     startedPath,
@@ -1047,7 +1053,8 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
       articles: articlesPending,
       contacts,
       reports,
-      total: articlesPending + contacts + reports
+      interests,
+      total: articlesPending + contacts + reports + interests
     },
     generatedAt: new Date().toISOString()
   });
@@ -1676,6 +1683,220 @@ app.post('/api/admin/message', adminRequired, (req, res) => {
   });
 
   res.status(201).json({ id: msg.id, ok: true });
+});
+
+/* ---------- شركاء وعروض تدريب (إدارة عالية) ---------- */
+function publicOffer(o) {
+  const partner = o.partner_id ? db.getPartnerById(o.partner_id) : null;
+  return {
+    id: o.id,
+    title: o.title,
+    summary: o.summary,
+    companyName: o.company_name || (partner ? partner.name : ''),
+    link: o.link,
+    mode: o.mode,
+    city: o.city,
+    status: o.status,
+    partnerId: o.partner_id,
+    publishedAt: o.published_at,
+    createdAt: o.created_at
+  };
+}
+
+app.get('/api/offers', (_req, res) => {
+  try {
+    const list = db.getOffers({ status: 'published' }).map(publicOffer);
+    res.json({ offers: list });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر جلب العروض' });
+  }
+});
+
+app.post('/api/offers/:id/interest', authRequired, (req, res) => {
+  try {
+    const offer = db.getOfferById(req.params.id);
+    if (!offer || offer.status !== 'published') {
+      return res.status(404).json({ error: 'العرض غير متاح' });
+    }
+    const name = (req.user.first_name + (req.user.last_name ? ' ' + req.user.last_name : '')).trim();
+    const contact = req.user.email || req.user.phone || '';
+    const note = sanitizeArticleText(req.body.note, 400);
+    const row = db.createOfferInterest({
+      offerId: offer.id,
+      userId: req.user.id,
+      name,
+      contact,
+      note
+    });
+    const admin = db.findAdmin();
+    if (admin) {
+      db.createNotification({
+        userId: admin.id,
+        type: 'offer_interest',
+        title: 'اهتمام بعرض تدريب',
+        body: name + ' مهتم بـ «' + offer.title + '»',
+        link: 'admin.html#offers',
+        refId: row.id
+      });
+    }
+    res.status(201).json({ ok: true, id: row.id });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر تسجيل الاهتمام' });
+  }
+});
+
+app.get('/api/admin/partners', adminRequired, (_req, res) => {
+  res.json({
+    partners: db.getPartners().map((p) => ({
+      id: p.id,
+      name: p.name,
+      contactName: p.contact_name,
+      email: p.email,
+      phone: p.phone,
+      website: p.website,
+      notes: p.notes,
+      createdAt: p.created_at
+    }))
+  });
+});
+
+app.post('/api/admin/partners', adminRequired, (req, res) => {
+  const name = sanitizeArticleText(req.body.name, 120);
+  if (name.length < 2) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
+  const row = db.createPartner({
+    name,
+    contactName: sanitizeArticleText(req.body.contactName, 80),
+    email: sanitizeArticleText(req.body.email, 120),
+    phone: sanitizeArticleText(req.body.phone, 40),
+    website: sanitizeArticleText(req.body.website, 200),
+    notes: sanitizeArticleText(req.body.notes, 800)
+  });
+  res.status(201).json({ ok: true, partner: { id: row.id, name: row.name } });
+});
+
+app.patch('/api/admin/partners/:id', adminRequired, (req, res) => {
+  const row = db.updatePartner(req.params.id, {
+    name: req.body.name != null ? sanitizeArticleText(req.body.name, 120) : undefined,
+    contactName: req.body.contactName != null ? sanitizeArticleText(req.body.contactName, 80) : undefined,
+    email: req.body.email != null ? sanitizeArticleText(req.body.email, 120) : undefined,
+    phone: req.body.phone != null ? sanitizeArticleText(req.body.phone, 40) : undefined,
+    website: req.body.website != null ? sanitizeArticleText(req.body.website, 200) : undefined,
+    notes: req.body.notes != null ? sanitizeArticleText(req.body.notes, 800) : undefined
+  });
+  if (!row) return res.status(404).json({ error: 'الشريك غير موجود' });
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/partners/:id', adminRequired, (req, res) => {
+  const ok = db.deletePartner(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'الشريك غير موجود' });
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/offers', adminRequired, (_req, res) => {
+  const interests = db.getOfferInterests();
+  res.json({
+    offers: db.getOffers().map((o) => {
+      const pub = publicOffer(o);
+      pub.interestCount = interests.filter((i) => i.offer_id === o.id).length;
+      pub.newInterests = interests.filter((i) => i.offer_id === o.id && i.status === 'new').length;
+      return pub;
+    }),
+    interests: interests.map((i) => {
+      const offer = db.getOfferById(i.offer_id);
+      const u = db.findUserById(i.user_id);
+      return {
+        id: i.id,
+        offerId: i.offer_id,
+        offerTitle: offer ? offer.title : '—',
+        userId: i.user_id,
+        name: i.name || (u ? u.first_name + ' ' + u.last_name : '—'),
+        contact: i.contact || (u ? (u.email || u.phone || '') : ''),
+        note: i.note || '',
+        status: i.status,
+        createdAt: i.created_at
+      };
+    }),
+    partners: db.getPartners().map((p) => ({ id: p.id, name: p.name }))
+  });
+});
+
+app.post('/api/admin/offers', adminRequired, (req, res) => {
+  const title = sanitizeArticleText(req.body.title, 140);
+  const companyName = sanitizeArticleText(req.body.companyName, 120);
+  const summary = sanitizeArticleText(req.body.summary, 1200);
+  if (title.length < 4) return res.status(400).json({ error: 'عنوان العرض قصير' });
+  if (companyName.length < 2) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
+  if (summary.length < 20) return res.status(400).json({ error: 'اكتب وصفاً أوضح للعرض' });
+  const status = req.body.publish ? 'published' : 'draft';
+  const row = db.createOffer({
+    partnerId: req.body.partnerId || null,
+    companyName,
+    title,
+    summary,
+    link: sanitizeArticleText(req.body.link, 400),
+    mode: ['online', 'onsite', 'hybrid'].indexOf(req.body.mode) !== -1 ? req.body.mode : 'online',
+    city: sanitizeArticleText(req.body.city, 80),
+    status
+  });
+  if (status === 'published' && req.body.notifyStudents) {
+    const students = db.getUsers().filter((u) => u.role === 'student');
+    students.forEach((u) => {
+      db.createNotification({
+        userId: u.id,
+        type: 'offer_new',
+        title: 'عرض تدريب جديد',
+        body: companyName + ': «' + title + '»',
+        link: 'courses.html#offers',
+        refId: row.id
+      });
+    });
+  }
+  res.status(201).json({ ok: true, offer: publicOffer(row) });
+});
+
+app.patch('/api/admin/offers/:id', adminRequired, (req, res) => {
+  const existing = db.getOfferById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'العرض غير موجود' });
+  const wasPublished = existing.status === 'published';
+  const row = db.updateOffer(req.params.id, {
+    partnerId: req.body.partnerId !== undefined ? req.body.partnerId : undefined,
+    companyName: req.body.companyName != null ? sanitizeArticleText(req.body.companyName, 120) : undefined,
+    title: req.body.title != null ? sanitizeArticleText(req.body.title, 140) : undefined,
+    summary: req.body.summary != null ? sanitizeArticleText(req.body.summary, 1200) : undefined,
+    link: req.body.link != null ? sanitizeArticleText(req.body.link, 400) : undefined,
+    mode: req.body.mode,
+    city: req.body.city != null ? sanitizeArticleText(req.body.city, 80) : undefined,
+    status: req.body.status
+  });
+  if (!wasPublished && row.status === 'published' && req.body.notifyStudents) {
+    const students = db.getUsers().filter((u) => u.role === 'student');
+    students.forEach((u) => {
+      db.createNotification({
+        userId: u.id,
+        type: 'offer_new',
+        title: 'عرض تدريب جديد',
+        body: row.company_name + ': «' + row.title + '»',
+        link: 'courses.html#offers',
+        refId: row.id
+      });
+    });
+  }
+  res.json({ ok: true, offer: publicOffer(row) });
+});
+
+app.delete('/api/admin/offers/:id', adminRequired, (req, res) => {
+  const ok = db.deleteOffer(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'العرض غير موجود' });
+  res.json({ ok: true });
+});
+
+app.patch('/api/admin/offer-interests/:id', adminRequired, (req, res) => {
+  const row = db.updateOfferInterest(req.params.id, { status: req.body.status });
+  if (!row) return res.status(404).json({ error: 'الاهتمام غير موجود' });
+  res.json({ ok: true, status: row.status });
 });
 
 app.post('/api/admin/broadcast', adminRequired, (req, res) => {

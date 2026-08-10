@@ -114,6 +114,8 @@
     document.getElementById('statReports').textContent = s.reports;
     var contactsStat = document.getElementById('statContacts');
     if (contactsStat) contactsStat.textContent = s.contacts != null ? s.contacts : '—';
+    var articlesStat = document.getElementById('statArticles');
+    if (articlesStat) articlesStat.textContent = s.articlesPending != null ? s.articlesPending : '—';
     var qa = document.getElementById('statQuizAttempts');
     var qp = document.getElementById('statQuizPasses');
     if (qa) qa.textContent = s.quizAttempts != null ? s.quizAttempts : '—';
@@ -323,7 +325,7 @@
   }
 
   function setAdminTab(active) {
-    ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts'].forEach(function (id) {
+    ['tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle('active', id === active);
     });
@@ -334,6 +336,8 @@
     document.getElementById('panelReports').hidden = active !== 'tabReports';
     var panelContacts = document.getElementById('panelContacts');
     if (panelContacts) panelContacts.hidden = active !== 'tabContacts';
+    var panelArticles = document.getElementById('panelArticles');
+    if (panelArticles) panelArticles.hidden = active !== 'tabArticles';
   }
 
   document.getElementById('tabUsers').addEventListener('click', function () {
@@ -362,6 +366,75 @@
     setAdminTab('tabContacts');
     loadContacts().catch(function (e) { alert(e.message); });
   });
+
+  var tabArticles = document.getElementById('tabArticles');
+  if (tabArticles) {
+    tabArticles.addEventListener('click', function () {
+      setAdminTab('tabArticles');
+      loadCommunityArticles().catch(function (e) { alert(e.message); });
+    });
+  }
+
+  async function loadCommunityArticles() {
+    var data = await HCIApi.adminFetchArticles();
+    var list = (data && data.articles) || [];
+    var root = document.getElementById('articlesList');
+    var empty = document.getElementById('articlesEmpty');
+    if (!root) return;
+    root.innerHTML = '';
+    if (!list.length) {
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    list.sort(function (a, b) {
+      var rank = { pending: 0, approved: 1, rejected: 2 };
+      return (rank[a.status] != null ? rank[a.status] : 9) - (rank[b.status] != null ? rank[b.status] : 9);
+    });
+    list.forEach(function (a) {
+      var card = document.createElement('article');
+      card.className = 'profile-card';
+      card.style.marginBottom = '14px';
+      var statusAr = a.status === 'approved' ? 'منشور' : (a.status === 'rejected' ? 'مرفوض' : 'بانتظارك');
+      var actions = a.status === 'pending'
+        ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' +
+          '<button type="button" class="btn-primary article-approve" data-id="' + a.id + '" style="padding:8px 14px;font-size:0.85rem;">موافقة ونشر</button>' +
+          '<button type="button" class="btn-ghost article-reject" data-id="' + a.id + '" style="padding:8px 14px;font-size:0.85rem;">رفض</button>' +
+          '</div>'
+        : (a.status === 'approved'
+          ? '<p style="margin:10px 0 0;"><a href="community-article.html?id=' + a.id + '" style="color:var(--gold)">عرض المنشور ↗</a></p>'
+          : '<p style="margin:10px 0 0;color:var(--text-mid);font-size:0.85rem;">سبب الرفض: ' + escapeHtml(a.rejectReason || '—') + '</p>');
+      card.innerHTML =
+        '<p style="margin:0 0 6px;color:var(--gold);font-size:0.78rem;">' + statusAr + ' · ' + escapeHtml(a.authorName || '') +
+        (a.userEmail ? (' · ' + escapeHtml(a.userEmail)) : '') + '</p>' +
+        '<h3 style="margin:0 0 8px;font-size:1.05rem;">' + escapeHtml(a.title) + '</h3>' +
+        '<p style="margin:0;color:var(--text-mid);font-size:0.9rem;line-height:1.75;white-space:pre-wrap;">' +
+        escapeHtml(a.body) + '</p>' + actions;
+      root.appendChild(card);
+    });
+
+    root.querySelectorAll('.article-approve').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (!confirm('نشر هذا المقال للجميع؟')) return;
+        try {
+          await HCIApi.adminApproveArticle(btn.getAttribute('data-id'));
+          await loadCommunityArticles();
+          await loadStats();
+        } catch (err) { alert(err.message); }
+      });
+    });
+    root.querySelectorAll('.article-reject').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var reason = prompt('سبب الرفض (يظهر لكاتب المقال):', 'أعد الصياغة أو وضّح الفكرة أكثر.');
+        if (reason === null) return;
+        try {
+          await HCIApi.adminRejectArticle(btn.getAttribute('data-id'), reason);
+          await loadCommunityArticles();
+          await loadStats();
+        } catch (err) { alert(err.message); }
+      });
+    });
+  }
 
   function formatShareTime(iso) {
     if (!iso) return '—';
@@ -825,6 +898,10 @@
   try {
     await loadStats();
     await loadUsers();
+    if (location.hash === '#articles' && tabArticles) {
+      setAdminTab('tabArticles');
+      await loadCommunityArticles();
+    }
   } catch (err) {
     console.warn('تعذر تحميل بيانات الإدارة:', err && err.message);
   }

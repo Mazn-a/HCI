@@ -3311,6 +3311,14 @@ if (lessonList && codingProgressFill && codingProgressNote){
         startCta.setAttribute('href', 'auth.html?tab=signup');
       }
     }
+    var writeCta = document.getElementById('foundationWriteCta');
+    if (writeCta){
+      if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()){
+        writeCta.setAttribute('href', 'write-article.html');
+      } else {
+        writeCta.setAttribute('href', 'auth.html?tab=signup&next=write-article.html');
+      }
+    }
   }
 
   stepsRoot.querySelectorAll('.foundation-done-btn').forEach(function(btn){

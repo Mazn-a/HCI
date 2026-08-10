@@ -66,6 +66,7 @@
       'glossary.html': true,
       'articles.html': true,
       'foundation.html': true,
+      'community-article.html': true,
       'article-what-is-hci.html': true,
       'article-ux-vs-ui.html': true,
       'article-nielsen-principles.html': true,

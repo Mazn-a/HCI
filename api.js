@@ -649,6 +649,22 @@
     buildShareUrl: buildShareUrl,
     trackShareHit: trackShareHit,
     fetchShareStats: fetchShareStats,
-    captureShareRefFromUrl: captureShareRefFromUrl
+    captureShareRefFromUrl: captureShareRefFromUrl,
+    fetchPublishedArticles: function () { return request('/api/articles/published'); },
+    fetchPublishedArticle: function (id) { return request('/api/articles/published/' + encodeURIComponent(id)); },
+    fetchMyArticles: function () { return request('/api/articles/mine'); },
+    submitArticle: function (title, body) {
+      return request('/api/articles', { method: 'POST', body: { title: title, body: body } });
+    },
+    adminFetchArticles: function () { return request('/api/admin/articles'); },
+    adminApproveArticle: function (id) {
+      return request('/api/admin/articles/' + encodeURIComponent(id) + '/approve', { method: 'POST', body: {} });
+    },
+    adminRejectArticle: function (id, reason) {
+      return request('/api/admin/articles/' + encodeURIComponent(id) + '/reject', {
+        method: 'POST',
+        body: { reason: reason || '' }
+      });
+    }
   };
 })();

@@ -51,8 +51,11 @@
       </div>
 
       <div class="article-cta reveal" style="margin-bottom:28px;">
-        <p>الترتيب الصحيح: افهم التخصص أولاً، ثم ادخل المسارات.</p>
-        <a href="foundation.html" class="btn-primary">اذهب لخطوات الفهم ←</a>
+        <p>الترتيب الصحيح: افهم التخصص أولاً، ثم ادخل المسارات. وبعد الفهم تقدر تكتب مقالاً يُعرض هنا بعد موافقة المشرف.</p>
+        <div class="foundation-actions" style="justify-content:center;">
+          <a href="foundation.html" class="btn-primary">اذهب لخطوات الفهم ←</a>
+          <a href="write-article.html" class="btn-ghost">اكتب مقالاً ←</a>
+        </div>
       </div>
 
       <div class="content-grid">
@@ -101,8 +104,18 @@
 
       </div>
 
+      <section class="reveal" style="margin-top:40px;" aria-labelledby="communityArticlesTitle">
+        <div class="section-head" style="margin-bottom:18px;">
+          <span class="eyebrow">/// من المجتمع</span>
+          <h2 id="communityArticlesTitle">مقالات كتبها المتعلمون</h2>
+          <p>تُنشر هنا بعد مراجعة وموافقة المشرف فقط.</p>
+        </div>
+        <div class="content-grid" id="communityArticlesGrid"></div>
+        <p class="progress-note" id="communityArticlesEmpty" hidden>ما نُشرت مقالات من المجتمع بعد — كن أول من يكتب بعد إكمال الفهم.</p>
+      </section>
+
       <div class="article-cta reveal">
-        <p>حاب تتعلم التخصص بمسار مرتب خطوة خطوة — بالعربي ومجاناً؟</p>
+        <p>حاب تتعلم التخصص بمسار مرتب خطوة خطوة؟</p>
         <a href="auth.html?tab=signup" class="btn-primary">ابدأ رحلتك في HCI ←</a>
       </div>
     </div>
@@ -154,5 +167,36 @@
   <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
   <script src="api.js"></script>
 <script src="main.js"></script>
+<script>
+(function () {
+  var grid = document.getElementById('communityArticlesGrid');
+  var empty = document.getElementById('communityArticlesEmpty');
+  if (!grid || !window.HCIApi || !HCIApi.fetchPublishedArticles) return;
+  HCIApi.fetchPublishedArticles().then(function (data) {
+    var list = (data && data.articles) || [];
+    if (!list.length) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    grid.innerHTML = list.map(function (a) {
+      var title = String(a.title || '').replace(/</g, '&lt;');
+      var author = String(a.authorName || 'متعلم HCI').replace(/</g, '&lt;');
+      var snippet = String(a.body || '').replace(/\s+/g, ' ').slice(0, 140).replace(/</g, '&lt;');
+      return '<article class="content-card">' +
+        '<div class="cc-top"><div><h3><a href="community-article.html?id=' + a.id + '" style="color:inherit;">' + title + '</a></h3>' +
+        '<p class="cc-meta">من المجتمع · ' + author + '</p></div>' +
+        '<span class="cc-badge">مجتمع</span></div>' +
+        '<p>' + snippet + (String(a.body || '').length > 140 ? '…' : '') + '</p>' +
+        '<div class="cc-actions"><a href="community-article.html?id=' + a.id + '" class="btn-primary" style="padding:9px 16px;font-size:0.85rem;">اقرأ المقال ←</a></div>' +
+        '</article>';
+    }).join('');
+  }).catch(function () {
+    if (empty) {
+      empty.hidden = false;
+      empty.textContent = 'تعذر تحميل مقالات المجتمع حالياً.';
+    }
+  });
+})();
+</script>
 </body>
 </html>

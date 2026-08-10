@@ -193,6 +193,7 @@
           <div class="stat-box"><div class="n" id="statMessages">—</div><div class="l">رسائل مرسلة</div></div>
           <div class="stat-box"><div class="n" id="statReports">—</div><div class="l">بلاغات جديدة</div></div>
           <div class="stat-box"><div class="n" id="statContacts">—</div><div class="l">رسائل تواصل</div></div>
+          <div class="stat-box"><div class="n" id="statArticles">—</div><div class="l">مقالات بانتظارك</div></div>
         </div>
 
         <div class="admin-insight-grid">
@@ -215,6 +216,7 @@
           <button type="button" class="size-btn" id="tabMessages">الرسائل</button>
           <button type="button" class="size-btn" id="tabReports">بلاغات المشاكل</button>
           <button type="button" class="size-btn" id="tabContacts">التواصل معي</button>
+          <button type="button" class="size-btn" id="tabArticles">مقالات المجتمع</button>
         </div>
 
         <div id="panelUsers">
@@ -312,6 +314,14 @@
           <div class="profile-card" style="max-width:none;">
             <div id="contactsList"></div>
             <p id="contactsEmpty" style="color:var(--text-mid); display:none;">لا توجد رسائل تواصل حالياً.</p>
+          </div>
+        </div>
+
+        <div id="panelArticles" hidden>
+          <div class="profile-card" style="max-width:none;">
+            <p style="color:var(--text-mid);font-size:0.88rem;margin:0 0 16px;">وافق عشان ينشر للجميع، أو ارفض مع سبب مختصر يوصل لكاتب المقال.</p>
+            <div id="articlesList"></div>
+            <p id="articlesEmpty" style="color:var(--text-mid); display:none;">لا توجد مقالات للمراجعة حالياً.</p>
           </div>
         </div>
       </div>

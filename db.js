@@ -32,6 +32,7 @@ function defaultDb() {
     otps: [],
     share_hits: [],
     certificates: [],
+    community_articles: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
@@ -39,7 +40,8 @@ function defaultDb() {
     nextNotificationId: 1,
     nextOtpId: 1,
     nextShareHitId: 1,
-    nextCertificateId: 1
+    nextCertificateId: 1,
+    nextCommunityArticleId: 1
   };
 }
 
@@ -88,6 +90,8 @@ function migrate(cache) {
   if (!cache.nextShareHitId) { cache.nextShareHitId = 1; changed = true; }
   if (!cache.certificates) { cache.certificates = []; changed = true; }
   if (!cache.nextCertificateId) { cache.nextCertificateId = 1; changed = true; }
+  if (!cache.community_articles) { cache.community_articles = []; changed = true; }
+  if (!cache.nextCommunityArticleId) { cache.nextCommunityArticleId = 1; changed = true; }
   cache.users.forEach(function (u) {
     if (typeof u.path_type === 'undefined') { u.path_type = null; changed = true; }
     if (typeof u.intro_seen === 'undefined') { u.intro_seen = false; changed = true; }
@@ -490,6 +494,60 @@ const db = {
 
   countContacts() {
     return cache.contacts.filter((c) => c.status === 'new').length;
+  },
+
+  createCommunityArticle({ userId, title, body, authorName }) {
+    const row = {
+      id: cache.nextCommunityArticleId++,
+      user_id: Number(userId),
+      title: String(title || '').trim(),
+      body: String(body || '').trim(),
+      author_name: String(authorName || '').trim(),
+      status: 'pending',
+      reject_reason: '',
+      created_at: new Date().toISOString(),
+      reviewed_at: null,
+      published_at: null
+    };
+    cache.community_articles.push(row);
+    persist();
+    return row;
+  },
+
+  getCommunityArticles(filter) {
+    var list = cache.community_articles.slice();
+    if (filter && filter.status) {
+      list = list.filter((a) => a.status === filter.status);
+    }
+    if (filter && filter.userId != null) {
+      list = list.filter((a) => a.user_id === Number(filter.userId));
+    }
+    return list.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+
+  getCommunityArticleById(id) {
+    return cache.community_articles.find((a) => a.id === Number(id)) || null;
+  },
+
+  reviewCommunityArticle(id, { status, rejectReason }) {
+    const row = cache.community_articles.find((a) => a.id === Number(id));
+    if (!row) return null;
+    if (status !== 'approved' && status !== 'rejected') return null;
+    row.status = status;
+    row.reviewed_at = new Date().toISOString();
+    if (status === 'approved') {
+      row.published_at = row.reviewed_at;
+      row.reject_reason = '';
+    } else {
+      row.reject_reason = String(rejectReason || '').trim();
+      row.published_at = null;
+    }
+    persist();
+    return row;
+  },
+
+  countPendingCommunityArticles() {
+    return cache.community_articles.filter((a) => a.status === 'pending').length;
   },
 
   createNotification({ userId, type, title, body, link, refId }) {

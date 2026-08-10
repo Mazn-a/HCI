@@ -996,6 +996,7 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
     messages: db.countMessages(),
     reports: db.countReports(),
     contacts: db.countContacts(),
+    articlesPending: db.countPendingCommunityArticles(),
     activeWeek: db.countActiveWeek(),
     quizAttempts,
     quizPasses,
@@ -1003,6 +1004,175 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
     recentLogins,
     generatedAt: new Date().toISOString()
   });
+});
+
+/* ---------- مقالات المجتمع (بعد الفهم — تحتاج موافقة المشرف) ---------- */
+function sanitizeArticleText(s, max) {
+  return String(s || '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\r\n/g, '\n')
+    .trim()
+    .slice(0, max);
+}
+
+app.get('/api/articles/published', (_req, res) => {
+  try {
+    const list = db.getCommunityArticles({ status: 'approved' }).map((a) => ({
+      id: a.id,
+      title: a.title,
+      body: a.body,
+      authorName: a.author_name,
+      publishedAt: a.published_at || a.reviewed_at || a.created_at
+    }));
+    res.json({ articles: list });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر جلب المقالات' });
+  }
+});
+
+app.get('/api/articles/published/:id', (req, res) => {
+  try {
+    const a = db.getCommunityArticleById(req.params.id);
+    if (!a || a.status !== 'approved') {
+      return res.status(404).json({ error: 'المقال غير متاح' });
+    }
+    res.json({
+      article: {
+        id: a.id,
+        title: a.title,
+        body: a.body,
+        authorName: a.author_name,
+        publishedAt: a.published_at || a.reviewed_at || a.created_at
+      }
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر جلب المقال' });
+  }
+});
+
+app.get('/api/articles/mine', authRequired, (req, res) => {
+  try {
+    const list = db.getCommunityArticles({ userId: req.user.id }).map((a) => ({
+      id: a.id,
+      title: a.title,
+      status: a.status,
+      rejectReason: a.reject_reason || '',
+      createdAt: a.created_at,
+      publishedAt: a.published_at
+    }));
+    res.json({ articles: list });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر جلب مقالاتك' });
+  }
+});
+
+app.post('/api/articles', authRequired, (req, res) => {
+  try {
+    const title = sanitizeArticleText(req.body.title, 120);
+    const body = sanitizeArticleText(req.body.body, 8000);
+    if (title.length < 8) {
+      return res.status(400).json({ error: 'عنوان المقال قصير جداً (٨ أحرف على الأقل)' });
+    }
+    if (body.length < 120) {
+      return res.status(400).json({ error: 'نص المقال قصير جداً — اكتب شرحاً أوضح (١٢٠ حرفاً على الأقل)' });
+    }
+    const pending = db.getCommunityArticles({ userId: req.user.id, status: 'pending' });
+    if (pending.length >= 3) {
+      return res.status(400).json({ error: 'عندك ٣ مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
+    }
+    const authorName = (req.user.first_name + (req.user.last_name ? ' ' + req.user.last_name : '')).trim() || 'متعلم HCI';
+    const row = db.createCommunityArticle({
+      userId: req.user.id,
+      title,
+      body,
+      authorName
+    });
+    const admin = db.findAdmin();
+    if (admin) {
+      db.createNotification({
+        userId: admin.id,
+        type: 'article_pending',
+        title: 'مقال جديد بانتظار موافقتك',
+        body: authorName + ': «' + title + '»',
+        link: 'admin.html#articles',
+        refId: row.id
+      });
+    }
+    res.status(201).json({ ok: true, id: row.id, status: row.status });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر إرسال المقال' });
+  }
+});
+
+app.get('/api/admin/articles', adminRequired, (_req, res) => {
+  try {
+    const list = db.getCommunityArticles().map((a) => {
+      const u = db.findUserById(a.user_id);
+      return {
+        id: a.id,
+        title: a.title,
+        body: a.body,
+        authorName: a.author_name,
+        userId: a.user_id,
+        userEmail: u ? (u.email || u.phone || '') : '',
+        status: a.status,
+        rejectReason: a.reject_reason || '',
+        createdAt: a.created_at,
+        reviewedAt: a.reviewed_at,
+        publishedAt: a.published_at
+      };
+    });
+    res.json({ articles: list, pending: db.countPendingCommunityArticles() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر جلب المقالات' });
+  }
+});
+
+app.post('/api/admin/articles/:id/approve', adminRequired, (req, res) => {
+  try {
+    const row = db.reviewCommunityArticle(req.params.id, { status: 'approved' });
+    if (!row) return res.status(404).json({ error: 'المقال غير موجود' });
+    db.createNotification({
+      userId: row.user_id,
+      type: 'article_approved',
+      title: 'نُشر مقالك',
+      body: 'وافقت على مقالك «' + row.title + '» وهو ظاهر الآن للجميع.',
+      link: 'community-article.html?id=' + row.id,
+      refId: row.id
+    });
+    res.json({ ok: true, article: { id: row.id, status: row.status } });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر قبول المقال' });
+  }
+});
+
+app.post('/api/admin/articles/:id/reject', adminRequired, (req, res) => {
+  try {
+    const reason = sanitizeArticleText(req.body.reason, 400);
+    const row = db.reviewCommunityArticle(req.params.id, {
+      status: 'rejected',
+      rejectReason: reason || 'لم يُقبل للنشر في شكله الحالي.'
+    });
+    if (!row) return res.status(404).json({ error: 'المقال غير موجود' });
+    db.createNotification({
+      userId: row.user_id,
+      type: 'article_rejected',
+      title: 'لم يُنشر مقالك',
+      body: 'مقالك «' + row.title + '»: ' + (row.reject_reason || 'لم يُقبل.'),
+      link: 'write-article.html',
+      refId: row.id
+    });
+    res.json({ ok: true, article: { id: row.id, status: row.status } });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر رفض المقال' });
+  }
 });
 
 /* ---------- تواصل مع المُعِد (عروض / وظائف / رسالة عامة) ---------- */

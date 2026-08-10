@@ -60,31 +60,35 @@
         <h2>من أين… إلى أين؟ (رحلتك في المنصة)</h2>
         <div class="timeline" style="margin-top:20px;">
           <div class="tl-item">
-            <h3>00 — اكتشف التخصص</h3>
+            <h3>00 — افهم التخصص</h3>
+            <p>ثلاث قراءات قصيرة: وش HCI، الفرق بين UX و UI، ومبادئ نيلسن — قبل أي مسار.</p>
+          </div>
+          <div class="tl-item">
+            <h3>01 — اكتشف التخصص</h3>
             <p>تتأكد أن التخصص يناسبك، وتعرف الفرق بين HCI وتصميم جرافيك أو برمجة صِرفة.</p>
           </div>
           <div class="tl-item">
-            <h3>01 — أساسيات HCI</h3>
+            <h3>02 — أساسيات HCI</h3>
             <p>مبادئ نيلسن، نظريات الإدراك، وأسس التفاعل — الأساس اللي أي متخصص لازم يفهمه.</p>
           </div>
           <div class="tl-item">
-            <h3>02 — ترميز بسيط (HTML &amp; CSS)</h3>
+            <h3>03 — ترميز بسيط (HTML &amp; CSS)</h3>
             <p>تحوّل فكرتك لواجهة حقيقية، مو بس رسم على ورقة.</p>
           </div>
           <div class="tl-item">
-            <h3>03 — دورات متخصصة</h3>
+            <h3>04 — دورات متخصصة</h3>
             <p>مسارات UI/UX وأدوات زي Figma من مصادر موثوقة (سطر، طويق، وغيرها).</p>
           </div>
           <div class="tl-item">
-            <h3>04 — كتب ومراجع</h3>
+            <h3>05 — كتب ومراجع</h3>
             <p>كلاسيكيات المجال بملخصات عربية تساعدك تفهم الجوهر بدون ما تضيع.</p>
           </div>
           <div class="tl-item">
-            <h3>05 — تعلّم بالمرح</h3>
+            <h3>06 — تعلّم بالمرح</h3>
             <p>تمارين ومقارنات تثبّت المبادئ بطريقة عملية.</p>
           </div>
           <div class="tl-item">
-            <h3>06 — أفد غيرك</h3>
+            <h3>07 — أفد غيرك</h3>
             <p>لما تفهم بصدق، تقدّر تشرح وتراجع وتوجّه المبتدئين — وهذا أعلى مستوى للتخصص.</p>
           </div>
         </div>
@@ -173,6 +177,14 @@
     return;
   }
   if (user && user.pathType === 'curious' && user.introSeen) {
+    try {
+      var f = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
+      var r = f.read || {};
+      if (!(r.hci && r.uxui && r.nielsen)) {
+        location.href = 'foundation.html';
+        return;
+      }
+    } catch (e) { /* */ }
     location.href = 'index.html#paths';
     return;
   }
@@ -199,13 +211,11 @@
       var j;
       try { j = JSON.parse(localStorage.getItem('hci_journey') || '{}'); } catch (e) { j = {}; }
       if (!j.unlocked) j.unlocked = {};
-      j.unlocked.fundamentals = true;
-      j.unlocked.practice = true;
       j.bootstrapped = true;
       j.pathType = 'curious';
       localStorage.setItem('hci_journey', JSON.stringify(j));
       await HCIApi.syncProgress();
-      location.href = 'discover.html';
+      location.href = 'foundation.html';
     } catch (err) {
       statusMsg.textContent = err.message;
       statusMsg.classList.add('show');

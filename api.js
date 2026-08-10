@@ -568,12 +568,23 @@
     }, hold);
   }
 
+  function isFoundationCompleteLocal() {
+    try {
+      var data = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
+      var read = data.read || {};
+      return !!(read.hci && read.uxui && read.nielsen);
+    } catch (e) {
+      return false;
+    }
+  }
+
   /** بعد تسجيل الدخول أو إنشاء الحساب — أين نودّي المستخدم؟ */
   function resolvePostAuthDestination(user, isNewSignup) {
     if (!user) return 'index.html';
     if (user.role === 'admin') return 'admin.html';
     if (isNewSignup || !user.pathType) return 'path-choice.html';
     if (user.pathType === 'curious' && !user.introSeen) return 'intro.html';
+    if (user.pathType !== 'specialist' && !isFoundationCompleteLocal()) return 'foundation.html';
     return 'index.html#paths';
   }
 

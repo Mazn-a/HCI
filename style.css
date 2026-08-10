@@ -2311,6 +2311,37 @@ body.nav-open{ overflow: hidden; }
 }
 .article-cta p{ color: var(--text-mid); margin: 0 0 16px; line-height: 1.8; }
 
+.foundation-steps{
+  list-style: none; margin: 0 0 28px; padding: 0;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.foundation-step{
+  display: flex; gap: 14px; align-items: flex-start;
+  border: 1px solid var(--card-border); border-radius: 14px;
+  padding: 18px 16px; background: var(--card-bg-panel);
+}
+.foundation-step.is-done{
+  border-color: rgba(63,164,106,0.45);
+  background: rgba(63,164,106,0.06);
+}
+.foundation-step.is-locked-step{ opacity: 0.55; }
+.foundation-num{
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 10px; border: 1px solid var(--card-border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); color: var(--gold); font-weight: 700;
+}
+.foundation-step.is-done .foundation-num{
+  border-color: rgba(63,164,106,0.5); color: #3fa46a;
+}
+.foundation-body{ flex: 1; min-width: 0; }
+.foundation-body h3{ margin: 0 0 6px; font-size: 1.05rem; }
+.foundation-body p{ margin: 0 0 14px; color: var(--text-mid); font-size: 0.88rem; line-height: 1.65; }
+.foundation-actions{ display: flex; flex-wrap: wrap; gap: 8px; }
+.foundation-actions .btn-primary,
+.foundation-actions .btn-ghost{ padding: 9px 14px; font-size: 0.85rem; }
+.foundation-actions .btn-primary.disabled{ pointer-events: none; opacity: 0.45; }
+
 @media (max-width: 640px){
   .compare-block, .spot-grid{ grid-template-columns: 1fr; }
   .compare-demo{ gap: 12px; }

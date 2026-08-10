@@ -3491,28 +3491,28 @@ if (glossaryList && glossarySearch && glossaryCount && glossaryEmpty){
 
   var glossaryTerms = [
     { ar: 'تجربة المستخدم', en: 'UX — User Experience', def: 'إحساس المستخدم ورحلته الكاملة أثناء استخدام المنتج.' },
-    { ar: 'واجهة المستخدم', en: 'UI — User Interface', def: 'الطبقة البصرية اللي يتفاعل معها المستخدم: الألوان والأزرار والخطوط.' },
-    { ar: 'الإشارات البصرية', en: 'Affordance', def: 'شكل العنصر نفسه يوحي بوظيفته — زر بارز يوحي إنه يُضغط.' },
-    { ar: 'التغذية الراجعة', en: 'Feedback', def: 'رد فعل النظام الفوري على أي فعل يسويه المستخدم.' },
-    { ar: 'المخطط السلكي', en: 'Wireframe', def: 'رسم أولي بسيط لهيكل الصفحة، بدون ألوان أو تفاصيل نهائية.' },
-    { ar: 'النموذج الأولي', en: 'Prototype', def: 'نسخة تفاعلية قابلة للاختبار قبل بناء المنتج فعلياً.' },
-    { ar: 'قابلية الاستخدام', en: 'Usability', def: 'مدى سهولة وكفاءة استخدام المنتج لتحقيق هدف معين.' },
-    { ar: 'إتاحة الوصول', en: 'Accessibility', def: 'تصميم المنتج بحيث يقدر يستخدمه ذوو الإعاقة والاحتياجات الخاصة.' },
-    { ar: 'معايير الوصولية العالمية', en: 'WCAG', def: 'دليل عالمي لمعايير إتاحة الوصول بالمواقع والتطبيقات.' },
-    { ar: 'هندسة معلومات', en: 'Information Architecture', def: 'كيفية تنظيم وترتيب المحتوى بشكل منطقي يسهل تصفحه.' },
-    { ar: 'مسار المستخدم', en: 'User Flow', def: 'سلسلة الخطوات اللي يمر فيها المستخدم لإنجاز مهمة معينة.' },
-    { ar: 'الشخصية الافتراضية', en: 'Persona', def: 'ملف تخيلي يمثل شريحة حقيقية من المستخدمين، يساعد باتخاذ قرارات التصميم.' },
-    { ar: 'التقييم الاستكشافي', en: 'Heuristic Evaluation', def: 'تقييم واجهة بناءً على مبادئ راسخة (زي مبادئ نيلسن) بدون اختبار مستخدمين فعليين.' },
-    { ar: 'الحمل المعرفي', en: 'Cognitive Load', def: 'مقدار الجهد الذهني اللي يحتاجه المستخدم لفهم واستخدام الواجهة.' },
-    { ar: 'النموذج الذهني', en: 'Mental Model', def: 'توقعات المستخدم لسلوك النظام بناءً على خبرته السابقة.' },
-    { ar: 'مبادئ الجشطالت', en: 'Gestalt Principles', def: 'قوانين نفسية تفسر كيف يجمّع الدماغ العناصر البصرية كمجموعات.' },
+    { ar: 'واجهة المستخدم', en: 'UI — User Interface', def: 'اللي يراه المستخدم ويتفاعل معه: الألوان والأزرار والخطوط.' },
+    { ar: 'الشكل يوحي بالاستخدام', en: 'Affordance', def: 'شكل العنصر يشرح وظيفته — زر بارز يوحي إنه يُضغط.' },
+    { ar: 'رد النظام الفوري', en: 'Feedback', def: 'رد واضح وفوري من النظام بعد أي فعل يسويه المستخدم.' },
+    { ar: 'الرسم الأولي', en: 'Wireframe', def: 'رسم بسيط لهيكل الصفحة، بدون ألوان أو تفاصيل نهائية.' },
+    { ar: 'النموذج التجريبي', en: 'Prototype', def: 'نسخة تفاعلية تختبرها قبل بناء المنتج النهائي.' },
+    { ar: 'سهولة الاستخدام', en: 'Usability', def: 'قدّ إيش المنتج سهل وواضح لإنجاز المهمة المطلوبة.' },
+    { ar: 'الوصول للجميع', en: 'Accessibility', def: 'تصميم المنتج بحيث يستخدمه أيضاً ذوو الإعاقة والاحتياجات الخاصة.' },
+    { ar: 'معايير الوصول العالمية', en: 'WCAG', def: 'دليل عالمي لمعايير الوصول بالمواقع والتطبيقات.' },
+    { ar: 'تنظيم المحتوى', en: 'Information Architecture', def: 'ترتيب المحتوى بشكل منطقي يسهل تصفحه.' },
+    { ar: 'مسار المستخدم', en: 'User Flow', def: 'الخطوات اللي يمر فيها المستخدم لإنجاز مهمة معينة.' },
+    { ar: 'شخصية المستخدم النموذجية', en: 'Persona', def: 'شخصية مبنية على مستخدمين حقيقيين، تساعد في قرارات التصميم.' },
+    { ar: 'مراجعة بالمبادئ', en: 'Heuristic Evaluation', def: 'مراجعة واجهة بمبادئ معروفة (مثل مبادئ نيلسن) بدون اختبار مستخدمين.' },
+    { ar: 'الجهد الذهني', en: 'Cognitive Load', def: 'مقدار الجهد اللي يحتاجه المستخدم لفهم الواجهة واستخدامها.' },
+    { ar: 'تصوّر المستخدم', en: 'Mental Model', def: 'توقعات المستخدم لسلوك النظام بناءً على خبرته السابقة.' },
+    { ar: 'مبادئ الجشطالت', en: 'Gestalt Principles', def: 'قوانين تشرح كيف يجمّع الدماغ العناصر البصرية كمجموعات.' },
     { ar: 'اختبار أ/ب', en: 'A/B Testing', def: 'مقارنة نسختين من نفس العنصر لمعرفة أيهما أفضل أداءً.' },
     { ar: 'التصميم المتجاوب', en: 'Responsive Design', def: 'تصميم يتكيف تلقائياً مع أحجام الشاشات المختلفة.' },
-    { ar: 'نظام التصميم', en: 'Design System', def: 'مكتبة موحدة من المكونات والقواعد تضمن اتساق أي منتج رقمي.' },
-    { ar: 'التهيئة الأولى', en: 'Onboarding', def: 'أول تجربة يمر فيها مستخدم جديد، تُعرّفه على المنتج وتساعده يبدأ بسهولة.' },
-    { ar: 'التصميم الشامل', en: 'Inclusive Design', def: 'تصميم يراعي تنوع البشر من البداية، مو كإضافة لاحقة.' },
-    { ar: 'قانون فيتس', en: "Fitts's Law", def: 'الوقت للوصول لهدف يعتمد على المسافة وحجم الهدف — خلّي الأزرار المهمة أكبر وأقرب.' },
-    { ar: 'قانون هيك', en: "Hick's Law", def: 'كلما زادت الخيارات، زاد وقت اتخاذ القرار — قلّل الخيارات الظاهرة.' },
+    { ar: 'نظام التصميم', en: 'Design System', def: 'مكتبة موحّدة من المكوّنات والقواعد تضمن اتساق المنتج.' },
+    { ar: 'البداية الأولى', en: 'Onboarding', def: 'أول تجربة لمستخدم جديد، تعرّفه على المنتج وتساعده يبدأ بسهولة.' },
+    { ar: 'التصميم الشامل', en: 'Inclusive Design', def: 'تصميم يراعي تنوّع البشر من البداية، مو كإضافة لاحقة.' },
+    { ar: 'قانون فيتس', en: "Fitts's Law", def: 'الوصول للهدف أسرع كل ما كان أكبر وأقرب — خلّ الأزرار المهمة كبيرة وقريبة.' },
+    { ar: 'قانون هيك', en: "Hick's Law", def: 'كل ما زادت الخيارات زاد وقت القرار — قلّل الخيارات الظاهرة.' },
     { ar: 'اختبار الاستخدام', en: 'Usability Testing', def: 'مراقبة مستخدمين حقيقيين وهم يحاولون إنجاز مهام على تصميمك.' }
   ];
 
@@ -3688,6 +3688,72 @@ if (spotOptions.length){
       }
     });
   });
+}
+
+// ----- تحدي حلّل الواجهة -----
+var analyzeRoot = document.getElementById('analyzeUi');
+if (analyzeRoot){
+  var analyzeFlaws = analyzeRoot.querySelectorAll('.ui-el[data-flaw]');
+  var analyzeTotal = analyzeFlaws.length;
+  var analyzeFound = 0;
+  var analyzeProgress = document.getElementById('analyzeProgress');
+  var analyzeLog = document.getElementById('analyzeLog');
+  var analyzeReveal = document.getElementById('analyzeReveal');
+
+  function analyzeLogFlaw(el, byReveal){
+    var item = document.createElement('p');
+    item.className = 'analyze-log-item';
+    item.innerHTML = '<strong>' + (byReveal ? '👁 فاتك: ' : '✓ لقيتها: ') +
+      (el.getAttribute('data-flaw-title') || 'خطأ تصميم') + '</strong><br>' +
+      el.getAttribute('data-flaw');
+    analyzeLog.appendChild(item);
+  }
+
+  function analyzeUpdate(){
+    if (analyzeFound >= analyzeTotal){
+      analyzeProgress.textContent = 'اكتمل التحليل — ' + analyzeTotal + ' من ' + analyzeTotal + '. عندك عين مصمم 🔍';
+      if (analyzeReveal) analyzeReveal.hidden = true;
+      try {
+        if (!localStorage.getItem('hci_practice_analyze')){
+          localStorage.setItem('hci_practice_analyze', '1');
+          var doneA = parseInt(localStorage.getItem('hci_practice_count') || '0', 10) + 1;
+          localStorage.setItem('hci_practice_count', String(doneA));
+          if (doneA >= 3) markComplete('practice');
+          if (window.HCIApi) HCIApi.scheduleSync();
+        }
+      } catch (e) { /* */ }
+    } else {
+      analyzeProgress.textContent = 'لقيت ' + analyzeFound + ' من ' + analyzeTotal + ' أخطاء';
+    }
+  }
+
+  analyzeRoot.querySelectorAll('.ui-el').forEach(function(el){
+    el.addEventListener('click', function(){
+      if (el.classList.contains('is-found')) return;
+      if (el.hasAttribute('data-flaw')){
+        el.classList.add('is-found');
+        analyzeFound++;
+        analyzeLogFlaw(el, false);
+        analyzeUpdate();
+      } else {
+        el.classList.add('is-safe');
+        setTimeout(function(){ el.classList.remove('is-safe'); }, 900);
+      }
+    });
+  });
+
+  if (analyzeReveal){
+    analyzeReveal.addEventListener('click', function(){
+      analyzeFlaws.forEach(function(el){
+        if (!el.classList.contains('is-found')){
+          el.classList.add('is-found');
+          analyzeFound++;
+          analyzeLogFlaw(el, true);
+        }
+      });
+      analyzeUpdate();
+    });
+  }
 }
 
 // حفظ تقدم الدورات عند الضغط على "سجّلت اهتمامي"

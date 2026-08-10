@@ -16,6 +16,8 @@
   <div class="cert-toolbar no-print" id="certToolbar">
     <a href="index.html" class="btn-ghost cert-tb-home">الرئيسية</a>
     <div class="cert-toolbar-end">
+      <a href="#" class="btn-ghost cert-tb-li" id="linkedinAddBtn" target="_blank" rel="noopener" hidden>أضفها لملفك في LinkedIn</a>
+      <a href="#" class="btn-ghost cert-tb-li" id="linkedinShareBtn" target="_blank" rel="noopener" hidden>انشرها لأصدقائك</a>
       <button type="button" class="btn-primary cert-tb-print" id="printCertBtn">طباعة / حفظ PDF</button>
     </div>
   </div>
@@ -267,6 +269,24 @@
     if (printBtn && !printBtn.dataset.bound) {
       printBtn.dataset.bound = '1';
       printBtn.addEventListener('click', function () { window.print(); });
+    }
+
+    /* أزرار LinkedIn: إضافة الشهادة للملف المهني أو نشرها منشوراً */
+    var liAdd = document.getElementById('linkedinAddBtn');
+    if (liAdd) {
+      liAdd.href = 'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME' +
+        '&name=' + encodeURIComponent('إتمام مسار تفاعل الإنسان والحاسوب (HCI)') +
+        '&organizationName=' + encodeURIComponent('HCI') +
+        '&issueYear=' + issuedDate.getFullYear() +
+        '&issueMonth=' + (issuedDate.getMonth() + 1) +
+        '&certUrl=' + encodeURIComponent(verifyUrl) +
+        '&certId=' + encodeURIComponent(certId);
+      liAdd.hidden = false;
+    }
+    var liShare = document.getElementById('linkedinShareBtn');
+    if (liShare) {
+      liShare.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(verifyUrl);
+      liShare.hidden = false;
     }
   }
 

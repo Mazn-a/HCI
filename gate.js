@@ -34,6 +34,9 @@
     // ملفات تحقق قوقل
     if (/^google[a-z0-9]+\.html$/i.test(page)) return;
 
+    // المقالات عامة ومفهرسة — أي صفحة تبدأ بـ article-
+    if (/^article-[a-z0-9-]+\.html$/i.test(page)) return;
+
     // تفعيل / إلغاء تجاوز الصيانة للمطوّر
     if (/(?:\?|&)open=1(?:&|$)/.test(search)) {
       try { localStorage.setItem('hci_maint_bypass', '1'); } catch (e) { /* */ }
@@ -61,6 +64,10 @@
       'auth.html': true,
       'intro.html': true,
       'glossary.html': true,
+      'articles.html': true,
+      'article-what-is-hci.html': true,
+      'article-ux-vs-ui.html': true,
+      'article-nielsen-principles.html': true,
       'maintenance.html': true,
       'legal.html': true,
       'theme-lab.html': true,
@@ -69,7 +76,7 @@
       'verify.html': true
     };
 
-    if (publicPages[page]) {
+    if (publicPages[page] || /^article-[\w-]+\.html$/i.test(page)) {
       if (page === 'auth.html' && loggedIn) location.replace('index.html');
       else if (page === 'auth.html' && token && !verifiedFlag) {
         if (!/(?:\?|&)tab=/.test(search)) location.replace('auth.html?tab=verify');

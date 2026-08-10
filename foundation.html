@@ -45,66 +45,78 @@
       <div class="lesson-head reveal">
         <span class="eyebrow">/// الخطوة صفر — قبل المسارات</span>
         <h1>افهم التخصص كاملاً… بعدين ابدأ المسار</h1>
-        <p>ما نفتح لك المسارات وأنت لسه ما كونت صورة واضحة. اقرأ الثلاث مقالات بالترتيب — كل واحدة قصيرة — ولما تخلّصهن، ينفتح المسار الأول.</p>
+        <p>هذي الخطوة بعد ما تسجّل دخولك: ثلاث قراءات قصيرة بالترتيب، وبعدها ينفتح المسار الأول.</p>
       </div>
 
-      <div class="profile-card reveal" style="margin-bottom:28px;">
-        <p class="progress-title" style="margin-bottom:14px;">تقدمك في الفهم</p>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="foundationProgressFill"></div>
-        </div>
-        <p class="progress-note" id="foundationProgressNote">0 من 3 — ابدأ بالمقال الأول</p>
-      </div>
-
-      <ol class="foundation-steps" id="foundationSteps">
-        <li class="foundation-step" data-foundation="hci">
-          <span class="foundation-num">1</span>
-          <div class="foundation-body">
-            <h3>ما هو تخصص تفاعل الإنسان والحاسوب؟</h3>
-            <p>التعريف، الفرق عن علوم الحاسب، وش تدرس، ووش الوظائف بعده.</p>
-            <div class="foundation-actions">
-              <a href="article-what-is-hci.html?from=foundation" class="btn-primary">اقرأ المقال ←</a>
-              <button type="button" class="btn-ghost foundation-done-btn" data-foundation-done="hci">قرأت وفهمت ✓</button>
-            </div>
-          </div>
-          <span class="foundation-state" aria-hidden="true"></span>
-        </li>
-        <li class="foundation-step" data-foundation="uxui">
-          <span class="foundation-num">2</span>
-          <div class="foundation-body">
-            <h3>الفرق بين UX و UI</h3>
-            <p>أكثر خلط بالمجال — تفهمه بأمثلة من تطبيقات تستخدمها يومياً.</p>
-            <div class="foundation-actions">
-              <a href="article-ux-vs-ui.html?from=foundation" class="btn-primary">اقرأ المقال ←</a>
-              <button type="button" class="btn-ghost foundation-done-btn" data-foundation-done="uxui">قرأت وفهمت ✓</button>
-            </div>
-          </div>
-          <span class="foundation-state" aria-hidden="true"></span>
-        </li>
-        <li class="foundation-step" data-foundation="nielsen">
-          <span class="foundation-num">3</span>
-          <div class="foundation-body">
-            <h3>مبادئ نيلسن — ليش التصميم السيئ يربكك؟</h3>
-            <p>مقدمة عامة بالعشر قواعد. التفاصيل والأمثلة والاختبار تكملها لاحقاً في مسار الأساسيات.</p>
-            <div class="foundation-actions">
-              <a href="article-nielsen-principles.html?from=foundation" class="btn-primary">اقرأ المقال ←</a>
-              <button type="button" class="btn-ghost foundation-done-btn" data-foundation-done="nielsen">قرأت وفهمت ✓</button>
-            </div>
-          </div>
-          <span class="foundation-state" aria-hidden="true"></span>
-        </li>
-      </ol>
-
-      <div class="article-cta reveal" id="foundationReady" hidden>
-        <p>ممتاز — عندك الأساس. ابدأ المسار. وتقدر تحفظ مسودة مقالك الحين؛ إرسالها للمراجعة والنشر يفتح بعد ما تكمّل كل الدروس.</p>
-        <div class="foundation-actions" style="justify-content:center;">
-          <a href="auth.html?tab=signup" class="btn-primary" id="foundationStartCta">ابدأ المسار الأول ←</a>
-          <a href="write-article.html" class="btn-ghost" id="foundationWriteCta">احفظ مسودة مقال ←</a>
+      <div class="articles-boost reveal" id="foundationGuestGate" hidden>
+        <span class="eyebrow">/// عشان ما تضيع</span>
+        <h2>ابدأ بحساب… بعدين الفهم… بعدين المسارات</h2>
+        <p>بدون حساب تقدّمك ما ينحفظ، وتصير الخطوات مبعثرة. أنشئ حساباً بدقيقة، وبعدها نرتّب لك الفهم ثم المسارات.</p>
+        <div class="foundation-actions articles-boost-actions">
+          <a href="auth.html?tab=signup" class="btn-primary">أنشئ حساب وابدأ ←</a>
+          <a href="articles.html" class="btn-ghost">أو تصفّح المقالات فقط</a>
         </div>
       </div>
 
-      <div class="article-cta reveal" id="foundationPending">
-        <p>كمّل القراءات الثلاث أولاً. المسارات تنفتح بعدها عشان تدخل وأنت فاهم وش بتسوي.</p>
+      <div id="foundationLoggedInFlow">
+        <div class="profile-card reveal" style="margin-bottom:28px;" id="foundationProgressCard">
+          <p class="progress-title" style="margin-bottom:14px;">تقدمك في الفهم</p>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="foundationProgressFill"></div>
+          </div>
+          <p class="progress-note" id="foundationProgressNote">0 من 3 — ابدأ بالمقال الأول</p>
+        </div>
+
+        <ol class="foundation-steps" id="foundationSteps">
+          <li class="foundation-step" data-foundation="hci">
+            <span class="foundation-num">1</span>
+            <div class="foundation-body">
+              <h3>ما هو تخصص تفاعل الإنسان والحاسوب؟</h3>
+              <p>التعريف، الفرق عن علوم الحاسب، وش تدرس، ووش الوظائف بعده.</p>
+              <div class="foundation-actions">
+                <a href="article-what-is-hci.html?from=foundation" class="btn-primary">اقرأ المقال ←</a>
+                <button type="button" class="btn-ghost foundation-done-btn" data-foundation-done="hci">قرأت وفهمت ✓</button>
+              </div>
+            </div>
+            <span class="foundation-state" aria-hidden="true"></span>
+          </li>
+          <li class="foundation-step" data-foundation="uxui">
+            <span class="foundation-num">2</span>
+            <div class="foundation-body">
+              <h3>الفرق بين UX و UI</h3>
+              <p>أكثر خلط بالمجال — تفهمه بأمثلة من تطبيقات تستخدمها يومياً.</p>
+              <div class="foundation-actions">
+                <a href="article-ux-vs-ui.html?from=foundation" class="btn-primary">اقرأ المقال ←</a>
+                <button type="button" class="btn-ghost foundation-done-btn" data-foundation-done="uxui">قرأت وفهمت ✓</button>
+              </div>
+            </div>
+            <span class="foundation-state" aria-hidden="true"></span>
+          </li>
+          <li class="foundation-step" data-foundation="nielsen">
+            <span class="foundation-num">3</span>
+            <div class="foundation-body">
+              <h3>مبادئ نيلسن — ليش التصميم السيئ يربكك؟</h3>
+              <p>مقدمة عامة بالعشر قواعد. التفاصيل والأمثلة والاختبار تكملها لاحقاً في مسار الأساسيات.</p>
+              <div class="foundation-actions">
+                <a href="article-nielsen-principles.html?from=foundation" class="btn-primary">اقرأ المقال ←</a>
+                <button type="button" class="btn-ghost foundation-done-btn" data-foundation-done="nielsen">قرأت وفهمت ✓</button>
+              </div>
+            </div>
+            <span class="foundation-state" aria-hidden="true"></span>
+          </li>
+        </ol>
+
+        <div class="article-cta reveal" id="foundationReady" hidden>
+          <p>ممتاز — عندك الأساس. ابدأ المسار. وتقدر تحفظ مسودة مقالك الحين؛ إرسالها للمراجعة والنشر يفتح بعد ما تكمّل كل الدروس.</p>
+          <div class="foundation-actions" style="justify-content:center;">
+            <a href="index.html#paths" class="btn-primary" id="foundationStartCta">ابدأ المسار الأول ←</a>
+            <a href="write-article.html" class="btn-ghost" id="foundationWriteCta">احفظ مسودة مقال ←</a>
+          </div>
+        </div>
+
+        <div class="article-cta reveal" id="foundationPending">
+          <p>كمّل القراءات الثلاث أولاً. المسارات تنفتح بعدها عشان تدخل وأنت فاهم وش بتسوي.</p>
+        </div>
       </div>
     </div>
   </main>

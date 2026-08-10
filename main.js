@@ -851,7 +851,7 @@ if (menuBtn && navLinks){
 // ----- حساب المستخدم -----
 var loggedInName = localStorage.getItem('hci_user_name');
 
-/* شريط نظيف: رابطان فقط — (افهم أولاً أو المسارات) + المقالات. الباقي في الشعار/التذييل */
+/* شريط نظيف حسب حالة الزائر/المسجّل — عشان ما يضيع أحد */
 (function tidyNavLinks(){
   var links = document.getElementById('navLinks');
   if (!links) return;
@@ -859,12 +859,13 @@ var loggedInName = localStorage.getItem('hci_user_name');
   var foundationDone = false;
   try { foundationDone = isFoundationDone(); } catch (e) { foundationDone = false; }
   var showPaths = isLoggedIn && foundationDone;
+  var showFoundation = isLoggedIn && !foundationDone;
   Array.prototype.slice.call(links.querySelectorAll('a')).forEach(function(a){
     var t = (a.textContent || '').replace(/\s+/g, ' ').trim();
     var hide = false;
     if (t === 'الرئيسية' || t === 'المعجم') hide = true;
     else if (t === 'المسارات') hide = !showPaths;
-    else if (t === 'افهم أولاً') hide = showPaths;
+    else if (t === 'افهم أولاً') hide = !showFoundation;
     if (hide) {
       a.setAttribute('hidden', '');
       a.style.display = 'none';
@@ -1080,16 +1081,31 @@ if (navCtaSlot && loggedInName){
   if (switchAccountLink) switchAccountLink.addEventListener('click', doSwitchAccount);
 }
 
-if (heroCta && !isFoundationDone()){
-  heroCta.textContent = 'افهم التخصص أولاً ←';
-  heroCta.setAttribute('href', 'foundation.html');
-} else if (heroCta && loggedInName){
-  heroCta.textContent = 'أكمل مسارك ←';
-  heroCta.setAttribute('href', '#paths');
-} else if (heroCta && !(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())){
-  heroCta.textContent = 'ابدأ رحلتك ←';
-  heroCta.setAttribute('href', 'auth.html?tab=signup');
-}
+(function setHeroCtaForVisitor(){
+  if (!heroCta) return;
+  var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  var ghost = document.querySelector('.hero-actions .btn-ghost');
+  if (!logged){
+    heroCta.textContent = 'أنشئ حساب وابدأ ←';
+    heroCta.setAttribute('href', 'auth.html?tab=signup');
+    if (ghost){
+      ghost.textContent = 'تصفّح المقالات';
+      ghost.setAttribute('href', 'articles.html');
+    }
+    return;
+  }
+  if (!isFoundationDone()){
+    heroCta.textContent = 'افهم التخصص أولاً ←';
+    heroCta.setAttribute('href', 'foundation.html');
+    if (ghost){
+      ghost.textContent = 'شاهد المسارات';
+      ghost.setAttribute('href', '#paths');
+    }
+  } else {
+    heroCta.textContent = 'أكمل مسارك ←';
+    heroCta.setAttribute('href', '#paths');
+  }
+})();
 
 // ----- شريط التقدم العام (للمسجّلين فقط) -----
 var overallFill = document.getElementById('overallProgressFill');
@@ -1148,25 +1164,20 @@ if (stationsRoot && !isLoggedInForProgress){
   var guestGuideCta = document.getElementById('pathGuideCta');
   var guestGuideKicker = document.getElementById('pathGuideKicker');
   var guestGuideProfile = document.getElementById('pathGuideProfile');
-  var guestFoundationDone = isFoundationDone();
-  if (guestGuideKicker) guestGuideKicker.textContent = guestFoundationDone ? 'بعد الفهم' : 'قبل المسارات';
+  if (guestGuideKicker) guestGuideKicker.textContent = 'كيف تبدأ؟';
   if (guestGuideTitle){
-    guestGuideTitle.textContent = guestFoundationDone
-      ? 'فهمت التخصص — الحين أنشئ حساباً وابدأ المسار'
-      : 'افهم التخصص أولاً… بعدها تبدأ المسارات';
+    guestGuideTitle.textContent = 'حساب ← فهم التخصص ← المسارات';
   }
   if (guestGuideHint){
-    guestGuideHint.textContent = guestFoundationDone
-      ? 'التقدم يُحفظ على حسابك فقط. أنشئ حساباً مجاناً عشان يبدأ مسارك من الصفر باسمك.'
-      : 'ثلاث قراءات قصيرة تبني لك صورة كاملة عن HCI قبل أي مسار.';
+    guestGuideHint.textContent = 'أنشئ حساباً أولاً عشان تقدّمك ينحفظ وما تضيع. بعدها ثلاث قراءات قصيرة، ثم تفتح المسارات بالترتيب.';
   }
   if (guestGuideCta){
-    guestGuideCta.textContent = guestFoundationDone ? 'أنشئ حساب وابدأ ←' : 'افهم التخصص أولاً ←';
-    guestGuideCta.setAttribute('href', guestFoundationDone ? 'auth.html?tab=signup' : 'foundation.html');
+    guestGuideCta.textContent = 'أنشئ حساب وابدأ ←';
+    guestGuideCta.setAttribute('href', 'auth.html?tab=signup');
   }
   if (guestGuideProfile){
-    guestGuideProfile.textContent = guestFoundationDone ? 'تسجيل الدخول' : 'المقالات';
-    guestGuideProfile.setAttribute('href', guestFoundationDone ? 'auth.html' : 'articles.html');
+    guestGuideProfile.textContent = 'تصفّح المقالات';
+    guestGuideProfile.setAttribute('href', 'articles.html');
   }
   stationsRoot.querySelectorAll('[data-stage]').forEach(function(station){
     var statusEl = station.querySelector('.station-status');
@@ -1175,20 +1186,18 @@ if (stationsRoot && !isLoggedInForProgress){
     station.classList.add('is-locked');
     station.removeAttribute('aria-current');
     if (statusEl){
-      statusEl.textContent = guestFoundationDone ? 'بعد التسجيل' : 'بعد الفهم';
+      statusEl.textContent = 'بعد التسجيل';
       statusEl.className = 'station-status locked';
     }
     if (link){
       link.classList.add('disabled');
       link.classList.add('show-lock-reason');
       link.setAttribute('aria-disabled', 'true');
-      link.setAttribute('href', guestFoundationDone ? 'auth.html?tab=signup' : 'foundation.html');
-      link.title = guestFoundationDone
-        ? 'أنشئ حساباً أولاً عشان يُحفظ تقدمك'
-        : 'افهم التخصص أولاً من صفحة الفهم';
+      link.setAttribute('href', 'auth.html?tab=signup');
+      link.title = 'أنشئ حساباً أولاً عشان يُحفظ تقدمك وما تضيع';
       link.addEventListener('click', function(e){
         e.preventDefault();
-        location.href = guestFoundationDone ? 'auth.html?tab=signup' : 'foundation.html';
+        location.href = 'auth.html?tab=signup';
       });
     }
   });
@@ -1353,7 +1362,11 @@ if (stationsRoot && !isLoggedInForProgress){
 
   if (heroCta){
     var hs = currentStageId || getCurrentStageId() || 'discover';
-    if (!isFoundationDone()){
+    var loggedNow = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+    if (!loggedNow){
+      heroCta.textContent = 'أنشئ حساب وابدأ ←';
+      heroCta.setAttribute('href', 'auth.html?tab=signup');
+    } else if (!isFoundationDone()){
       heroCta.textContent = 'افهم التخصص أولاً ←';
       heroCta.setAttribute('href', 'foundation.html');
     } else if (doneCount >= JOURNEY_ORDER.length){
@@ -3287,6 +3300,17 @@ if (lessonList && codingProgressFill && codingProgressNote){
   var stepsRoot = document.getElementById('foundationSteps');
   if (!stepsRoot) return;
 
+  var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  var guestGate = document.getElementById('foundationGuestGate');
+  var loggedFlow = document.getElementById('foundationLoggedInFlow');
+  if (!logged){
+    if (guestGate) guestGate.hidden = false;
+    if (loggedFlow) loggedFlow.hidden = true;
+    return;
+  }
+  if (guestGate) guestGate.hidden = true;
+  if (loggedFlow) loggedFlow.hidden = false;
+
   var fill = document.getElementById('foundationProgressFill');
   var note = document.getElementById('foundationProgressNote');
   var ready = document.getElementById('foundationReady');
@@ -3337,22 +3361,11 @@ if (lessonList && codingProgressFill && codingProgressNote){
     if (ready) ready.hidden = !complete;
     if (pending) pending.hidden = complete;
     if (startCta){
-      if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()){
-        startCta.textContent = 'ابدأ المسار الأول ←';
-        startCta.setAttribute('href', 'discover.html');
-      } else {
-        startCta.textContent = 'أنشئ حساب وابدأ المسار ←';
-        startCta.setAttribute('href', 'auth.html?tab=signup');
-      }
+      startCta.textContent = 'ابدأ المسار الأول ←';
+      startCta.setAttribute('href', 'discover.html');
     }
     var writeCta = document.getElementById('foundationWriteCta');
-    if (writeCta){
-      if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()){
-        writeCta.setAttribute('href', 'write-article.html');
-      } else {
-        writeCta.setAttribute('href', 'auth.html?tab=signup&next=write-article.html');
-      }
-    }
+    if (writeCta) writeCta.setAttribute('href', 'write-article.html');
   }
 
   stepsRoot.querySelectorAll('.foundation-done-btn').forEach(function(btn){
@@ -3384,12 +3397,20 @@ if (lessonList && codingProgressFill && codingProgressNote){
   renderFoundation();
 })();
 
-// من صفحات المقالات: زر «فهمت» يرجع لصفحة الفهم
+// من صفحات المقالات: زر «فهمت» يرجع لصفحة الفهم (للمسجّلين فقط)
 (function bindArticleFoundationCta(){
   var btn = document.getElementById('articleFoundationDone');
   if (!btn) return;
   var id = btn.getAttribute('data-foundation-id');
   if (!id) return;
+  var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  if (!logged){
+    btn.textContent = 'أنشئ حساب عشان تُحفظ خطوتك ←';
+    btn.addEventListener('click', function(){
+      location.href = 'auth.html?tab=signup&next=foundation.html';
+    });
+    return;
+  }
   btn.addEventListener('click', function(){
     markFoundationRead(id);
     location.href = 'foundation.html';

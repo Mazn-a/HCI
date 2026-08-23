@@ -53,7 +53,8 @@
       else localStorage.removeItem('hci_path_type');
       if (user.isPreview) {
         try { localStorage.setItem('hci_is_preview', '1'); } catch (e) { /* */ }
-        clearLocalProgress();
+        /* صفّر التقدّم عند تسجيل الدخول فقط — لا عند كل /me وإلا تُمسح القراءة */
+        if (opts && opts.resetPreview) clearLocalProgress();
       } else {
         try { localStorage.removeItem('hci_is_preview'); } catch (e) { /* */ }
       }
@@ -330,7 +331,7 @@
       method: 'POST',
       body: { identifier: identifier, password: password }
     });
-    setSession(data.token, data.user, { siteUnlock: true });
+    setSession(data.token, data.user, { siteUnlock: true, resetPreview: !!data.user.isPreview });
     return data;
   }
 

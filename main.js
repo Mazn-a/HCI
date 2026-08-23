@@ -948,9 +948,9 @@ if (greetingEl){
     name = HCIFlow.firstName(HCIApi.currentUser()) || name;
   }
   if (eyebrow) eyebrow.textContent = '/// خطوتك الآن';
-  if (title && name) title.textContent = name + '، خطوة واحدة قبل المسارات';
+  if (title && name) title.textContent = name + '، ابدأ من هنا';
   if (lead){
-    lead.textContent = 'اقرأ المقال حتى آخره. عند وصولك للنهاية تُحتسب القراءة ويُفتح المسار الأول.';
+    lead.textContent = 'اقرأ المقال التعريفي، ثم انتقل للمسار الأول.';
   }
 })();
 
@@ -1290,7 +1290,7 @@ if (stationsRoot && !isLoggedInForProgress){
     setPathsSectionCopy({
       eyebrow: '/// رحلتك في المنصة',
       title: 'سبعة مسارات مرتّبة من البداية حتى الإتقان',
-      lead: 'بعد إنشاء الحساب تُوجَّه تلقائياً: اختيار المسار ← البداية ← المقال التعريفي ← المسارات بالترتيب.'
+      lead: 'بعد إنشاء الحساب تُوجَّه إلى مسارك مباشرة.'
     });
   }
   stationsRoot.querySelectorAll('[data-stage]').forEach(function(station){
@@ -3559,27 +3559,13 @@ function showStatusBanner(id, message, kind){
 
   var pending = document.getElementById('foundationPendingCard');
   var ready = document.getElementById('foundationReadyCard');
-  var railRead = document.getElementById('startRailRead');
-  var railPaths = document.getElementById('startRailPaths');
   var complete = isFoundationDone();
 
   if (pending) pending.hidden = complete;
   if (ready) ready.hidden = !complete;
-  if (railRead){
-    railRead.classList.toggle('is-current', !complete);
-    railRead.classList.toggle('is-done', complete);
-    railRead.classList.remove('is-locked');
-  }
-  if (railPaths){
-    railPaths.classList.toggle('is-locked', !complete);
-    railPaths.classList.toggle('is-current', complete);
-    railPaths.classList.remove('is-done');
-  }
 
   if (complete){
-    showStatusBanner('foundationStatus', 'تم — وصلت لنهاية المقال. المسار الأول مفتوح، ويمكنك مراجعة المقال متى شئت.', 'ok');
-  } else {
-    showStatusBanner('foundationStatus', 'القراءة لا تُحتسب إلا بعد وصولك لآخر المقال.', 'wait');
+    showStatusBanner('foundationStatus', 'المسار الأول مفتوح. يمكنك مراجعة المقال متى شئت.', 'ok');
   }
 })();
 
@@ -3608,11 +3594,11 @@ function showStatusBanner(id, message, kind){
       btn.disabled = false;
       btn.textContent = 'التالي: المسار الأول ←';
     }
-    if (hint) hint.textContent = 'قراءتك محتسبة. يمكنك المتابعة أو الرجوع للمقال لاحقاً.';
+    if (hint) hint.textContent = 'يمكنك المتابعة أو الرجوع للمقال لاحقاً.';
     showStatusBanner('articleReadStatus',
-      justFinished ? 'وصلت للنهاية — تم احتساب القراءة. المسار الأول مفتوح.' : 'قراءتك مسجّلة مسبقاً. يمكنك المراجعة ثم المتابعة.',
+      justFinished ? 'المسار الأول مفتوح.' : 'يمكنك المراجعة ثم المتابعة.',
       'ok');
-    if (justFinished) showUnlockToast('تم تسجيل القراءة — فُتح المسار الأول');
+    if (justFinished) showUnlockToast('فُتح المسار الأول');
   }
 
   if (btn){
@@ -3622,7 +3608,6 @@ function showStatusBanner(id, message, kind){
         return;
       }
       if (!isFoundationDone()){
-        showStatusBanner('articleReadStatus', 'أكمل النزول حتى آخر المقال أولاً.', 'wait');
         if (sentinel) sentinel.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
@@ -3646,10 +3631,9 @@ function showStatusBanner(id, message, kind){
     return;
   }
 
-  showStatusBanner('articleReadStatus', 'انزل حتى آخر المقال. الدخول وحده لا يُحتسب.', 'wait');
   if (btn){
     btn.disabled = true;
-    btn.textContent = 'أكمل القراءة أولاً';
+    btn.textContent = 'التالي ←';
   }
 
   function markAtEnd(){

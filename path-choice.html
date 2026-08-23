@@ -15,17 +15,10 @@
 
   <div class="path-choice-wrap" id="main">
     <a href="index.html" class="brand" style="display:block; text-align:center;">HCI</a>
-    <p class="brand-sub" style="margin-bottom:8px;">تفاعل الإنسان والحاسوب</p>
-    <p class="brand-tagline" style="margin-bottom:36px;"><span class="dot"></span> خطوة واحدة لتحديد مسارك</p>
+    <p class="brand-sub" style="margin-bottom:28px;">تفاعل الإنسان والحاسوب</p>
 
     <h1 class="path-choice-title" id="pathChoiceTitle">اختر مسارك</h1>
-    <p class="path-choice-lead" id="pathChoiceLead">حدّد المسار المناسب لك للمتابعة. هذه أول خطوة بعد إنشاء حسابك.</p>
-
-    <ol class="flow-rail flow-rail--compact" aria-label="تسلسل التعلّم" style="margin-bottom:28px;">
-      <li data-flow="account" class="is-done"><span class="flow-rail-num">1</span><span class="flow-rail-label">الحساب</span></li>
-      <li data-flow="start" class="is-current"><span class="flow-rail-num">2</span><span class="flow-rail-label">البداية</span></li>
-      <li data-flow="paths" class="is-locked"><span class="flow-rail-num">3</span><span class="flow-rail-label">المسارات</span></li>
-    </ol>
+    <p class="path-choice-lead" id="pathChoiceLead">حدّد المسار المناسب لك، ثم نكمّل.</p>
 
     <div class="path-choice-grid">
       <button type="button" class="path-option" id="chooseCurious">
@@ -70,8 +63,8 @@
   if (titleEl && first) titleEl.textContent = first + '، اختر مسارك';
   if (leadEl) {
     leadEl.textContent = first
-      ? 'حسابك جاهز. حدّد المسار المناسب لك — هذه أول خطوة في تسلسل التعلّم.'
-      : 'حدّد المسار المناسب لك للمتابعة. هذه أول خطوة بعد إنشاء حسابك.';
+      ? 'حسابك جاهز. اختر المسار المناسب لك.'
+      : 'اختر المسار المناسب لك، ثم نكمّل.';
   }
 
   var statusMsg = document.getElementById('statusMsg');

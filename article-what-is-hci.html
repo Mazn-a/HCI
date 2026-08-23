@@ -50,7 +50,7 @@
       <div class="lesson-head reveal">
         <span class="eyebrow">/// المقال التعريفي · خطوة واحدة</span>
         <h1>ما هو تفاعل الإنسان والحاسوب؟ وما الفرق بين UX و UI؟</h1>
-        <p class="article-meta">قراءة قصيرة · بمجرد فتح الصفحة تُحتسب قراءتك</p>
+        <p class="article-meta">قراءة قصيرة · تُحتسب بعد وصولك لآخر الصفحة</p>
         <span class="article-byline">منشور من متخصصي الدورة</span>
       </div>
 
@@ -83,9 +83,12 @@
         <p>لا. يكفي إنك تستخدم جوالك يومياً وتحس أحياناً إن تطبيق «صعب» أو «واضح». التخصص يعلّمك تسمّي هالإحساس وتصلّحه — خطوة خطوة.</p>
       </div>
 
+      <div class="article-end-mark" id="articleReadSentinel" aria-hidden="true"></div>
+
       <div class="article-cta reveal">
-        <p>قراءتك تُحتسب عند فتح هذه الصفحة. الزر التالي ينقلك للمسار الأول — بدون تأكيد إضافي.</p>
-        <button type="button" class="btn-primary" id="articleFoundationDone" data-foundation-id="hci">التالي: المسار الأول ←</button>
+        <p id="articleCtaHint">انزل حتى نهاية المقال. الدخول وحده لا يُحتسب — عند وصولك هنا تُسجَّل القراءة.</p>
+        <button type="button" class="btn-primary" id="articleFoundationDone" data-foundation-id="hci" disabled>أكمل القراءة أولاً</button>
+        <a href="foundation.html" class="btn-ghost" id="articleBackToStart">العودة لصفحة البداية</a>
       </div>
     </div>
   </main>

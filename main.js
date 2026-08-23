@@ -950,7 +950,7 @@ if (greetingEl){
   if (eyebrow) eyebrow.textContent = '/// خطوتك الآن';
   if (title && name) title.textContent = name + '، خطوة واحدة قبل المسارات';
   if (lead){
-    lead.textContent = 'افتح المقال التعريفي. بمجرد الدخول تُحتسب قراءتك ويُفتح المسار الأول.';
+    lead.textContent = 'اقرأ المقال حتى آخره. عند وصولك للنهاية تُحتسب القراءة ويُفتح المسار الأول.';
   }
 })();
 
@@ -3542,7 +3542,7 @@ function showStatusBanner(id, message, kind){
   el.textContent = message;
 }
 
-// ----- خطوة البداية: مسار واحد + احتساب عند فتح المقال -----
+// ----- خطوة البداية: مقال واحد، والاحتساب عند نهاية القراءة -----
 (function initFoundationPage(){
   var loggedFlow = document.getElementById('foundationLoggedInFlow');
   if (!loggedFlow) return;
@@ -3577,58 +3577,99 @@ function showStatusBanner(id, message, kind){
   }
 
   if (complete){
-    showStatusBanner('foundationStatus', 'تم — قراءتك محتسبة. المسار الأول مفتوح.', 'ok');
+    showStatusBanner('foundationStatus', 'تم — وصلت لنهاية المقال. المسار الأول مفتوح، ويمكنك مراجعة المقال متى شئت.', 'ok');
   } else {
-    showStatusBanner('foundationStatus', 'لم تُحتسب القراءة بعد. افتح المقال — يُسجَّل فور الدخول.', 'wait');
+    showStatusBanner('foundationStatus', 'القراءة لا تُحتسب إلا بعد وصولك لآخر المقال.', 'wait');
   }
 })();
 
-// المقال التعريفي: الدخول = قراءة محتسبة + رسالة واضحة
+// المقال التعريفي: تُحتسب القراءة فقط عند الوصول لآخر الصفحة — ليس عند الدخول
 (function bindArticleFoundationCta(){
+  var page = (location.pathname.split('/').pop() || '').toLowerCase();
+  if (page !== 'article-what-is-hci.html') return;
+
   var btn = document.getElementById('articleFoundationDone');
-  var fromFoundation = /(?:\?|&)from=foundation(?:&|$)/.test(location.search || '') ||
-    /article-what-is-hci\.html/i.test(location.pathname || '');
-  var id = (btn && btn.getAttribute('data-foundation-id')) || (fromFoundation ? 'hci' : '');
-  if (!id && !btn) return;
-
+  var hint = document.getElementById('articleCtaHint');
+  var sentinel = document.getElementById('articleReadSentinel');
   var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
-  var banner = document.getElementById('articleReadStatus');
+  var counted = false;
+  var io = null;
 
-  if (!logged){
+  function reachedArticleEnd(){
+    if (!sentinel) return false;
+    var rect = sentinel.getBoundingClientRect();
+    var view = window.innerHeight || document.documentElement.clientHeight || 0;
+    /* تُحتسب فقط إذا ظهرت علامة نهاية المقال في الشاشة */
+    return rect.top < (view - 12) && rect.bottom > -20;
+  }
+
+  function enableNext(justFinished){
     if (btn){
-      btn.textContent = 'أنشئ حساباً لحفظ خطوتك ←';
-      btn.addEventListener('click', function(){
-        location.href = 'auth.html?tab=signup&next=article-what-is-hci.html?from=foundation';
-      });
+      btn.disabled = false;
+      btn.textContent = 'التالي: المسار الأول ←';
     }
-    if (banner){
-      banner.hidden = false;
-      banner.className = 'status-banner is-wait';
-      banner.textContent = 'أنت تقرأ كزائر. لإنشاء حساب يحفظ الخطوة: سجّل ثم ارجع.';
-    }
-    return;
+    if (hint) hint.textContent = 'قراءتك محتسبة. يمكنك المتابعة أو الرجوع للمقال لاحقاً.';
+    showStatusBanner('articleReadStatus',
+      justFinished ? 'وصلت للنهاية — تم احتساب القراءة. المسار الأول مفتوح.' : 'قراءتك مسجّلة مسبقاً. يمكنك المراجعة ثم المتابعة.',
+      'ok');
+    if (justFinished) showUnlockToast('تم تسجيل القراءة — فُتح المسار الأول');
   }
-
-  var already = isFoundationDone();
-  markFoundationRead(id || 'hci');
-  if (banner){
-    banner.hidden = false;
-    banner.className = 'status-banner is-ok';
-    banner.textContent = already
-      ? 'قراءتك مسجّلة مسبقاً. المسارات مفتوحة.'
-      : 'تم احتساب قراءتك الآن. المسار الأول مفتوح.';
-  }
-  showUnlockToast(already
-    ? 'قراءتك مسجّلة — المسارات مفتوحة'
-    : 'تم تسجيل القراءة — فُتح المسار الأول');
 
   if (btn){
-    btn.textContent = 'التالي: المسار الأول ←';
     btn.addEventListener('click', function(){
+      if (!logged){
+        location.href = 'auth.html?tab=signup&next=article-what-is-hci.html?from=foundation';
+        return;
+      }
+      if (!isFoundationDone()){
+        showStatusBanner('articleReadStatus', 'أكمل النزول حتى آخر المقال أولاً.', 'wait');
+        if (sentinel) sentinel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       showUnlockToast('الانتقال إلى المسار الأول');
       location.href = 'discover.html';
     });
   }
+
+  if (!logged){
+    if (btn){
+      btn.disabled = false;
+      btn.textContent = 'أنشئ حساباً لحفظ خطوتك ←';
+    }
+    showStatusBanner('articleReadStatus', 'أنت تقرأ كزائر. القراءة لا تُحفظ حتى تسجّل.', 'wait');
+    return;
+  }
+
+  if (isFoundationDone()){
+    counted = true;
+    enableNext(false);
+    return;
+  }
+
+  showStatusBanner('articleReadStatus', 'انزل حتى آخر المقال. الدخول وحده لا يُحتسب.', 'wait');
+  if (btn){
+    btn.disabled = true;
+    btn.textContent = 'أكمل القراءة أولاً';
+  }
+
+  function markAtEnd(){
+    if (counted || !reachedArticleEnd()) return;
+    counted = true;
+    if (io) io.disconnect();
+    markFoundationRead('hci');
+    enableNext(true);
+  }
+
+  if (sentinel && 'IntersectionObserver' in window){
+    io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) markAtEnd();
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
+    io.observe(sentinel);
+  }
+
+  window.addEventListener('scroll', markAtEnd, { passive: true });
 })();
 
 // ----- محرر «جرّب بنفسك» -----

@@ -1477,6 +1477,14 @@ body.nav-open{ overflow: hidden; }
   filter: brightness(1.08); transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(var(--gold-rgb),0.25);
 }
+.btn-primary:disabled,
+.btn-primary[disabled]{
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
 .btn-ghost{
   border: 1px solid var(--ink-3); color: var(--text-hi);
   padding: 13px 26px; border-radius: 5px; background:transparent; cursor:pointer;
@@ -2479,6 +2487,13 @@ body.nav-open{ overflow: hidden; }
   background: rgba(var(--gold-rgb),0.05); text-align: center;
 }
 .article-cta p{ color: var(--text-mid); margin: 0 0 16px; line-height: 1.8; }
+.article-cta .btn-primary,
+.article-cta .btn-ghost{
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+}
+.article-cta .btn-ghost{ margin-top: 10px; }
 
 .articles-block{ margin-top: clamp(28px, 5vw, 48px); }
 .articles-block-head{ margin-bottom: 18px; }
@@ -2635,16 +2650,53 @@ body.nav-open{ overflow: hidden; }
   color: var(--text-mid);
   line-height: 1.7;
 }
-.start-card .btn-primary{
+.start-card .btn-primary,
+.start-card .btn-ghost{
   width: 100%;
   justify-content: center;
-  min-height: 50px;
+  min-height: 48px;
+}
+.start-card .btn-ghost{ margin-top: 8px; }
+
+.article-end-mark{
+  height: 1px;
+  margin: 8px 0 0;
 }
 
 @media (max-width: 640px){
-  .start-rail{ flex-direction: column; }
-  .start-rail li{ justify-content: flex-start; padding: 12px 14px; }
-  .start-card{ padding: 18px 14px; }
+  .start-page.lesson{ padding: 22px 0 48px; }
+  .start-simple{ max-width: 100%; }
+  .start-simple .lesson-head{ margin-bottom: 22px; }
+  .start-simple .lesson-head h1{
+    font-size: 1.28rem;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+  .start-simple .lesson-head p{ font-size: 0.95rem; line-height: 1.7; }
+  .start-simple .status-banner{
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+  .start-rail{
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .start-rail li{
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 4px;
+    font-size: 0.7rem;
+    text-align: center;
+    min-width: 0;
+  }
+  .start-rail li span{ width: 20px; height: 20px; }
+  .start-card{ padding: 16px 14px; }
+  .start-card h2{ font-size: 1.12rem; }
+  .start-card p{ font-size: 0.92rem; margin-bottom: 14px; }
+  .article-cta{ margin-top: 28px; padding: 18px 14px; }
+  .article-cta p{ font-size: 0.9rem; }
 }
 
 .foundation-start-card{

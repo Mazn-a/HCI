@@ -523,7 +523,7 @@ body::before{
 
 a{ color: inherit; text-decoration: none; }
 img, svg{ display:block; max-width:100%; }
-button{ font-family: inherit; }
+button{ font-family: inherit; font-size: inherit; }
 
 /* ====== إتاحة الوصول ====== */
 
@@ -1469,6 +1469,9 @@ body.nav-open{ overflow: hidden; }
 
 .btn-primary{
   background: var(--gold); color: var(--on-accent); font-weight:600;
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.45;
   padding: 13px 26px; border-radius: 5px; border:none; cursor:pointer;
   display:inline-flex; align-items:center; gap:8px;
   transition: filter 0.2s, transform 0.2s var(--ease-spring), box-shadow 0.25s;
@@ -1487,6 +1490,9 @@ body.nav-open{ overflow: hidden; }
 }
 .btn-ghost{
   border: 1px solid var(--ink-3); color: var(--text-hi);
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.45;
   padding: 13px 26px; border-radius: 5px; background:transparent; cursor:pointer;
   display:inline-flex; align-items:center; gap:8px;
   transition: border-color 0.2s, color 0.2s, transform 0.2s;
@@ -3009,7 +3015,7 @@ body.nav-open{ overflow: hidden; }
 }
 .checklist-hint{
   color: var(--text-mid);
-  font-size: 0.86rem;
+  font-size: 1em;
   font-weight: 500;
   margin: 0 0 16px;
   line-height: 1.55;
@@ -3029,7 +3035,7 @@ body.nav-open{ overflow: hidden; }
   gap: 14px;
   margin: 0 0 8px;
   padding: 14px 14px;
-  font-size: 1rem;
+  font-size: 1em;
   color: var(--text-mid);
   cursor: pointer;
   line-height: 1.6;

@@ -18,8 +18,14 @@
     <p class="brand-sub" style="margin-bottom:8px;">تفاعل الإنسان والحاسوب</p>
     <p class="brand-tagline" style="margin-bottom:36px;"><span class="dot"></span> خطوة واحدة لتحديد مسارك</p>
 
-    <h1 class="path-choice-title">اختر مسارك</h1>
-    <p class="path-choice-lead">حدّد المسار المناسب لك للمتابعة.</p>
+    <h1 class="path-choice-title" id="pathChoiceTitle">اختر مسارك</h1>
+    <p class="path-choice-lead" id="pathChoiceLead">حدّد المسار المناسب لك للمتابعة. هذه أول خطوة بعد إنشاء حسابك.</p>
+
+    <ol class="flow-rail flow-rail--compact" aria-label="تسلسل التعلّم" style="margin-bottom:28px;">
+      <li data-flow="account" class="is-done"><span class="flow-rail-num">1</span><span class="flow-rail-label">الحساب</span></li>
+      <li data-flow="start" class="is-current"><span class="flow-rail-num">2</span><span class="flow-rail-label">البداية</span></li>
+      <li data-flow="paths" class="is-locked"><span class="flow-rail-num">3</span><span class="flow-rail-label">المسارات</span></li>
+    </ol>
 
     <div class="path-choice-grid">
       <button type="button" class="path-option" id="chooseCurious">
@@ -32,8 +38,8 @@
       <button type="button" class="path-option specialist" id="chooseSpecialist">
         <span class="po-num">02</span>
         <h2>متخصص في HCI</h2>
-        <p>أنت بالمجال وتعرف الأساسيات. ننتقل مباشرة إلى المسارات والأدوات.</p>
-        <span class="po-cta">البدء مباشرة <span class="po-arrow" aria-hidden="true">←</span></span>
+        <p>تعرف الأساسيات. نتجاوز البداية والاستكشاف، ونفتح المسارات والأدوات مباشرة — دون إعادة الدروس التمهيدية.</p>
+        <span class="po-cta">إلى المسارات والأدوات <span class="po-arrow" aria-hidden="true">←</span></span>
       </button>
     </div>
 
@@ -41,6 +47,7 @@
   </div>
 
 <script src="api.js"></script>
+<script src="flow.js"></script>
 <script src="main.js"></script>
 <script>
 (async function () {
@@ -54,6 +61,17 @@
   if (user && user.pathType) {
     location.href = HCIApi.resolvePostAuthDestination(user, false);
     return;
+  }
+
+  var first = (window.HCIFlow && HCIFlow.firstName(user)) ||
+    String((user && (user.fullName || user.firstName)) || '').trim().split(/\s+/)[0] || '';
+  var titleEl = document.getElementById('pathChoiceTitle');
+  var leadEl = document.getElementById('pathChoiceLead');
+  if (titleEl && first) titleEl.textContent = first + '، اختر مسارك';
+  if (leadEl) {
+    leadEl.textContent = first
+      ? 'حسابك جاهز. حدّد المسار المناسب لك — هذه أول خطوة في تسلسل التعلّم.'
+      : 'حدّد المسار المناسب لك للمتابعة. هذه أول خطوة بعد إنشاء حسابك.';
   }
 
   var statusMsg = document.getElementById('statusMsg');

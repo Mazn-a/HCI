@@ -230,6 +230,16 @@
     }
   }
 
+  function adminAvatarHtml(u, sizeClass) {
+    var name = (u && u.fullName) || '؟';
+    var letter = name.charAt(0) || '؟';
+    var cls = 'admin-user-avatar' + (sizeClass ? ' ' + sizeClass : '');
+    if (u && u.avatar && String(u.avatar).indexOf('data:image') === 0) {
+      return '<span class="' + cls + ' has-photo" style="background-image:url(' + String(u.avatar).replace(/"/g, '') + ')" role="img" aria-label="' + escapeHtml(name) + '"></span>';
+    }
+    return '<span class="' + cls + '" aria-hidden="true">' + escapeHtml(letter) + '</span>';
+  }
+
   function bindUserActions(root) {
     if (!root) return;
     root.querySelectorAll('.msg-btn').forEach(function (b) {
@@ -240,6 +250,13 @@
     root.querySelectorAll('.view-btn').forEach(function (b) {
       b.addEventListener('click', function () {
         openDetail(b.getAttribute('data-id'));
+      });
+    });
+    root.querySelectorAll('.cert-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-cert');
+        if (!id) return;
+        window.open('certificate.html?id=' + encodeURIComponent(id), '_blank', 'noopener');
       });
     });
     root.querySelectorAll('.del-btn').forEach(function (b) {
@@ -255,7 +272,7 @@
 
   function userMatchesFilters(u, q, filter) {
     if (q) {
-      var hay = [u.fullName, u.email, u.phone, u.stopPoint].join(' ').toLowerCase();
+      var hay = [u.fullName, u.email, u.phone, u.stopPoint, u.certificateId].join(' ').toLowerCase();
       if (hay.indexOf(q) === -1) return false;
     }
     var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -266,6 +283,8 @@
     if (filter === 'done') return Number(u.progressPercent) >= 100 || Number(u.doneStages) >= 7;
     if (filter === 'quiz') return !!u.quizPassed;
     if (filter === 'noquiz') return !u.quizScore;
+    if (filter === 'cert') return !!u.certificateId;
+    if (filter === 'avatar') return !!(u.hasAvatar || (u.avatar && String(u.avatar).indexOf('data:image') === 0));
     return true;
   }
 
@@ -300,17 +319,27 @@
       var quizLabel = u.quizScore
         ? (u.quizPassed ? '✓ ' + u.quizScore : '✕ ' + u.quizScore)
         : 'ما اختبر بعد';
+      var certBtn = u.certificateId
+        ? '<button type="button" class="cert-btn" data-cert="' + escapeHtml(u.certificateId) + '">الشهادة</button>'
+        : '';
       var actions =
         '<div class="admin-actions">' +
           '<button type="button" class="view-btn" data-id="' + u.id + '">تفاصيل</button>' +
+          certBtn +
           '<button type="button" class="msg-btn" data-id="' + u.id + '" data-name="' + escapeHtml(u.fullName) + '">رسالة</button>' +
           '<button type="button" class="del-btn" data-id="' + u.id + '" data-name="' + escapeHtml(u.fullName) + '">حذف</button>' +
         '</div>';
+      var identity =
+        '<div class="admin-user-identity">' +
+          adminAvatarHtml(u) +
+          '<div><strong>' + escapeHtml(u.fullName) + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel +
+          (u.nameChanged ? ' · تغيّر الاسم' : '') +
+          (u.certificateId ? ' · شهادة' : '') +
+          '<br dir="ltr">' + escapeHtml(contact) + '</span></div></div>';
 
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><strong>' + escapeHtml(u.fullName) + '</strong><br><span style="font-size:0.72rem;color:var(--text-mid)">' + pathLabel +
-          (u.nameChanged ? ' · تغيّر الاسم' : '') + '<br dir="ltr">' + escapeHtml(contact) + '</span></td>' +
+        '<td>' + identity + '</td>' +
         '<td><span class="pct-pill">' + escapeHtml(stopLabel) + '</span></td>' +
         '<td><span class="pct-pill">' + u.progressPercent + '% · ' + u.doneStages + '/7</span></td>' +
         '<td>' + quizLabel + (u.quizWrong != null && u.quizScore ? '<br><span style="font-size:0.72rem;color:var(--text-mid)">صح ' + u.quizCorrect + ' · خطأ ' + u.quizWrong + '</span>' : '') + '</td>' +
@@ -323,9 +352,12 @@
         var card = document.createElement('div');
         card.className = 'admin-user-card';
         card.innerHTML =
-          '<div class="admin-user-card-top"><strong>' + escapeHtml(u.fullName) + '</strong><span>' + u.progressPercent + '%</span></div>' +
+          '<div class="admin-user-card-top">' +
+            '<div class="admin-user-identity">' + adminAvatarHtml(u) + '<strong>' + escapeHtml(u.fullName) + '</strong></div>' +
+            '<span>' + u.progressPercent + '%</span></div>' +
           '<p style="color:var(--text-mid);font-size:0.85rem;margin:6px 0;">توقف عند: ' + escapeHtml(stopLabel) + '</p>' +
-          '<p style="color:var(--text-mid);font-size:0.85rem;margin:0 0 6px;">اختبار: ' + quizLabel + '</p>' +
+          '<p style="color:var(--text-mid);font-size:0.85rem;margin:0 0 6px;">اختبار: ' + quizLabel +
+            (u.certificateId ? ' · <span style="color:var(--gold)">لديه شهادة</span>' : '') + '</p>' +
           '<p style="color:var(--text-mid);font-size:0.8rem;margin:0 0 10px;">آخر دخول: ' + formatDate(u.lastLogin) + ' · تحديث: ' + formatDate(u.progressUpdated) + '</p>' +
           actions;
         mobile.appendChild(card);
@@ -430,11 +462,36 @@
       .replace(/"/g, '&quot;');
   }
 
-  var ADMIN_TABS = ['tabOverview', 'tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles', 'tabOffers'];
+  var ADMIN_TABS = ['tabOverview', 'tabUsers', 'tabShare', 'tabMessages', 'tabReports', 'tabContacts', 'tabArticles', 'tabOffers', 'tabSettings'];
   var BLOCK_ORDER_KEY = 'hci_admin_block_order';
   var STAT_ORDER_KEY = 'hci_admin_stat_order';
   var DEFAULT_BLOCKS = ['attention', 'stats', 'insights'];
   var DEFAULT_STATS = ['students', 'active', 'newWeek', 'completed', 'certificates', 'stalled', 'quiz', 'articlesPub'];
+
+  function setLayoutEditing(on) {
+    document.body.classList.toggle('admin-layout-editing', !!on);
+    var bar = document.getElementById('adminLayoutEditBar');
+    if (bar) bar.hidden = !on;
+    var hint = document.getElementById('statsOrderHint');
+    if (hint) {
+      hint.textContent = on
+        ? 'حرّك الأرقام بالأسهم — الترتيب يُحفظ على جهازك.'
+        : 'ملخص سريع لحالة المنصة.';
+    }
+  }
+
+  function startLayoutEditing() {
+    setAdminTab('tabOverview');
+    setLayoutEditing(true);
+    var bar = document.getElementById('adminLayoutEditBar');
+    if (bar && bar.scrollIntoView) {
+      bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function stopLayoutEditing() {
+    setLayoutEditing(false);
+  }
 
   function readOrder(key, fallback) {
     try {
@@ -540,6 +597,10 @@
     if (panelArticles) panelArticles.hidden = active !== 'tabArticles';
     var panelOffers = document.getElementById('panelOffers');
     if (panelOffers) panelOffers.hidden = active !== 'tabOffers';
+    var panelSettings = document.getElementById('panelSettings');
+    if (panelSettings) panelSettings.hidden = active !== 'tabSettings';
+
+    if (active !== 'tabOverview') setLayoutEditing(false);
 
     var tabBtn = document.getElementById(active);
     var hash = tabBtn && tabBtn.getAttribute('data-hash');
@@ -566,7 +627,8 @@
       reports: 'tabReports',
       contacts: 'tabContacts',
       articles: 'tabArticles',
-      offers: 'tabOffers'
+      offers: 'tabOffers',
+      settings: 'tabSettings'
     };
     setAdminTab(map[h] || 'tabOverview', { skipHash: true });
   }
@@ -581,23 +643,21 @@
 
   document.querySelectorAll('[data-block-up]').forEach(function (btn) {
     btn.addEventListener('click', function () {
+      if (!document.body.classList.contains('admin-layout-editing')) return;
       moveBlock(btn.getAttribute('data-block-up'), -1);
     });
   });
   document.querySelectorAll('[data-block-down]').forEach(function (btn) {
     btn.addEventListener('click', function () {
+      if (!document.body.classList.contains('admin-layout-editing')) return;
       moveBlock(btn.getAttribute('data-block-down'), 1);
     });
   });
 
   var statsRoot = document.getElementById('adminStats');
-  var toggleStatsEdit = document.getElementById('toggleStatsEdit');
-  if (toggleStatsEdit && statsRoot) {
-    toggleStatsEdit.addEventListener('click', function () {
-      var on = statsRoot.classList.toggle('edit-mode');
-      toggleStatsEdit.textContent = on ? 'إنهاء الترتيب' : 'ترتيب الأرقام';
-    });
+  if (statsRoot) {
     statsRoot.addEventListener('click', function (e) {
+      if (!document.body.classList.contains('admin-layout-editing')) return;
       var up = e.target.closest('.stat-up');
       var down = e.target.closest('.stat-down');
       if (!up && !down) return;
@@ -606,8 +666,23 @@
       moveStat(box.getAttribute('data-stat'), up ? -1 : 1);
     });
   }
+
+  var enableLayoutEdit = document.getElementById('adminEnableLayoutEdit');
+  if (enableLayoutEdit) {
+    enableLayoutEdit.addEventListener('click', function () {
+      startLayoutEditing();
+    });
+  }
+  var layoutEditDone = document.getElementById('adminLayoutEditDone');
+  if (layoutEditDone) {
+    layoutEditDone.addEventListener('click', function () {
+      stopLayoutEditing();
+    });
+  }
+
   applyBlockOrder();
   applyStatOrder();
+  setLayoutEditing(false);
 
   document.querySelectorAll('[data-admin-tab]').forEach(function (card) {
     card.addEventListener('click', function (e) {
@@ -658,6 +733,72 @@
       }
     });
   }
+
+  var announceModal = document.getElementById('announceModal');
+  var announceOpenBtn = document.getElementById('announceOpenBtn');
+  if (announceOpenBtn && announceModal) {
+    announceOpenBtn.addEventListener('click', function () {
+      announceModal.classList.add('open');
+    });
+    document.getElementById('announceCancel').addEventListener('click', function () {
+      announceModal.classList.remove('open');
+    });
+    announceModal.addEventListener('click', function (e) {
+      if (e.target === announceModal) announceModal.classList.remove('open');
+    });
+    document.getElementById('announceSend').addEventListener('click', async function () {
+      var title = document.getElementById('announceSubject').value.trim();
+      var body = document.getElementById('announceBody').value.trim();
+      var link = document.getElementById('announceLink').value.trim() || 'index.html';
+      if (!title || !body) { alert('اكتب العنوان والنص'); return; }
+      if (!confirm('إرسال تنبيه التحديث لمن فعّل التحديثات؟')) return;
+      try {
+        var res = await HCIApi.request('/api/admin/announce', {
+          method: 'POST',
+          body: { title: title, body: body, link: link }
+        });
+        announceModal.classList.remove('open');
+        document.getElementById('announceSubject').value = '';
+        document.getElementById('announceBody').value = '';
+        document.getElementById('announceLink').value = '';
+        alert('وصل التنبيه لـ ' + (res.sent || 0) + ' طالب ✓');
+      } catch (err) {
+        alert(err.message || 'تعذر الإرسال');
+      }
+    });
+  }
+
+  var nudgeStalledBtn = document.getElementById('nudgeStalledBtn');
+  if (nudgeStalledBtn) {
+    nudgeStalledBtn.addEventListener('click', async function () {
+      if (!confirm('نرسل تذكيراً تحفيزياً لمن وقف أسبوع فأكثر بدون تقدّم؟')) return;
+      nudgeStalledBtn.disabled = true;
+      try {
+        var res = await HCIApi.request('/api/admin/nudge-stalled', { method: 'POST', body: {} });
+        alert('تم تذكير ' + (res.sent || 0) + ' متوقف ✓');
+      } catch (err) {
+        alert(err.message || 'تعذر التذكير');
+      } finally {
+        nudgeStalledBtn.disabled = false;
+      }
+    });
+  }
+
+  async function loadFeedbackSummary() {
+    var el = document.getElementById('engagementFeedbackSummary');
+    if (!el) return;
+    try {
+      var data = await HCIApi.request('/api/admin/feedback');
+      if (!data || !data.count) {
+        el.textContent = 'ما وصل تقييم للمنصة بعد.';
+        return;
+      }
+      el.textContent = 'متوسط تقييم المنصة: ' + data.avgRating + ' / 5  ·  من ' + data.count + ' تقييم';
+    } catch (e) {
+      el.textContent = '';
+    }
+  }
+  loadFeedbackSummary();
 
   async function loadCommunityArticles() {
     var data = await HCIApi.adminFetchArticles();
@@ -1317,8 +1458,15 @@
       }
     }
 
+    var certHtml = u.certificateId
+      ? '<strong>الشهادة:</strong> <span dir="ltr" style="color:var(--gold)">' + escapeHtml(u.certificateId) + '</span>' +
+        ' · صدرت ' + formatDate(u.certificateIssuedAt) +
+        '<br><button type="button" class="btn-primary" id="detailOpenCert" style="margin-top:10px;min-height:40px;">استعرض الشهادة ←</button>'
+      : '<strong>الشهادة:</strong> ما صدرت بعد';
+
     document.getElementById('detailInfo').innerHTML =
-      '<strong>الاسم الحالي:</strong> ' + escapeHtml(u.fullName) + '<br>' +
+      '<div class="admin-detail-identity">' + adminAvatarHtml(u, 'admin-user-avatar-lg') +
+        '<div><strong style="font-size:1.05rem">' + escapeHtml(u.fullName) + '</strong></div></div>' +
       '<strong>البريد:</strong> ' + (u.email || '—') +
         (u.email ? ' · ' + (u.emailVerified ? '<span style="color:var(--line-green)">متحقق ✓</span>' : '<span style="color:var(--line-amber)">غير متحقق</span>') : '') + '<br>' +
       '<strong>الجوال:</strong> ' + (u.phone || '—') +
@@ -1327,10 +1475,18 @@
       '<strong>آخر دخول:</strong> ' + formatDate(u.lastLogin) + '<br>' +
       '<strong>آخر تحديث للتقدّم:</strong> ' + formatDate(p && p.updatedAt) + '<br>' +
       '<strong>توقف عند:</strong> <span style="color:var(--gold)">' + stopLabel + '</span> · ' + doneCount + '/7 مراحل<br>' +
+      certHtml + '<br>' +
       '<strong>آخر تغيير لكلمة المرور:</strong> ' + formatDate(u.passwordChangedAt) + '<br>' +
       '<strong>حالة كلمة المرور:</strong> <span style="color:var(--gold)">' + (u.passwordStatus || 'مشفّرة') + '</span> — لا تُعرض كنص<br>' +
       nameHistoryHtml(u.nameHistory) +
       '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--ink-3);">' + quizHtml + '</div>';
+
+    var openCertBtn = document.getElementById('detailOpenCert');
+    if (openCertBtn && u.certificateId) {
+      openCertBtn.addEventListener('click', function () {
+        window.open('certificate.html?id=' + encodeURIComponent(u.certificateId), '_blank', 'noopener');
+      });
+    }
 
     document.getElementById('detailNotes').value = u.notes || '';
     document.getElementById('detailNewPass').value = '';

@@ -89,8 +89,26 @@
     <a href="index.html#paths">ارجع للمسارات</a>
   </p>
 
+  <div class="cert-feedback no-print" id="certFeedback" hidden>
+    <p class="cert-feedback-kicker">خطوة أخيرة</p>
+    <h2>كيف كانت تجربتك معنا؟</h2>
+    <p class="cert-feedback-lead">تقييمك يساعدنا نحسّن المنصة — وبعده تفتح شهادتك مباشرة.</p>
+    <div class="cert-stars" id="certStars" role="group" aria-label="التقييم من ١ إلى ٥">
+      <button type="button" class="cert-star" data-rating="1" aria-label="١">★</button>
+      <button type="button" class="cert-star" data-rating="2" aria-label="٢">★</button>
+      <button type="button" class="cert-star" data-rating="3" aria-label="٣">★</button>
+      <button type="button" class="cert-star" data-rating="4" aria-label="٤">★</button>
+      <button type="button" class="cert-star" data-rating="5" aria-label="٥">★</button>
+    </div>
+    <label class="cert-feedback-label" for="certFeedbackComment">ملاحظة اختيارية</label>
+    <textarea id="certFeedbackComment" class="cert-feedback-comment" rows="3" maxlength="800" placeholder="وش أعجبك؟ وش نقدر نطوّر؟"></textarea>
+    <button type="button" class="btn-primary" id="certFeedbackSubmit">أرسل وافتح الشهادة</button>
+    <p class="cert-feedback-note" id="certFeedbackNote" role="status"></p>
+  </div>
+
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="api.js"></script>
+<script src="flow.js"></script>
 <script src="main.js"></script>
 <script>
 (function () {
@@ -247,11 +265,98 @@
   var locked = document.getElementById('certLocked');
   var toolbar = document.getElementById('certToolbar');
 
+  var feedbackEl = document.getElementById('certFeedback');
+  var feedbackRating = 0;
+
   function showLocked() {
     if (sheet) sheet.hidden = true;
     if (toolbar) toolbar.hidden = true;
+    if (feedbackEl) feedbackEl.hidden = true;
     if (locked) locked.hidden = false;
   }
+
+  function showFeedbackGate() {
+    if (sheet) sheet.hidden = true;
+    if (toolbar) toolbar.hidden = true;
+    if (locked) locked.hidden = true;
+    if (feedbackEl) feedbackEl.hidden = false;
+  }
+
+  function showCertificateView() {
+    if (feedbackEl) feedbackEl.hidden = true;
+    if (locked) locked.hidden = true;
+    if (sheet) sheet.hidden = false;
+    if (toolbar) toolbar.hidden = false;
+  }
+
+  (function bindFeedbackUi() {
+    var stars = document.getElementById('certStars');
+    var submit = document.getElementById('certFeedbackSubmit');
+    var note = document.getElementById('certFeedbackNote');
+    var commentEl = document.getElementById('certFeedbackComment');
+    if (!stars || !submit) return;
+
+    function paintStars(n) {
+      stars.querySelectorAll('.cert-star').forEach(function (btn) {
+        var r = Number(btn.getAttribute('data-rating'));
+        btn.classList.toggle('is-on', r <= n);
+      });
+    }
+
+    stars.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.cert-star');
+      if (!btn) return;
+      feedbackRating = Number(btn.getAttribute('data-rating')) || 0;
+      paintStars(feedbackRating);
+      if (note) note.textContent = '';
+    });
+
+    submit.addEventListener('click', async function () {
+      if (!feedbackRating) {
+        if (note) note.textContent = 'اختَر تقييماً من نجمة إلى خمس.';
+        return;
+      }
+      if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())) {
+        if (note) note.textContent = 'سجّل دخولك لحفظ التقييم وفتح الشهادة.';
+        return;
+      }
+      submit.disabled = true;
+      submit.textContent = 'جاري الحفظ…';
+      try {
+        await HCIApi.submitSiteFeedback(
+          feedbackRating,
+          commentEl ? commentEl.value.trim() : ''
+        );
+        var resp = await HCIApi.fetchMyCertificate();
+        if (resp && resp.certificate) {
+          showCertificateView();
+          var rec = resp.certificate;
+          var issuedD = new Date(rec.issued_at);
+          var completedD = new Date(rec.completed_at);
+          renderCertificate(rec.name, rec.id, issuedD, completedD, buildVerifyUrl(rec.id));
+          saveRegistry({
+            id: rec.id,
+            name: rec.name,
+            path: rec.path,
+            pct: rec.pct,
+            issuedAt: rec.issued_at,
+            completedAt: rec.completed_at,
+            issuedAr: formatArDate(issuedD),
+            completedAr: formatArDate(completedD),
+            issuedEn: formatEnDate(issuedD),
+            verified: true
+          });
+        } else {
+          if (note) note.textContent = 'تم حفظ التقييم. حدّث الصفحة إن ما ظهرت الشهادة.';
+        }
+      } catch (err) {
+        if (note) note.textContent = (err && err.message) || 'تعذر حفظ التقييم';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = 'أرسل وافتح الشهادة';
+      }
+    });
+  })();
 
   function renderCertificate(name, certId, issuedDate, completedDate2, verifyUrl) {
     document.getElementById('certName').textContent = name;
@@ -295,6 +400,28 @@
     return location.origin + location.pathname.replace(/[^/]+$/, '') + verifyPath;
   }
 
+  function qs(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+  }
+
+  var viewCertId = qs('id');
+
+  /* عرض شهادة برقمها (للإدارة أو المشاركة) */
+  if (viewCertId && !preview) {
+    showCertificateView();
+    HCIApi.fetchCertificateById(viewCertId).then(function (resp) {
+      if (!(resp && resp.certificate)) { showLocked(); return; }
+      var rec = resp.certificate;
+      var issuedD = new Date(rec.issued_at);
+      var completedD = new Date(rec.completed_at || rec.issued_at);
+      renderCertificate(rec.name, rec.id, issuedD, completedD, buildVerifyUrl(rec.id));
+      var av = document.getElementById('certAvatar');
+      if (av) { av.hidden = true; av.style.backgroundImage = ''; }
+    }).catch(function () { showLocked(); });
+    return;
+  }
+
   /* المعاينة (?preview=1): تصميم فقط، لا تُسجَّل شهادة حقيقية */
   if (preview) {
     var pName = userName();
@@ -311,7 +438,9 @@
   async function loadServerCertificate() {
     var resp = await HCIApi.fetchMyCertificate();
     if (resp && resp.locked) { showLocked(); return true; }
+    if (resp && resp.needsFeedback) { showFeedbackGate(); return true; }
     if (resp && resp.certificate) {
+      showCertificateView();
       var rec = resp.certificate;
       var issuedD = new Date(rec.issued_at);
       var completedD = new Date(rec.completed_at);

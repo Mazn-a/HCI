@@ -17,7 +17,7 @@
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
       <nav class="nav-links" id="navLinks">
-        <a href="foundation.html">افهم أولاً</a>
+        <a href="foundation.html">ابدأ هنا</a>
         <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
       </nav>
@@ -44,6 +44,7 @@
 
         <nav class="settings-side" id="settingsSideNav" aria-label="أقسام الإعدادات">
           <button type="button" class="settings-side-link is-active" data-target="sec-account">الحساب</button>
+          <button type="button" class="settings-side-link" data-target="sec-notifications">التنبيهات</button>
           <button type="button" class="settings-side-link" data-target="sec-appearance">المظهر</button>
         </nav>
 
@@ -73,6 +74,58 @@
                   </div>
                 </div>
                 <button type="button" class="avatar-remove-btn" id="settingsAvatarRemove" hidden>إزالة الصورة</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-block" id="sec-notifications">
+            <div class="settings-block-head">
+              <h2>التنبيهات</h2>
+              <p>خلّنا نذكّرك لو وقفت، ونبلّغك بالتحديثات المهمة.</p>
+            </div>
+
+            <div class="settings-control">
+              <div class="settings-control-label">
+                <strong>تنبيهات داخل المنصة</strong>
+                <span>الجرس وصندوق الوارد</span>
+              </div>
+              <div class="size-row settings-choice-row" id="notifInAppRow" role="group" aria-label="تنبيهات داخل المنصة">
+                <button type="button" class="size-btn" data-on="1">مفعّلة</button>
+                <button type="button" class="size-btn" data-on="0">موقوفة</button>
+              </div>
+            </div>
+
+            <div class="settings-control">
+              <div class="settings-control-label">
+                <strong>تنبيهات المتصفح</strong>
+                <span>تظهر حتى لو كنت في صفحة ثانية (بإذنك)</span>
+              </div>
+              <div class="size-row settings-choice-row" id="notifBrowserRow" role="group" aria-label="تنبيهات المتصفح">
+                <button type="button" class="size-btn" data-on="1">تفعيل</button>
+                <button type="button" class="size-btn" data-on="0">إيقاف</button>
+              </div>
+              <p class="settings-maint-note" id="notifBrowserNote" hidden></p>
+            </div>
+
+            <div class="settings-control">
+              <div class="settings-control-label">
+                <strong>تذكير لو وقفت</strong>
+                <span>رسالة تحفيزية إذا مرّ أسبوع بلا تقدّم</span>
+              </div>
+              <div class="size-row settings-choice-row" id="notifStalledRow" role="group" aria-label="تذكير المتوقفين">
+                <button type="button" class="size-btn" data-on="1">أبي</button>
+                <button type="button" class="size-btn" data-on="0">لا</button>
+              </div>
+            </div>
+
+            <div class="settings-control settings-control-last">
+              <div class="settings-control-label">
+                <strong>تحديثات المنصة</strong>
+                <span>إعلانات قصيرة عند نزول شيء جديد</span>
+              </div>
+              <div class="size-row settings-choice-row" id="notifUpdatesRow" role="group" aria-label="تحديثات المنصة">
+                <button type="button" class="size-btn" data-on="1">أبي</button>
+                <button type="button" class="size-btn" data-on="0">لا</button>
               </div>
             </div>
           </section>
@@ -181,6 +234,7 @@
 <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
 
 <script src="api.js"></script>
+<script src="flow.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

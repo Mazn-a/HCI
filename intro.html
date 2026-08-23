@@ -27,7 +27,7 @@
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
       <nav class="nav-links" id="navLinks">
-        <a href="foundation.html">افهم أولاً</a>
+        <a href="foundation.html">ابدأ هنا</a>
         <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
       </nav>
@@ -61,7 +61,7 @@
         <div class="timeline" style="margin-top:20px;">
           <div class="tl-item">
             <h3>00 — افهم التخصص</h3>
-            <p>ثلاث قراءات قصيرة: وش HCI، الفرق بين UX و UI، ومبادئ نيلسن — قبل أي مسار.</p>
+            <p>بداية واضحة + مقال تعريفي واحد (التخصص و UX/UI) — ثم المسارات. بقية المقالات اختيارية.</p>
           </div>
           <div class="tl-item">
             <h3>01 — اكتشف التخصص</h3>
@@ -69,7 +69,7 @@
           </div>
           <div class="tl-item">
             <h3>02 — أساسيات HCI</h3>
-            <p>مبادئ نيلسن، نظريات الإدراك، وأسس التفاعل — الأساس اللي أي متخصص لازم يفهمه.</p>
+            <p>درس مستقل: تقييم الواجهات، الإدراك، وأسس التفاعل — مرة واحدة داخل المسار، لا كمقال مكرر.</p>
           </div>
           <div class="tl-item">
             <h3>03 — ترميز بسيط (HTML &amp; CSS)</h3>
@@ -163,6 +163,7 @@
   </footer>
 
 <script src="api.js"></script>
+<script src="flow.js"></script>
 <script src="main.js"></script>
 <script>
 (function () {
@@ -180,7 +181,7 @@
     try {
       var f = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
       var r = f.read || {};
-      if (!(r.hci && r.uxui && r.nielsen)) {
+      if (!(r.hci || (r.uxui && r.nielsen))) {
         location.href = 'foundation.html';
         return;
       }

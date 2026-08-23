@@ -60,7 +60,8 @@
     margin:0 0 4px; font-size:1.05rem; color:var(--gold); font-weight:700;
   }
   .admin-block-head p{ margin:0; color:var(--text-mid); font-size:0.82rem; line-height:1.5; }
-  .admin-block-tools{ display:flex; gap:6px; flex-wrap:wrap; }
+  .admin-block-tools{ display:none; gap:6px; flex-wrap:wrap; }
+  body.admin-layout-editing .admin-block-tools{ display:flex; }
   .admin-order-btn{
     appearance:none; border:1px solid var(--ink-3); background:var(--ink-2);
     color:var(--text-mid); width:34px; height:34px; border-radius:8px; cursor:pointer;
@@ -79,19 +80,30 @@
   .stat-box .l{ color:var(--text-mid); font-size:0.78rem; margin-top:4px; line-height:1.35; }
   .stat-box .stat-move{
     position:absolute; top:8px; inset-inline-start:8px;
-    display:flex; gap:2px;
+    display:none; gap:2px;
   }
+  body.admin-layout-editing .stat-box .stat-move{ display:flex; }
+  body.admin-layout-editing .admin-stats .stat-box{ padding-top:28px; }
   .stat-box .stat-move button{
     appearance:none; border:0; background:transparent; color:var(--text-mid);
     width:22px; height:22px; border-radius:6px; cursor:pointer; font-size:0.7rem; padding:0;
   }
   .stat-box .stat-move button:hover{ color:var(--gold); background:rgba(var(--gold-rgb),0.1); }
-  .admin-stats.edit-mode .stat-box{ padding-top:28px; }
-  .admin-linkish{
-    appearance:none; border:0; background:none; color:var(--gold);
-    font-family:var(--font-body); font-size:0.8rem; cursor:pointer; padding:0;
-    text-decoration:underline; text-underline-offset:3px;
+  .admin-layout-edit-bar{
+    position:sticky; top:calc(var(--admin-topbar-h, 56px) + 8px); z-index:40;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    margin:0 0 16px; padding:12px 14px;
+    border:1px solid rgba(var(--gold-rgb),0.4); border-radius:12px;
+    background:rgba(20,18,14,0.96);
   }
+  .admin-layout-edit-bar p{ margin:0; color:var(--text-hi); font-size:0.88rem; line-height:1.5; }
+  .admin-layout-edit-bar .btn-primary{ min-height:40px; padding:8px 18px; }
+  .admin-settings-card{
+    border:1px solid var(--ink-3); border-radius:14px; padding:18px 16px;
+    background:rgba(255,255,255,0.015); margin-bottom:14px;
+  }
+  .admin-settings-card h3{ margin:0 0 6px; font-size:1rem; color:var(--gold); }
+  .admin-settings-card p{ margin:0 0 14px; color:var(--text-mid); font-size:0.88rem; line-height:1.65; }
   .admin-insight{ padding:0; }
   .admin-insight-grid{ display:grid; grid-template-columns:1.35fr 1fr; gap:14px; }
   .recent-logins-list{ list-style:none; margin:0; padding:0; }
@@ -103,6 +115,25 @@
   .recent-logins-list span{ color:var(--text-mid); font-size:0.8rem; }
   .admin-user-card-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
   .admin-user-card-top span{ font-family:var(--font-mono); color:var(--gold); font-weight:700; }
+  .admin-user-identity{
+    display:flex; align-items:center; gap:10px; text-align:right;
+  }
+  .admin-user-avatar{
+    flex:0 0 auto; width:36px; height:36px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(var(--gold-rgb),0.16); color:var(--gold);
+    font-weight:700; font-size:0.95rem;
+    background-size:cover; background-position:center;
+    border:1px solid rgba(var(--gold-rgb),0.28);
+  }
+  .admin-user-avatar.has-photo{ color:transparent; font-size:0; }
+  .admin-user-avatar-lg{ width:56px; height:56px; font-size:1.25rem; }
+  .admin-detail-identity{
+    display:flex; align-items:center; gap:12px; margin-bottom:14px;
+  }
+  .admin-actions .cert-btn{
+    border-color:rgba(var(--gold-rgb),0.45); color:var(--gold);
+  }
   .admin-table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
   .admin-table th, .admin-table td{
     padding:12px 10px; text-align:right; border-bottom:1px solid var(--ink-3); vertical-align:middle;
@@ -282,7 +313,7 @@
     .admin-block{ padding:14px; border-radius:14px; }
     .admin-stats{ grid-template-columns:1fr 1fr; gap:8px; }
     .stat-box{ padding:12px 10px; }
-    .admin-stats.edit-mode .stat-box{ padding-top:26px; }
+    body.admin-layout-editing .admin-stats .stat-box{ padding-top:26px; }
     .stat-box .n{ font-size:1.3rem; }
     .stat-box .l{ font-size:0.72rem; line-height:1.35; }
     .admin-attn-card{
@@ -341,6 +372,7 @@
         <button type="button" class="admin-top-btn" id="tabOffers" data-hash="offers">عروض وشراكات<span class="admin-tab-badge" id="badgeOffers" hidden>0</span></button>
         <button type="button" class="admin-top-btn" id="tabMessages" data-hash="messages">الرسائل</button>
         <button type="button" class="admin-top-btn" id="tabShare" data-hash="share">المشاركة</button>
+        <button type="button" class="admin-top-btn" id="tabSettings" data-hash="settings">الإعدادات</button>
       </nav>
     </div>
   </div>
@@ -355,6 +387,10 @@
         </div>
 
         <div id="panelOverview">
+          <div class="admin-layout-edit-bar" id="adminLayoutEditBar" hidden>
+            <p>وضع ترتيب الواجهة مفعّل — حرّك الأقسام والأرقام، وبعدين اضغط تم.</p>
+            <button type="button" class="btn-primary" id="adminLayoutEditDone">تم</button>
+          </div>
           <div id="adminOverviewStack">
             <section class="admin-block" data-admin-block="attention" aria-labelledby="attnTitle">
               <div class="admin-block-head">
@@ -395,10 +431,9 @@
               <div class="admin-block-head">
                 <div>
                   <h2 id="statsTitle">٢) أرقام سريعة</h2>
-                  <p>رتّبها كما تبي — الترتيب يُحفظ على جهازك.</p>
+                  <p id="statsOrderHint">ملخص سريع لحالة المنصة.</p>
                 </div>
                 <div class="admin-block-tools">
-                  <button type="button" class="admin-linkish" id="toggleStatsEdit">ترتيب الأرقام</button>
                   <button type="button" class="admin-order-btn" data-block-up="stats" aria-label="حرّك للأعلى">↑</button>
                   <button type="button" class="admin-order-btn" data-block-down="stats" aria-label="حرّك للأسفل">↓</button>
                 </div>
@@ -453,6 +488,8 @@
               <option value="active">نشطون (٧ أيام)</option>
               <option value="stalled">متوقفون (+١٤ يوم)</option>
               <option value="done">أكملوا المسار</option>
+              <option value="cert">لديهم شهادة</option>
+              <option value="avatar">عندهم صورة</option>
               <option value="quiz">اجتازوا الاختبار</option>
               <option value="noquiz">ما اختبروا بعد</option>
             </select>
@@ -538,9 +575,12 @@
             <h3>رسائلك للطلاب</h3>
             <p>أرسل لطالب واحد من قائمة الطلاب، أو أرسل تنبيهاً لكل الطلاب دفعة واحدة.</p>
           </div>
-          <div class="admin-toolbar" style="justify-content:flex-start;">
+          <div class="admin-toolbar" style="justify-content:flex-start; flex-wrap:wrap; gap:8px;">
             <button type="button" class="btn-primary" id="broadcastOpenBtn" style="min-height:44px;">رسالة للجميع ←</button>
+            <button type="button" class="btn-ghost" id="announceOpenBtn" style="min-height:44px;">إعلان تحديث ←</button>
+            <button type="button" class="btn-ghost" id="nudgeStalledBtn" style="min-height:44px;">ذكّر المتوقفين</button>
           </div>
+          <p id="engagementFeedbackSummary" style="color:var(--text-mid);font-size:0.88rem;margin:0 0 14px;"></p>
           <div class="profile-card" style="max-width:none;">
             <div id="messagesList"></div>
             <p id="messagesEmpty" style="color:var(--text-mid); display:none;">لم تُرسل رسائل بعد.</p>
@@ -676,6 +716,18 @@
             <p id="partnersEmpty" class="progress-note" hidden>ما أضفت شركات بعد.</p>
           </div>
         </div>
+
+        <div id="panelSettings" hidden>
+          <div class="admin-panel-head">
+            <h3>إعدادات لوحة الإدارة</h3>
+            <p>خيارات تخص شكل النظرة العامة على جهازك فقط.</p>
+          </div>
+          <div class="admin-settings-card">
+            <h3>ترتيب النظرة العامة</h3>
+            <p>فعّل وضع الترتيب عشان تظهر أسهم تحريك الأقسام والأرقام. بعد ما تخلّص اضغط «تم» — والترتيب ينحفظ على جهازك. عشان تعدّل مرة ثانية، رجّع من هنا.</p>
+            <button type="button" class="btn-primary" id="adminEnableLayoutEdit">فعّل وضع الترتيب ←</button>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -707,6 +759,23 @@
       <div class="modal-actions">
         <button type="button" class="btn-ghost" id="broadcastCancel">إلغاء</button>
         <button type="button" class="btn-primary" id="broadcastSend">إرسال للجميع</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="announceModal" role="dialog" aria-modal="true" aria-labelledby="announceTitle">
+    <div class="modal">
+      <h3 id="announceTitle">إعلان تحديث للمنصة</h3>
+      <p class="sub">تنبيه خفيف لمن فعّل «تحديثات المنصة» في إعداداته — مو رسالة وارد كاملة.</p>
+      <label for="announceSubject">العنوان</label>
+      <input type="text" id="announceSubject" placeholder="مثال: نزلنا مرحلة جديدة">
+      <label for="announceBody">النص</label>
+      <textarea id="announceBody" placeholder="اكتب التحديث باختصار…"></textarea>
+      <label for="announceLink">رابط (اختياري)</label>
+      <input type="text" id="announceLink" placeholder="index.html" dir="ltr">
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="announceCancel">إلغاء</button>
+        <button type="button" class="btn-primary" id="announceSend">إرسال التنبيه</button>
       </div>
     </div>
   </div>

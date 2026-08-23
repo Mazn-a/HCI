@@ -38,11 +38,27 @@
       localStorage.setItem('hci_user_name', user.fullName || (user.firstName + ' ' + user.lastName));
       localStorage.setItem('hci_user_id', String(user.id));
       localStorage.setItem('hci_user_role', user.role || 'student');
-      localStorage.setItem('hci_user_json', JSON.stringify(user));
+      try {
+        if (user.avatar) localStorage.setItem('hci_avatar', user.avatar);
+        else if (user.hasOwnProperty('avatar') && !user.avatar) localStorage.removeItem('hci_avatar');
+      } catch (e) { /* */ }
+      /* لا نخزّن الصورة داخل JSON المستخدم — تبقى في hci_avatar فقط */
+      var slim = Object.assign({}, user);
+      if (slim.avatar) {
+        slim.hasAvatar = true;
+        slim.avatar = null;
+      }
+      localStorage.setItem('hci_user_json', JSON.stringify(slim));
       if (user.pathType) localStorage.setItem('hci_path_type', user.pathType);
       else localStorage.removeItem('hci_path_type');
+      if (user.isPreview) {
+        try { localStorage.setItem('hci_is_preview', '1'); } catch (e) { /* */ }
+        clearLocalProgress();
+      } else {
+        try { localStorage.removeItem('hci_is_preview'); } catch (e) { /* */ }
+      }
       var unlocked = (opts && opts.siteUnlock) ||
-        user.role === 'admin' || !!user.emailVerified || !!user.phoneVerified;
+        user.role === 'admin' || !!user.emailVerified || !!user.phoneVerified || !!user.isPreview;
       if (unlocked) localStorage.setItem('hci_verified', '1');
       else localStorage.removeItem('hci_verified');
     }
@@ -64,7 +80,8 @@
       'hci_book_cooper',
       'hci_book_eyal',
       'hci_avatar',
-      'hci_seen_notif_ids'
+      'hci_seen_notif_ids',
+      'hci_foundation'
     ];
     keys.forEach(function (k) {
       try { localStorage.removeItem(k); } catch (e) { /* */ }
@@ -86,6 +103,7 @@
     localStorage.removeItem('hci_user_name');
     localStorage.removeItem('hci_path_type');
     localStorage.removeItem('hci_verified');
+    try { localStorage.removeItem('hci_is_preview'); } catch (e) { /* */ }
     try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
     clearLocalProgress();
   }
@@ -120,6 +138,16 @@
 
   function isAdmin() {
     return localStorage.getItem('hci_user_role') === 'admin';
+  }
+
+  function isPreview() {
+    try {
+      if (localStorage.getItem('hci_is_preview') === '1') return true;
+      var u = currentUser();
+      return !!(u && u.isPreview);
+    } catch (e) {
+      return false;
+    }
   }
 
   function getVisitorKey() {
@@ -357,6 +385,15 @@
     return data;
   }
 
+  async function updateAvatar(dataUrl) {
+    var data = await request('/api/auth/avatar', {
+      method: 'PATCH',
+      body: { avatar: dataUrl || '' }
+    });
+    if (data && data.user) setSession(getToken(), data.user);
+    return data;
+  }
+
   async function fetchUnreadCount() {
     return request('/api/messages/unread-count');
   }
@@ -519,16 +556,20 @@
     ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'].forEach(function (id) {
       j.unlocked[id] = true;
     });
+    /* المتخصص اختار المجال — لا نعيد عليه محطة «هل يناسبك؟» */
+    j.done.discover = true;
+    j.visited.discover = true;
     j.bootstrapped = true;
     j.pathType = 'specialist';
     localStorage.setItem('hci_journey', JSON.stringify(j));
     scheduleSync();
   }
 
-  /** رسالة ترحيب وسط الشاشة ثم تنفيذ callback */
+  /** رسالة ترحيب وسط الشاشة ثم تنفيذ callback — خطاب يحترم التسجيل vs العودة */
   function showWelcomeOverlay(fullName, callback, options) {
     options = options || {};
     var isAdminUser = !!options.isAdmin;
+    var isNewSignup = !!options.isNewSignup;
     var hour = new Date().getHours();
     var greet = 'أهلاً بك';
     if (hour < 12) greet = 'صباح الخير';
@@ -536,6 +577,14 @@
     else greet = 'مساء الخير';
 
     var first = (fullName || '').trim().split(/\s+/)[0] || '';
+    var sub;
+    if (isAdminUser) {
+      sub = 'مرحباً بك في لوحة قيادة HCI — الإحصائيات والتقدّم بين يديك';
+    } else if (isNewSignup) {
+      sub = 'حسابك جاهز. نتابع بتحديد مسارك ثم البداية — خطوة بخطوة.';
+    } else {
+      sub = 'مرحباً بعودتك. نكمل من حيث توقفت.';
+    }
     var overlay = document.createElement('div');
     overlay.className = 'welcome-overlay';
     overlay.setAttribute('role', 'status');
@@ -543,11 +592,7 @@
       '<div class="welcome-card">' +
         '<p class="welcome-greet">' + greet + '</p>' +
         (first ? '<p class="welcome-name">' + first + '</p>' : '') +
-        '<p class="welcome-sub">' +
-          (isAdminUser
-            ? 'مرحباً بك في لوحة قيادة HCI — الإحصائيات والتقدّم بين يديك'
-            : 'سعيدون بوجودك في منصة HCI') +
-        '</p>' +
+        '<p class="welcome-sub">' + sub + '</p>' +
       '</div>';
     document.body.appendChild(overlay);
 
@@ -571,20 +616,42 @@
   function isFoundationCompleteLocal() {
     try {
       var data = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
+      if (data.completedAt) return true;
       var read = data.read || {};
-      return !!(read.hci && read.uxui && read.nielsen);
+      if (read.hci) return true;
+      return !!(read.uxui && read.nielsen);
     } catch (e) {
       return false;
+    }
+  }
+
+  function safeNextPath() {
+    try {
+      var params = new URLSearchParams(location.search || '');
+      var next = String(params.get('next') || '').trim();
+      if (!next) return '';
+      next = decodeURIComponent(next);
+      if (!/^[a-z0-9._~#?&=%+\-]+\.html(?:[?#][a-z0-9._~#?&=%+\-]*)?$/i.test(next)) return '';
+      if (/^(admin|auth)\.html/i.test(next)) return '';
+      return next;
+    } catch (e) {
+      return '';
     }
   }
 
   /** بعد تسجيل الدخول أو إنشاء الحساب — أين نودّي المستخدم؟ */
   function resolvePostAuthDestination(user, isNewSignup) {
     if (!user) return 'index.html';
-    if (user.role === 'admin') return 'admin.html';
+    if (user.isPreview) return 'index.html';
+    if (user.role === 'admin') return 'index.html';
+
+    /* التوجيه إجباري للبداية — ما نرمي الجديد على المقالات أول شي */
     if (isNewSignup || !user.pathType) return 'path-choice.html';
     if (user.pathType === 'curious' && !user.introSeen) return 'intro.html';
     if (user.pathType !== 'specialist' && !isFoundationCompleteLocal()) return 'foundation.html';
+
+    var next = safeNextPath();
+    if (next) return next;
     return 'index.html#paths';
   }
 
@@ -597,7 +664,10 @@
         settled = true;
         resolve(dest);
       }
-      showWelcomeOverlay(user.fullName || user.firstName, done, { isAdmin: user.role === 'admin' });
+      showWelcomeOverlay(user.fullName || user.firstName, done, {
+        isAdmin: user.role === 'admin',
+        isNewSignup: !!isNewSignup
+      });
       // احتياطي ضد التعليق على الجوال/الشبكة البطيئة
       setTimeout(done, 2500);
     });
@@ -615,6 +685,7 @@
     isVerified: isVerified,
     currentUser: currentUser,
     isAdmin: isAdmin,
+    isPreview: isPreview,
     getPathType: getPathType,
     isSpecialist: isSpecialist,
     request: request,
@@ -640,6 +711,7 @@
     markAllNotificationsRead: markAllNotificationsRead,
     markMessageRead: markMessageRead,
     updateProfile: updateProfile,
+    updateAvatar: updateAvatar,
     collectLocalProgress: collectLocalProgress,
     applyProgress: applyProgress,
     syncProgress: syncProgress,
@@ -689,6 +761,24 @@
       return request('/api/offers/' + encodeURIComponent(id) + '/interest', {
         method: 'POST',
         body: { note: note || '' }
+      });
+    },
+    updateNotifPrefs: function (prefs) {
+      return request('/api/me/notif-prefs', {
+        method: 'PATCH',
+        body: prefs || {}
+      }).then(function (data) {
+        if (data && data.user) setSession(getToken(), data.user);
+        return data;
+      });
+    },
+    fetchMyFeedback: function () {
+      return request('/api/me/feedback');
+    },
+    submitSiteFeedback: function (rating, comment) {
+      return request('/api/me/feedback', {
+        method: 'POST',
+        body: { rating: rating, comment: comment || '' }
       });
     }
   };

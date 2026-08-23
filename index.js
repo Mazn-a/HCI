@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { db, ensureAdmin, checkPassword, ready, dataDir } = require('./db');
+const { db, ensureAdmin, ensurePreviewOwner, resetPreviewOwnerProgress, checkPassword, ready, dataDir } = require('./db');
 const { sendOtpEmail } = require('./mailer');
 
 const app = express();
@@ -175,6 +175,16 @@ function adminRequired(req, res, next) {
   });
 }
 
+function defaultNotifPrefs(row) {
+  const p = (row && row.notif_prefs) || {};
+  return {
+    inApp: p.inApp !== false,
+    browserPush: !!p.browserPush,
+    stalled: p.stalled !== false,
+    updates: p.updates !== false
+  };
+}
+
 function publicUser(row) {
   return {
     id: row.id,
@@ -192,8 +202,58 @@ function publicUser(row) {
     passwordChangedAt: row.password_changed_at || null,
     createdAt: row.created_at,
     lastLogin: row.last_login,
-    referredBy: row.referred_by || null
+    referredBy: row.referred_by || null,
+    notifPrefs: defaultNotifPrefs(row),
+    avatar: row.avatar || null,
+    hasAvatar: !!row.avatar,
+    isPreview: !!row.is_preview
   };
+}
+
+function sendWelcomeNotification(user) {
+  if (!user || user.role === 'admin') return;
+  const already = db.getNotificationsForUser(user.id).some((n) => n.type === 'welcome');
+  if (already) return;
+  const name = user.first_name || 'يا بطل';
+  db.createNotification({
+    userId: user.id,
+    type: 'welcome',
+    title: 'أهلاً فيك في HCI ✨',
+    body: name + '، مبسوطين بانضمامك. ابدأ بفهم التخصص، وبعدها المسارات تفتح لك خطوة خطوة. إحنا معك للنهاية.',
+    link: 'foundation.html'
+  });
+}
+
+function maybeNudgeStalledUser(user, opts) {
+  opts = opts || {};
+  if (!user || user.role === 'admin') return false;
+  const prefs = defaultNotifPrefs(user);
+  if (!prefs.inApp || !prefs.stalled) return false;
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  if (!opts.force && user.last_stall_nudge_at && now - new Date(user.last_stall_nudge_at).getTime() < weekMs) {
+    return false;
+  }
+  const p = db.getProgress(user.id);
+  const journey = parseJsonSafe(p && p.journey_json, {});
+  const done = journey.done || {};
+  const doneCount = Object.keys(done).filter((k) => done[k]).length;
+  if (doneCount >= 7) return false;
+  /* نشاط التقدّم فقط — آخر دخول يتحدّث عند كل جلسة فلا يصلح لقياس التوقّف */
+  const lastAct = (p && p.updated_at) || user.created_at;
+  if (!lastAct || now - new Date(lastAct).getTime() < weekMs) return false;
+
+  const stop = journeyStopPoint(journey);
+  const stopLabel = (stop && stop.label) ? stop.label : 'بداية المسار';
+  db.createNotification({
+    userId: user.id,
+    type: 'stall_nudge',
+    title: 'وينك؟ المسار ينتظرك',
+    body: 'توقفت عند «' + stopLabel + '». رجعة قصيرة تكفي تكمّل — أنت أقرب مما تتخيل.',
+    link: 'index.html#paths'
+  });
+  db.updateUser(user.id, { last_stall_nudge_at: new Date().toISOString() });
+  return true;
 }
 
 function nameHistoryPublic(row) {
@@ -318,6 +378,8 @@ app.post('/api/auth/register', (req, res) => {
       } catch (e) { /* */ }
     }
 
+    sendWelcomeNotification(user);
+
     res.status(201).json({
       user: publicUser(user),
       needsVerification: true
@@ -350,11 +412,30 @@ app.post('/api/auth/login', (req, res) => {
       user = db.findUserByPhone(normalizePhone(identifier));
     }
 
+    const previewEmail = 'mazen@hci.dev';
+    const previewPhone = '0590000001';
+    const previewPin = '11111111';
+    const idNorm = identifier.includes('@')
+      ? identifier.toLowerCase()
+      : normalizePhone(identifier);
+    const isPreviewCreds =
+      (idNorm === previewEmail || idNorm === previewPhone) &&
+      String(password).replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').trim() === previewPin;
+    if (isPreviewCreds && (!user || !user.is_preview)) {
+      ensurePreviewOwner();
+      user = db.findUserByEmail(PREVIEW_EMAIL) || db.findUserByPhone(PREVIEW_PHONE);
+    }
+
     if (!user || !checkPassword(user, password)) {
       return res.status(401).json({ error: 'بيانات الدخول غير صحيحة — تأكد من البريد/الجوال وكلمة المرور' });
     }
 
+    if (user.is_preview) {
+      resetPreviewOwnerProgress(user.id);
+    }
     db.updateUser(user.id, { last_login: new Date().toISOString() });
+    user = db.findUserById(user.id);
+    if (!user.is_preview) maybeNudgeStalledUser(user);
 
     res.json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {
@@ -478,6 +559,7 @@ app.post('/api/auth/google', async (req, res) => {
           db.attachShareSignup(referredBy, user.id, req.body.visitorKey || '');
         } catch (e) { /* */ }
       }
+      sendWelcomeNotification(user);
     } else {
       const patch = {
         last_login: new Date().toISOString(),
@@ -489,6 +571,7 @@ app.post('/api/auth/google', async (req, res) => {
       }
       db.updateUser(user.id, patch);
       user = db.findUserById(user.id);
+      maybeNudgeStalledUser(user);
     }
 
     res.json({
@@ -569,6 +652,31 @@ app.patch('/api/auth/profile', authRequired, (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر تحديث الاسم' });
+  }
+});
+
+/* صورة الحساب — تُحفظ على السيرفر وتظهر للإدارة والشهادة */
+app.patch('/api/auth/avatar', authRequired, (req, res) => {
+  try {
+    const user = db.findUserById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    const raw = req.body && req.body.avatar;
+    if (raw == null || raw === '') {
+      db.updateUser(user.id, { avatar: null });
+      return res.json({ user: publicUser(db.findUserById(user.id)) });
+    }
+    const s = String(raw);
+    if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(s)) {
+      return res.status(400).json({ error: 'صيغة الصورة غير مدعومة' });
+    }
+    if (s.length > 450000) {
+      return res.status(400).json({ error: 'الصورة كبيرة — اختَر صورة أوضح وأصغر' });
+    }
+    db.updateUser(user.id, { avatar: s });
+    res.json({ user: publicUser(db.findUserById(user.id)) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر حفظ الصورة' });
   }
 });
 
@@ -757,6 +865,20 @@ app.get('/api/progress', authRequired, (req, res) => {
 /* ---------- الشهادة (يُصدرها السيرفر ليصح التحقق من أي جهاز) ---------- */
 const CERT_PATH_NAME = 'مسار تفاعل الإنسان والحاسوب (HCI)';
 
+function ensureCertificateRecord(user, journey) {
+  const existing = db.getCertificateByUserId(user.id);
+  if (existing) return existing;
+  const fullName = (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
+  return db.createCertificate({
+    userId: user.id,
+    name: fullName,
+    path: CERT_PATH_NAME,
+    pct: 100,
+    issuedAt: new Date().toISOString(),
+    completedAt: (journey && (journey.completedAt || journey.doneAt)) || new Date().toISOString()
+  });
+}
+
 function maybeIssueCertificateAndNotify(userId, journey) {
   const done = (journey && journey.done) || {};
   const ids = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
@@ -765,17 +887,22 @@ function maybeIssueCertificateAndNotify(userId, journey) {
   const user = db.findUserById(userId);
   if (!user) return false;
 
-  if (!db.getCertificateByUserId(user.id)) {
-    const fullName = (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
-    db.createCertificate({
-      userId: user.id,
-      name: fullName,
-      path: CERT_PATH_NAME,
-      pct: 100,
-      issuedAt: new Date().toISOString(),
-      completedAt: journey.completedAt || journey.doneAt || new Date().toISOString()
-    });
+  /* التقييم قبل فتح الشهادة */
+  if (!db.getFeedbackByUserId(user.id)) {
+    const alreadyFb = db.getNotificationsForUser(user.id).some((n) => n.type === 'feedback_request');
+    if (!alreadyFb) {
+      db.createNotification({
+        userId: user.id,
+        type: 'feedback_request',
+        title: 'خطوة أخيرة قبل الشهادة',
+        body: 'أكملت المسار — قيّم تجربتك في المنصة، وبعدها تفتح شهادتك مباشرة.',
+        link: 'certificate.html'
+      });
+    }
+    return false;
   }
+
+  ensureCertificateRecord(user, journey);
 
   const already = db.getNotificationsForUser(user.id).some((n) => n.type === 'certificate');
   if (!already) {
@@ -783,7 +910,7 @@ function maybeIssueCertificateAndNotify(userId, journey) {
       userId: user.id,
       type: 'certificate',
       title: 'حصلت على شهادتك',
-      body: 'أكملت المسار كامل. شهادتك جاهزة — اضغط لفكّها.',
+      body: 'شكراً لتقييمك. شهادتك جاهزة — اضغط لفكّها وطباعتها.',
       link: 'certificate.html'
     });
   }
@@ -828,17 +955,66 @@ app.get('/api/certificate/me', authRequired, (req, res) => {
   const { pct, journey } = computeProgressPercent(user.id);
   if (pct < 100) return res.json({ locked: true, pct });
 
-  const fullName = (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
-  const completedAt = journey.completedAt || journey.doneAt || new Date().toISOString();
-  const record = db.createCertificate({
-    userId: user.id,
-    name: fullName,
-    path: CERT_PATH_NAME,
-    pct: pct,
-    issuedAt: new Date().toISOString(),
-    completedAt: completedAt
-  });
+  if (!db.getFeedbackByUserId(user.id)) {
+    return res.json({ needsFeedback: true, pct: 100 });
+  }
+
+  const record = ensureCertificateRecord(user, journey);
   res.json({ certificate: record });
+});
+
+/* ---------- تفضيلات الإشعارات وتقييم الموقع ---------- */
+app.patch('/api/me/notif-prefs', authRequired, (req, res) => {
+  const user = db.findUserById(req.user.id);
+  if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+  const cur = defaultNotifPrefs(user);
+  const body = req.body || {};
+  const next = {
+    inApp: body.inApp != null ? !!body.inApp : cur.inApp,
+    browserPush: body.browserPush != null ? !!body.browserPush : cur.browserPush,
+    stalled: body.stalled != null ? !!body.stalled : cur.stalled,
+    updates: body.updates != null ? !!body.updates : cur.updates
+  };
+  db.updateUser(user.id, { notif_prefs: next });
+  const updated = db.findUserById(user.id);
+  res.json({ ok: true, notifPrefs: defaultNotifPrefs(updated), user: publicUser(updated) });
+});
+
+app.get('/api/me/feedback', authRequired, (req, res) => {
+  const row = db.getFeedbackByUserId(req.user.id);
+  res.json({
+    feedback: row
+      ? { rating: row.rating, comment: row.comment, createdAt: row.created_at }
+      : null
+  });
+});
+
+app.post('/api/me/feedback', authRequired, (req, res) => {
+  try {
+    const rating = Number(req.body && req.body.rating);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'قيّم من ١ إلى ٥' });
+    }
+    const comment = String((req.body && req.body.comment) || '').trim().slice(0, 800);
+    const row = db.createSiteFeedback({
+      userId: req.user.id,
+      rating,
+      comment
+    });
+    const { pct, journey } = computeProgressPercent(req.user.id);
+    let certificateReady = false;
+    if (pct >= 100) {
+      certificateReady = maybeIssueCertificateAndNotify(req.user.id, journey);
+    }
+    res.status(201).json({
+      ok: true,
+      feedback: { rating: row.rating, comment: row.comment, createdAt: row.created_at },
+      certificateReady
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر حفظ التقييم' });
+  }
 });
 
 app.get('/api/certificate/:id', (req, res) => {
@@ -1554,6 +1730,7 @@ app.get('/api/admin/users', adminRequired, (req, res) => {
       const doneCount = Object.keys(done).filter((k) => done[k]).length;
       const stop = journeyStopPoint(journey);
       const fund = quiz.fundamentals || null;
+      const cert = db.getCertificateByUserId(u.id);
       return {
         ...publicUser(u),
         notes: u.notes || '',
@@ -1574,7 +1751,9 @@ app.get('/api/admin/users', adminRequired, (req, res) => {
         quizCorrect: fund ? Number(fund.score || 0) : null,
         quizWrong: fund ? Math.max(0, Number(fund.total || 0) - Number(fund.score || 0)) : null,
         createdAt: u.created_at,
-        lastLogin: u.last_login
+        lastLogin: u.last_login,
+        certificateId: cert ? cert.id : null,
+        certificateIssuedAt: cert ? cert.issued_at : null
       };
     })
   });
@@ -1587,6 +1766,7 @@ app.get('/api/admin/users/:id', adminRequired, (req, res) => {
   const p = db.getProgress(u.id);
   const msgs = db.getMessagesForUser(u.id);
 
+  const cert = db.getCertificateByUserId(u.id);
   res.json({
     user: {
       ...publicUser(u),
@@ -1596,7 +1776,11 @@ app.get('/api/admin/users/:id', adminRequired, (req, res) => {
       passwordStored: !!u.password_hash,
       passwordAlgo: 'bcrypt',
       passwordStatus: 'مشفّرة (لا تُعرض كنص)',
-      passwordHint: 'كلمة المرور محفوظة بشكل مشفّر ولا تُعرض كنص. استخدم «إعادة تعيين» لوضع كلمة جديدة.'
+      passwordHint: 'كلمة المرور محفوظة بشكل مشفّر ولا تُعرض كنص. استخدم «إعادة تعيين» لوضع كلمة جديدة.',
+      certificateId: cert ? cert.id : null,
+      certificateIssuedAt: cert ? cert.issued_at : null,
+      certificateName: cert ? cert.name : null,
+      certificatePath: cert ? cert.path : null
     },
     progress: p ? {
       journey: JSON.parse(p.journey_json || '{}'),
@@ -1649,6 +1833,7 @@ app.delete('/api/admin/users/:id', adminRequired, (req, res) => {
   const u = db.findUserById(req.params.id);
   if (!u) return res.status(404).json({ error: 'غير موجود' });
   if (u.role === 'admin') return res.status(400).json({ error: 'لا يمكن حذف حساب مدير' });
+  if (u.is_preview) return res.status(400).json({ error: 'لا يمكن حذف حساب المعاينة' });
 
   db.deleteUser(u.id);
   res.json({ ok: true });
@@ -1932,6 +2117,68 @@ app.post('/api/admin/broadcast', adminRequired, (req, res) => {
   }
 });
 
+app.post('/api/admin/announce', adminRequired, (req, res) => {
+  try {
+    const title = String(req.body.title || req.body.subject || '').trim();
+    const body = String(req.body.body || '').trim();
+    const link = String(req.body.link || 'index.html').trim() || 'index.html';
+    if (!title || !body) {
+      return res.status(400).json({ error: 'العنوان والنص مطلوبان' });
+    }
+    let sent = 0;
+    db.getUsers().filter((u) => u.role === 'student').forEach((u) => {
+      const prefs = defaultNotifPrefs(u);
+      if (!prefs.inApp || !prefs.updates) return;
+      db.createNotification({
+        userId: u.id,
+        type: 'site_update',
+        title,
+        body: body.length > 220 ? body.slice(0, 220) + '…' : body,
+        link
+      });
+      sent += 1;
+    });
+    res.status(201).json({ ok: true, sent });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر إرسال إعلان التحديث' });
+  }
+});
+
+app.post('/api/admin/nudge-stalled', adminRequired, (req, res) => {
+  try {
+    let sent = 0;
+    db.getUsers().filter((u) => u.role === 'student').forEach((u) => {
+      if (maybeNudgeStalledUser(u, { force: true })) sent += 1;
+    });
+    res.json({ ok: true, sent });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'تعذر إرسال تذكير المتوقفين' });
+  }
+});
+
+app.get('/api/admin/feedback', adminRequired, (_req, res) => {
+  const rows = db.getAllFeedback();
+  const avg = rows.length
+    ? Math.round((rows.reduce((s, r) => s + Number(r.rating || 0), 0) / rows.length) * 10) / 10
+    : null;
+  res.json({
+    avgRating: avg,
+    count: rows.length,
+    feedback: rows.slice(0, 50).map((f) => {
+      const u = db.findUserById(f.user_id);
+      return {
+        id: f.id,
+        rating: f.rating,
+        comment: f.comment,
+        createdAt: f.created_at,
+        userName: u ? (u.first_name + ' ' + u.last_name).trim() : '—'
+      };
+    })
+  });
+});
+
 app.get('/api/admin/messages', adminRequired, (req, res) => {
   const rows = db.getAllMessages();
   res.json({
@@ -1982,6 +2229,7 @@ app.delete('/api/admin/messages/:id', adminRequired, (req, res) => {
 
 ready.then(() => {
   const adminInfo = ensureAdmin();
+  const previewInfo = ensurePreviewOwner();
 
   app.listen(PORT, () => {
     console.log('');
@@ -1995,6 +2243,11 @@ ready.then(() => {
     console.log('  البريد: ' + adminInfo.email);
     console.log('  الجوال: ' + adminInfo.phone);
     console.log('  كلمة المرور: ' + adminInfo.password);
+    console.log('');
+    console.log('  حساب المعاينة (يفتح الرئيسية من الصفر):');
+    console.log('  البريد: ' + previewInfo.email);
+    console.log('  الجوال: ' + previewInfo.phone);
+    console.log('  كلمة المرور: ' + previewInfo.password);
     console.log('═══════════════════════════════════════');
     if (!process.env.JWT_SECRET) {
       console.warn('⚠️  تحذير: JWT_SECRET غير معرّف بمتغيرات البيئة — يُستخدم سر افتراضي غير آمن للنشر العام.');

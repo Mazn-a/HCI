@@ -3,20 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>مبادئ نيلسن العشرة بالعربي — ليش التصميم السيئ يحسسك إنك «ما تفهم»؟</title>
-<meta name="description" content="أشهر 10 مبادئ لتقييم أي واجهة (مبادئ نيلسن) مشروحة بالعربي بأمثلة واقعية — وليش الخطأ غالباً من التصميم مو منك.">
-<meta name="keywords" content="مبادئ نيلسن, سهولة الاستخدام, تقييم الواجهات, Nielsen Heuristics بالعربي, تجربة المستخدم">
-<meta name="robots" content="index, follow">
+<title>مبادئ نيلسن — درس في مسار الأساسيات</title>
+<meta name="description" content="مبادئ نيلسن العشرة درس داخل مسار أساسيات HCI، وليست مقالاً منفصلاً حتى لا يتكرر الشرح.">
+<meta name="robots" content="noindex, follow">
 <meta name="application-name" content="HCI">
-<meta property="og:site_name" content="HCI">
-<meta property="og:title" content="مبادئ نيلسن العشرة بالعربي — ليش التصميم السيئ يحسسك إنك «ما تفهم»؟">
-<meta property="og:description" content="أشهر 10 مبادئ لتقييم أي واجهة، بالعربي وبأمثلة من تطبيقات حقيقية.">
-<meta property="og:type" content="article">
-<meta property="og:locale" content="ar_SA">
-<link rel="canonical" href="https://hci-1-fk7w.onrender.com/article-nielsen-principles.html">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Article","headline":"مبادئ نيلسن العشرة بالعربي","inLanguage":"ar","author":{"@type":"Organization","name":"HCI"},"publisher":{"@type":"Organization","name":"HCI"}}
-</script>
+<link rel="canonical" href="https://hci-1-fk7w.onrender.com/fundamentals.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -29,7 +20,7 @@
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
       <nav class="nav-links" id="navLinks">
-        <a href="foundation.html">افهم أولاً</a>
+        <a href="foundation.html">ابدأ هنا</a>
         <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
       </nav>
@@ -46,56 +37,15 @@
       <a href="articles.html" class="page-back">المقالات</a>
 
       <div class="lesson-head reveal">
-        <span class="eyebrow">/// محتوى الدورة · مقدمة الفهم</span>
-        <h1>ليش التصميم السيئ يحسسك إنك «ما تفهم»؟</h1>
-        <p class="article-meta">قراءة قصيرة · المقدمة العامة قبل تفاصيل مسار الأساسيات</p>
-        <span class="article-byline">منشور من متخصصي الدورة</span>
-      </div>
-
-      <div class="article-body reveal">
-        <p>ضغطت زراً وما حدث شيء. حاولت الرجوع خطوة وما وجدت طريقاً. ظهر لك خطأ بالإنجليزية وما فهمت المطلوب. الإحساس الطبيعي: «أنا الذي لا أفهم التقنية». والحقيقة: <strong>التصميم هو الذي فشل، لا أنت.</strong></p>
-        <p>في عام 1994 نشر عالم سهولة الاستخدام <strong>ياكوب نيلسن</strong> عشرة مبادئ صارت المرجع الأشهر لتقييم الواجهات. هذي المقدمة تبني لك الصورة. التفاصيل والأمثلة والاختبار تكملها لاحقاً في مسار <strong>أساسيات HCI</strong>.</p>
-
-        <h2>1. أرني ماذا يحدث (رؤية حالة النظام)</h2>
-        <p>أي فعل تقوم به يحتاج رداً فورياً من النظام: ضغطت «إرسال»؟ أظهر «جاري الإرسال…». ملف يُرفع؟ أظهر شريط تقدم. الصمت يجعل المستخدم يكرر الضغط أو يظن أن النظام معلّق.</p>
-
-        <h2>2. كلّمني بلغتي (التطابق مع العالم الحقيقي)</h2>
-        <p>«سلة المشتريات» مفهومة لأنها من حياتك. أما «Error 422» فليست من حياة أحد. المصطلحات والأيقونات يجب أن تأتي من عالم المستخدم، لا من عالم المبرمجين.</p>
-
-        <h2>3. دعني أتراجع (حرية التحكم)</h2>
-        <p>زر تراجع، وزر إلغاء، وزر رجوع — المستخدم يخطئ ويغيّر رأيه، وهذا طبيعي. النظام الذي يحبسك في مسار واحد بلا مخرج يولّد قلقاً حقيقياً.</p>
-
-        <h2>4. لا تفاجئني (الاتساق والمعايير)</h2>
-        <p>إذا كان الزر الأزرق يحفظ في صفحة، فيجب أن يحفظ في كل الصفحات. وإذا جعلت معظم التطبيقات السلة في أعلى اليمين، فلا تضعها أنت في أسفل اليسار بحجة الإبداع.</p>
-
-        <h2>5. امنع الخطأ قبل وقوعه (الوقاية من الأخطاء)</h2>
-        <p>بدل رسالة «التاريخ غير صحيح»، دع المستخدم يختار من تقويم أصلاً. أفضل رسالة خطأ هي التي لا نحتاج إلى عرضها.</p>
-
-        <h2>6. أرني ولا تجبرني على الحفظ (التعرّف بدل التذكّر)</h2>
-        <p>القوائم والاقتراحات والسجل الأخير تخدم مبدأ واحداً: الإنسان يتعرّف على الشيء بسهولة، ويتعب بتذكّره. لا تجبر المستخدم على حفظ رموز أو مسارات.</p>
-
-        <h2>7. اختصار للخبير وبساطة للمبتدئ (المرونة والكفاءة)</h2>
-        <p>المبتدئ يسير بالقوائم خطوة خطوة، والخبير يريد اختصارات (بحث سريع، وإجراءات محفوظة). التصميم الجيد يخدم الاثنين دون أن يزحم أحدهما.</p>
-
-        <h2>8. كل زيادة لها ثمن (التصميم البسيط)</h2>
-        <p>كل عنصر إضافي على الشاشة ينافس العناصر المهمة على انتباه المستخدم. اسأل عن كل شيء: «لو حذفناه، ماذا نخسر؟» — إذا كان الجواب «لا شيء»، فاحذفه.</p>
-
-        <h2>9. إذا وقع خطأ، ساعدني أخرج منه</h2>
-        <p>رسالة الخطأ الجيدة تقول ثلاثة أشياء بلغة بسيطة: ماذا حدث، ولماذا، وماذا تفعل الآن. «رقم الجوال ناقص خانة — أكمله إلى 10 أرقام» أفضل من «Invalid input».</p>
-
-        <h2>10. المساعدة آخر حل (التوثيق)</h2>
-        <p>الأفضل تصميم لا يحتاج شرحاً. وإذا احتاج، فلتكن المساعدة قصيرة، وقريبة من مكان المشكلة، ومركّزة على خطوات عملية.</p>
-
-        <h2>لماذا هذه المبادئ مهمة لك؟</h2>
-        <p>لأنها تحوّلك من شخص يقول «التطبيق غير جميل» إلى شخص يقول «التطبيق يكسر المبدأ الثالث: لا توجد طريقة للتراجع». هذه لغة المجال — ومتى أتقنتها، تستطيع تقييم أي واجهة وإقناع فريقك بالتحسين بحجة علمية، لا بذوق شخصي.</p>
-
-        <h2>وين التفاصيل؟</h2>
-        <p>بعد ما تكمّل خطوة الفهم وتدخل المسارات، صفحة <strong>أساسيات HCI</strong> تعيد المبادئ نفسها بأمثلة أوضح ومقارنة عملية واختبار يفتح المرحلة التالية. المقدمة هنا، والتطبيق هناك.</p>
+        <span class="eyebrow">/// درس — ليس مقالاً مكرراً</span>
+        <h1>مبادئ نيلسن تُدرَّس مرة واحدة</h1>
+        <p>القواعد العشر ليست مقدمة في المكتبة. هي درس مسار <strong>أساسيات HCI</strong>: شرح، أمثلة، ثم اختبار يفتح المرحلة التالية.</p>
       </div>
 
       <div class="article-cta reveal">
-        <p>هذي آخر خطوة في الفهم. علّمها مكتملة — وبعدها تنفتح المسارات، وفي الأساسيات تكمل التفاصيل.</p>
-        <button type="button" class="btn-primary" id="articleFoundationDone" data-foundation-id="nielsen">فهمت — افتح المسارات ←</button>
+        <p>اقرأ التمهيد إن أحببت، ثم ادخل الدرس — لا المسارين معاً.</p>
+        <a href="fundamentals.html#nielsen-principles" class="btn-primary">افتح درس الأساسيات ←</a>
+        <a href="article-user-first.html" class="btn-ghost" style="margin-inline-start:8px;">التمهيد: التصميم حول المستخدم</a>
       </div>
     </div>
   </main>
@@ -105,46 +55,28 @@
       <div class="footer-brand">
         <a href="index.html" class="footer-logo">HCI</a>
         <p class="footer-tagline">خارطة طريق لتفاعل الإنسان والحاسوب</p>
-        <p class="footer-about">منصة عربية ترتّب طريق تعلم تفاعل الإنسان والحاسوب.</p>
-      </div>
-      <div class="footer-cols">
-      <nav class="footer-nav" aria-label="روابط التذييل">
-        <p class="footer-col-title">استكشف</p>
-        <ul>
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="index.html#paths">المسارات</a></li>
-          <li><a href="glossary.html">المعجم</a></li>
-          <li><a href="articles.html">المقالات</a></li>
-          <li><a href="profile.html">الملف الشخصي</a></li>
-        </ul>
-      </nav>
-      <nav class="footer-nav footer-support" aria-label="التواصل والدعم">
-        <p class="footer-col-title">تواصل</p>
-        <ul>
-          <li><button type="button" class="footer-text-link footer-about-btn" data-about-open>نبذة عنا</button></li>
-          <li><button type="button" class="footer-text-link footer-link-contact" id="footerContactBtn">تواصل معنا</button></li>
-        </ul>
-      </nav>
-      <nav class="footer-nav footer-legal" aria-label="روابط قانونية">
-        <p class="footer-col-title">قانوني</p>
-        <ul>
-          <li><a href="legal.html#privacy">سياسة الخصوصية</a></li>
-          <li><a href="legal.html#terms">شروط الاستخدام</a></li>
-          <li><button type="button" class="footer-text-link footer-link-report" id="reportTrigger">بلّغ عن مشكلة</button></li>
-        </ul>
-      </nav>
       </div>
       <div class="footer-bottom">
         <div class="footer-credit-block">
           <span class="footer-credit">إعداد <strong>مازن عطية الذبياني</strong></span>
-<span class="footer-copy">© 2026 HCI</span>
+          <span class="footer-copy">© 2026 HCI</span>
         </div>
       </div>
     </div>
   </footer>
 
-  <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
   <script src="api.js"></script>
-<script src="main.js"></script>
+  <script src="flow.js"></script>
+  <script src="main.js"></script>
+  <script>
+  (function () {
+    try {
+      if (window.HCIApi && (HCIApi.isAdmin && HCIApi.isAdmin() || HCIApi.isSpecialist && HCIApi.isSpecialist())) {
+        location.replace('fundamentals.html#nielsen-principles');
+        return;
+      }
+    } catch (e) { /* */ }
+  })();
+  </script>
 </body>
 </html>

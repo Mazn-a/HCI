@@ -27,7 +27,7 @@
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
       <nav class="nav-links" id="navLinks">
-        <a href="foundation.html">افهم أولاً</a>
+        <a href="foundation.html">ابدأ هنا</a>
         <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
       </nav>
@@ -45,8 +45,8 @@
 
       <div class="lesson-head reveal">
         <span class="eyebrow">/// خط 02 — ترميز HTML &amp; CSS</span>
-        <h1>مرحلتان: HTML أولاً، بعدها CSS</h1>
-        <p>كل درس فيه شرح، مثال حي، ومحرر «جرّب بنفسك» تكتب فيه الكود وتشوف النتيجة فوراً — كل شي داخل الموقع بدون ما تطلع منه. افتح «اشرحلي المفهوم» عشان ينفك الدرس اللي بعده، وبنهاية المرحلتين تبني مشروعك الأول.</p>
+        <h1>HTML و CSS أولاً، وبعدها نظرة على تطبيقات الجوال</h1>
+        <p>تتعلّم بناء صفحات الويب درس بدرس (شرح + مثال حي + «جرّب بنفسك»)، وبعدها تأخذ نظرة عامة: كيف تُبنى تطبيقات الجوال، وش اللغات اللي تفيد تخصص HCI، ووش أقل شيء لازم يكون عندك كطالب تفاعل إنسان وحاسوب.</p>
       </div>
 
       <div class="profile-card reveal" style="margin-bottom:44px;">
@@ -593,10 +593,63 @@
 
       </div>
 
+      <section class="coding-stage coding-mobile-overview reveal" id="mobileOverview" aria-labelledby="mobileOverviewTitle">
+        <div class="coding-stage-head">
+          <h2 id="mobileOverviewTitle">نظرة عامة — تطبيقات الجوال لتخصص HCI</h2>
+          <p>هذا القسم معلومات عامة (مو دروس كود). يكفي تفهم الطرق واللغات ووش مطلوب منك الآن — عشان تربط اللي تعلمته بالمواقع بعالم التطبيقات.</p>
+        </div>
+
+        <article class="mobile-info-card">
+          <h3>١) كيف يُبنى تطبيق جوال؟ ثلاث طرق</h3>
+          <p>مو كل تطبيق يُكتب بنفس الأسلوب. كطالب HCI يهمّك تعرف الفرق، حتى لو ما برمجت تطبيقاً بعد:</p>
+          <ul class="mobile-info-list">
+            <li>
+              <strong>أصلي (Native):</strong>
+              يُبنى بلغة المنصة نفسها — <strong>Swift</strong> لآيفون، و<strong>Kotlin</strong> لأندرويد. أقوى أداء ووصول لمزايا الجهاز، بس غالباً تطبيقين منفصلين.
+            </li>
+            <li>
+              <strong>مشترك / عابر للمنصات (Cross-platform):</strong>
+              كود واحد يطلع منه تطبيق للجوالين. أشهر مسارين: <strong>Flutter</strong> (لغة Dart) و<strong>React Native</strong> (JavaScript / TypeScript). كثير شركات تختارهم لتوفير الوقت.
+            </li>
+            <li>
+              <strong>ويب داخل تطبيق / PWA:</strong>
+              واجهة تُبنى بـ <strong>HTML و CSS و JavaScript</strong> (نفس أساس المواقع)، وتُغلَّف كتطبيق أو تُثبَّت من المتصفح. اللي تتعلمه في هذه المرحلة يفيدك مباشرة هنا.
+            </li>
+          </ul>
+          <div class="example-box"><b>أقل شيء تفهمه:</b> الموقع ≠ التطبيق الأصلي، بس كثير تطبيقات اليوم واجهتها قريبة من الويب — عشان كذا HTML و CSS أساس ممتاز قبل أي مسار جوال.</div>
+        </article>
+
+        <article class="mobile-info-card">
+          <h3>٢) اللغات اللي تفيد تخصص التفاعل — وش تبدأ فيه؟</h3>
+          <p>ما تحتاج تتعلّم كل اللغات دفعة واحدة. رتّبها حسب قربها من شغل HCI (واجهات + تجربة):</p>
+          <ul class="mobile-info-list">
+            <li><strong>الآن (أساسي المسار):</strong> HTML و CSS — هيكل الواجهة وشكلها. هذا اللي تتمرّن عليه هنا.</li>
+            <li><strong>بعدها بخطوة:</strong> JavaScript (وأحياناً TypeScript) — تفاعل الصفحة: أزرار، تحقق من النماذج، تحديث المحتوى بلا إعادة تحميل. مفيدة للويب وReact Native.</li>
+            <li><strong>لو اخترت مسار جوال لاحقاً:</strong> Dart مع Flutter، أو Swift / Kotlin لو حابب أصلي لمنصة واحدة.</li>
+            <li><strong>مو لغة برمجة بس مهمة:</strong> أداة تصميم مثل Figma — تصمّم الشاشات والتدفّق قبل الكود، وهذا قلب شغل UX/UI.</li>
+          </ul>
+          <div class="example-box"><b>وش مطلوب منك في هذه المرحلة؟</b> تُكمل دروس HTML و CSS وتبني المشروع الصغير. قسم الجوال هنا للفهم فقط — مو مطلوب تبرمج تطبيقاً الآن.</div>
+        </article>
+
+        <article class="mobile-info-card">
+          <h3>٣) وش لازم أي طالب تفاعل إنسان وحاسوب يكون عنده؟</h3>
+          <p>حزمة أساسية تخلّيك تتكلم مع المصممين والمبرمجين بنفس اللغة:</p>
+          <ul class="mobile-info-list">
+            <li><strong>فهم المستخدم:</strong> مين يستخدم المنتج؟ وش هدفه؟ وين يتعثر؟ (مقابلات، ملاحظة، اختبارات بسيطة).</li>
+            <li><strong>مبادئ الواجهة:</strong> وضوح، تغذية راجعة، تناسق، أخطاء مفهومة — زي اللي أخذته بأساسيات HCI.</li>
+            <li><strong>أساسيات واجهة حقيقية:</strong> HTML و CSS على الأقل، ووعي بوجود JavaScript.</li>
+            <li><strong>تصميم وتدفّق:</strong> Wireframes، نماذج أولية، وأنماط الجوال (إبهام، لمس، إشعارات، شاشات صغيرة).</li>
+            <li><strong>إتاحة ووصولية (Accessibility):</strong> نص بديل للصور، تباين ألوان، حجم لمس مناسب — صحّة المنتج مو «زينة».</li>
+            <li><strong>تفكير عبر المنصات:</strong> وش يختلف بين موقع ومتجر تطبيق؟ (تثبيت، صلاحيات، إيماءات، وضع عدم الاتصال).</li>
+          </ul>
+          <div class="example-box"><b>الخلاصة:</b> متخصص HCI مو لازم يكون أقوى مبرمج، بس لازم يفهم كيف تتحوّل الفكرة لواجهة على الويب والجوال — وأنت الآن تبني أول طبقة من هذا الفهم.</div>
+        </article>
+      </section>
+
       <section class="mini-project reveal" id="miniProject" aria-labelledby="miniProjectTitle">
         <div class="coding-stage-head">
           <h2 id="miniProjectTitle">المشروع الختامي — ابنِ بطاقتك التعريفية</h2>
-          <p>هنا تجمع كل اللي تعلمته بالمرحلتين: عناوين، فقرات، قوائم، أزرار، ألوان، وصندوق العناصر. عدّل الكود خطوة خطوة وشوف بطاقتك الشخصية تتشكل قدامك.</p>
+          <p>هنا تجمع كل اللي تعلمته بمرحلتي HTML و CSS: عناوين، فقرات، قوائم، أزرار، ألوان، وصندوق العناصر. عدّل الكود خطوة خطوة وشوف بطاقتك الشخصية تتشكل قدامك.</p>
         </div>
         <ol class="project-steps">
           <li>غيّر «اكتب اسمك هنا» لاسمك الحقيقي.</li>
@@ -671,7 +724,7 @@
         <a href="fundamentals.html" class="btn-ghost">← الأساسيات</a>
         <a href="courses.html" class="btn-primary" data-next-stage="courses">التالي: الدورات →</a>
       </div>
-      <p style="color:var(--text-mid); font-size:0.82rem; margin-top:12px;">بعد قراءة نصف الدروس تنفتح صفحة الدورات. بعد إكمال المرحلتين تُحتسب المرحلة مكتملة.</p>
+      <p style="color:var(--text-mid); font-size:0.82rem; margin-top:12px;">بعد قراءة نصف دروس HTML و CSS تنفتح صفحة الدورات. بعد إكمال مرحلتي الترميز تُحتسب المرحلة مكتملة. قسم تطبيقات الجوال أعلاه للفهم العام ولا يدخل في نسبة التقدّم.</p>
     </div>
   </main>
 
@@ -720,6 +773,7 @@
 
   <button id="backToTop" class="back-to-top" aria-label="إلى الأعلى">↑</button>
   <script src="api.js"></script>
+<script src="flow.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

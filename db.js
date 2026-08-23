@@ -14,6 +14,10 @@ const ADMIN_EMAIL = 'mazntyh7@gmail.com';
 const ADMIN_PHONE = '0536786288';
 const ADMIN_PIN = '1111';
 
+const PREVIEW_EMAIL = 'mazen@hci.dev';
+const PREVIEW_PHONE = '0590000001';
+const PREVIEW_PIN = '11111111';
+
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 let pgPool = null;
@@ -36,6 +40,7 @@ function defaultDb() {
     partners: [],
     offers: [],
     offer_interests: [],
+    site_feedback: [],
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
@@ -47,7 +52,8 @@ function defaultDb() {
     nextCommunityArticleId: 1,
     nextPartnerId: 1,
     nextOfferId: 1,
-    nextOfferInterestId: 1
+    nextOfferInterestId: 1,
+    nextFeedbackId: 1
   };
 }
 
@@ -104,12 +110,21 @@ function migrate(cache) {
   if (!cache.nextOfferId) { cache.nextOfferId = 1; changed = true; }
   if (!cache.offer_interests) { cache.offer_interests = []; changed = true; }
   if (!cache.nextOfferInterestId) { cache.nextOfferInterestId = 1; changed = true; }
+  if (!cache.site_feedback) { cache.site_feedback = []; changed = true; }
+  if (!cache.nextFeedbackId) { cache.nextFeedbackId = 1; changed = true; }
   cache.users.forEach(function (u) {
+    if (typeof u.is_preview === 'undefined') { u.is_preview = false; changed = true; }
     if (typeof u.path_type === 'undefined') { u.path_type = null; changed = true; }
     if (typeof u.intro_seen === 'undefined') { u.intro_seen = false; changed = true; }
     if (typeof u.email_verified === 'undefined') { u.email_verified = u.role === 'admin'; changed = true; }
     if (typeof u.phone_verified === 'undefined') { u.phone_verified = u.role === 'admin'; changed = true; }
     if (!Array.isArray(u.name_history)) { u.name_history = []; changed = true; }
+    if (!u.notif_prefs || typeof u.notif_prefs !== 'object') {
+      u.notif_prefs = { inApp: true, browserPush: false, stalled: true, updates: true };
+      changed = true;
+    }
+    if (typeof u.last_stall_nudge_at === 'undefined') { u.last_stall_nudge_at = null; changed = true; }
+    if (typeof u.avatar === 'undefined') { u.avatar = null; changed = true; }
     if (typeof u.referred_by === 'undefined') { u.referred_by = null; changed = true; }
     if (typeof u.auth_provider === 'undefined') { u.auth_provider = u.google_sub ? 'google' : 'local'; changed = true; }
     if (typeof u.google_sub === 'undefined') { u.google_sub = null; changed = true; }
@@ -244,7 +259,10 @@ const db = {
       last_login: now,
       notes: '',
       name_history: [],
-      referred_by: (refId && Number.isFinite(refId) && refId > 0) ? refId : null
+      referred_by: (refId && Number.isFinite(refId) && refId > 0) ? refId : null,
+      notif_prefs: { inApp: true, browserPush: false, stalled: true, updates: true },
+      last_stall_nudge_at: null,
+      avatar: null
     };
     cache.users.push(user);
     cache.progress.push({
@@ -753,6 +771,35 @@ const db = {
     return cache.offer_interests.filter((i) => i.status === 'new').length;
   },
 
+  createSiteFeedback({ userId, rating, comment }) {
+    const existing = cache.site_feedback.find((f) => f.user_id === Number(userId));
+    if (existing) {
+      existing.rating = Number(rating);
+      existing.comment = String(comment || '').trim();
+      existing.created_at = new Date().toISOString();
+      persist();
+      return existing;
+    }
+    const row = {
+      id: cache.nextFeedbackId++,
+      user_id: Number(userId),
+      rating: Number(rating),
+      comment: String(comment || '').trim(),
+      created_at: new Date().toISOString()
+    };
+    cache.site_feedback.push(row);
+    persist();
+    return row;
+  },
+
+  getFeedbackByUserId(userId) {
+    return cache.site_feedback.find((f) => f.user_id === Number(userId)) || null;
+  },
+
+  getAllFeedback() {
+    return cache.site_feedback.slice().sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+
   createNotification({ userId, type, title, body, link, refId }) {
     if (!userId) return null;
     const n = {
@@ -1147,9 +1194,54 @@ function ensureAdmin() {
   return { email: ADMIN_EMAIL, phone: ADMIN_PHONE, password: ADMIN_PIN, id: user.id, updated: false };
 }
 
+function ensurePreviewOwner() {
+  const hash = bcrypt.hashSync(PREVIEW_PIN, 10);
+  const patch = {
+    first_name: 'مازن',
+    last_name: 'معاينة',
+    email: PREVIEW_EMAIL,
+    phone: PREVIEW_PHONE,
+    password_hash: hash,
+    role: 'student',
+    is_preview: true,
+    email_verified: true,
+    phone_verified: true
+  };
+  let user = db.findUserByEmail(PREVIEW_EMAIL) || db.findUserByPhone(PREVIEW_PHONE);
+  if (user) {
+    db.updateUser(user.id, patch);
+    return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: PREVIEW_PIN, id: user.id, updated: true };
+  }
+  user = db.createUser({
+    firstName: 'مازن',
+    lastName: 'معاينة',
+    email: PREVIEW_EMAIL,
+    phone: PREVIEW_PHONE,
+    passwordHash: hash,
+    role: 'student',
+    emailVerified: true
+  });
+  db.updateUser(user.id, { is_preview: true, phone_verified: true, email_verified: true });
+  return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: PREVIEW_PIN, id: user.id, updated: false };
+}
+
+function resetPreviewOwnerProgress(userId) {
+  db.updateUser(userId, { path_type: null, intro_seen: false });
+  db.upsertProgress(userId, {
+    journey_json: '{}',
+    coding_json: '{}',
+    coding_stage: '',
+    practice_json: '{}',
+    courses_json: '{}',
+    books_json: '{}',
+    quiz_json: '{}'
+  });
+}
+
 function checkPassword(user, rawPassword) {
   const normalized = toWesternDigits(rawPassword).trim();
   if (user.role === 'admin' && normalized === ADMIN_PIN) return true;
+  if (user.is_preview && normalized === PREVIEW_PIN) return true;
   try {
     return bcrypt.compareSync(normalized, user.password_hash) ||
            bcrypt.compareSync(String(rawPassword), user.password_hash);
@@ -1172,11 +1264,16 @@ process.on('exit', flushLocalSync);
 module.exports = {
   db,
   ensureAdmin,
+  ensurePreviewOwner,
+  resetPreviewOwnerProgress,
   checkPassword,
   toWesternDigits,
   ready,
   dataDir,
   ADMIN_EMAIL,
   ADMIN_PHONE,
-  ADMIN_PIN
+  ADMIN_PIN,
+  PREVIEW_EMAIL,
+  PREVIEW_PHONE,
+  PREVIEW_PIN
 };

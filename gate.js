@@ -34,9 +34,6 @@
     // ملفات تحقق قوقل
     if (/^google[a-z0-9]+\.html$/i.test(page)) return;
 
-    // المقالات عامة ومفهرسة — أي صفحة تبدأ بـ article-
-    if (/^article-[a-z0-9-]+\.html$/i.test(page)) return;
-
     // تفعيل / إلغاء تجاوز الصيانة للمطوّر
     if (/(?:\?|&)open=1(?:&|$)/.test(search)) {
       try { localStorage.setItem('hci_maint_bypass', '1'); } catch (e) { /* */ }
@@ -58,27 +55,31 @@
       }
     }
 
-    // صفحات عامة يفهرسها قوقل باسم HCI (بدون تسجيل)
+    var isArticlePage = page === 'articles.html' || page === 'community-article.html' ||
+      /^article-[\w-]+\.html$/i.test(page);
+
+    // صفحات عامة (بدون تسجيل)
     var publicPages = {
       'index.html': true,
       'auth.html': true,
       'intro.html': true,
       'glossary.html': true,
-      'articles.html': true,
-      'foundation.html': true,
-      'community-article.html': true,
-      'article-what-is-hci.html': true,
-      'article-ux-vs-ui.html': true,
-      'article-nielsen-principles.html': true,
       'maintenance.html': true,
       'legal.html': true,
       'theme-lab.html': true,
-      /* معاينة الشهادة للتصميم فقط عبر ?preview=1 */
-      'certificate.html': /(?:\?|&)preview=1(?:&|$)/.test(search),
+      /* معاينة التصميم أو عرض شهادة برقمها العام */
+      'certificate.html': /(?:\?|&)preview=1(?:&|$)/.test(search) || /(?:\?|&)id=[^&]+/.test(search),
       'verify.html': true
     };
 
-    if (publicPages[page] || /^article-[\w-]+\.html$/i.test(page)) {
+    /* المقالات بعد حساب فقط — عشان الزائر يسجّل، وبعد التسجيل يقدر يقرأ فوراً */
+    if (isArticlePage && !loggedIn) {
+      var next = encodeURIComponent(page + (search || '') + (location.hash || ''));
+      location.replace('auth.html?tab=signup&next=' + next);
+      return;
+    }
+
+    if (publicPages[page]) {
       if (page === 'auth.html' && loggedIn) location.replace('index.html');
       else if (page === 'auth.html' && token && !verifiedFlag) {
         if (!/(?:\?|&)tab=/.test(search)) location.replace('auth.html?tab=verify');

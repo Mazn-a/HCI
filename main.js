@@ -468,7 +468,8 @@ function markComplete(stageId, silent){
   return wasNew;
 }
 
-var FOUNDATION_KEYS = ['hci', 'uxui', 'nielsen'];
+/* خطوة البداية: مقال تعريفي واحد (hci). القديم القديم: الثلاث قراءات القديمة تُحسب مكتملة */
+var FOUNDATION_KEYS = ['hci'];
 var FOUNDATION_STORAGE = 'hci_foundation';
 
 function getFoundation(){
@@ -489,14 +490,19 @@ function saveFoundation(data){
 function isFoundationDone(){
   if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())) return true;
   var data = getFoundation();
-  return FOUNDATION_KEYS.every(function(k){ return !!data.read[k]; });
+  if (data.completedAt) return true;
+  if (data.read && data.read.hci) return true;
+  /* توافق مع اللي خلّصوا الخطوات القديمة الثلاث */
+  if (data.read && data.read.uxui && data.read.nielsen) return true;
+  return FOUNDATION_KEYS.every(function(k){ return !!(data.read && data.read[k]); });
 }
 
 function markFoundationRead(id){
   var data = getFoundation();
   if (!data.read) data.read = {};
   data.read[id] = true;
-  if (FOUNDATION_KEYS.every(function(k){ return !!data.read[k]; })){
+  if (data.read.hci || (data.read.uxui && data.read.nielsen)){
+    data.read.hci = true;
     data.completedAt = data.completedAt || new Date().toISOString();
   }
   saveFoundation(data);
@@ -660,7 +666,7 @@ function showCertReadyDialog(){
     '<div class="lock-dialog">' +
       '<p class="lock-dialog-eyebrow">/// أحسنت</p>' +
       '<h3 id="lockDialogTitle">حصلت على شهادتك</h3>' +
-      '<p class="lock-dialog-reason">أكملت المسار كامل. شهادتك جاهزة باسمك — فكّها الحين لعرضها أو طباعتها.</p>' +
+      '<p class="lock-dialog-reason">أكملت المسار كاملاً. شهادتك جاهزة باسمك — افتحها الآن للعرض أو الطباعة.</p>' +
       '<div class="lock-dialog-actions">' +
         '<button type="button" class="btn-ghost" id="lockDialogClose">لاحقاً</button>' +
         '<a href="certificate.html" class="btn-primary" id="lockDialogGo">فك الشهادة ←</a>' +
@@ -851,21 +857,25 @@ if (menuBtn && navLinks){
 // ----- حساب المستخدم -----
 var loggedInName = localStorage.getItem('hci_user_name');
 
-/* شريط نظيف حسب حالة الزائر/المسجّل — عشان ما يضيع أحد */
+/* شريط نظيف حسب حالة الزائر/المسجّل — توجيه إجباري للبداية قبل المقالات/المسارات */
 (function tidyNavLinks(){
   var links = document.getElementById('navLinks');
   if (!links) return;
   var isLoggedIn = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
   var foundationDone = false;
   try { foundationDone = isFoundationDone(); } catch (e) { foundationDone = false; }
-  var showPaths = isLoggedIn && foundationDone;
-  var showFoundation = isLoggedIn && !foundationDone;
+  var isStaff = !!(window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist()));
+  var showPaths = isLoggedIn && (foundationDone || isStaff);
+  var showFoundation = isLoggedIn && !foundationDone && !isStaff;
+  /* المقالات بعد البداية — إلا المتخصص/المدير (مثل الدكاترة) */
+  var showArticles = !isLoggedIn || foundationDone || isStaff;
   Array.prototype.slice.call(links.querySelectorAll('a')).forEach(function(a){
     var t = (a.textContent || '').replace(/\s+/g, ' ').trim();
     var hide = false;
     if (t === 'الرئيسية' || t === 'المعجم') hide = true;
     else if (t === 'المسارات') hide = !showPaths;
-    else if (t === 'افهم أولاً') hide = !showFoundation;
+    else if (t === 'افهم أولاً' || t === 'ابدأ هنا') hide = !showFoundation;
+    else if (t === 'المقالات') hide = !showArticles;
     if (hide) {
       a.setAttribute('hidden', '');
       a.style.display = 'none';
@@ -874,6 +884,34 @@ var loggedInName = localStorage.getItem('hci_user_name');
       a.style.display = '';
     }
   });
+})();
+
+/* توجيه إجباري فوري بعد الدخول: ابدأ هنا قبل أي صفحة ثانية (إلا مقال البداية) */
+(function forceOnboardingLanding(){
+  try {
+    if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())) return;
+    if (HCIApi.isAdmin() || HCIApi.isSpecialist()) return;
+    if (HCIApi.isPreview && HCIApi.isPreview()) {
+      var previewPage = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (!previewPage || previewPage === '/') previewPage = 'index.html';
+      if (previewPage === 'index.html') return;
+    }
+    if (isFoundationDone()) return;
+    var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    if (!page || page === '/') page = 'index.html';
+    var allowed = {
+      'foundation.html': true,
+      'article-what-is-hci.html': true,
+      'path-choice.html': true,
+      'intro.html': true,
+      'auth.html': true,
+      'settings.html': true,
+      'legal.html': true,
+      'admin.html': true
+    };
+    if (allowed[page]) return;
+    location.replace('foundation.html');
+  } catch (e) { /* */ }
 })();
 
 var greetingEl = document.getElementById('greeting');
@@ -887,7 +925,7 @@ if (greetingEl){
   if (loggedInName){
     greetingText += '، ' + loggedInName;
   } else {
-    greetingText += ' — مرحباً بك';
+    greetingText += ' في منصة HCI';
   }
 
   // حدّث النص فقط إذا تغيّر — يقلل القفز البصري
@@ -897,6 +935,55 @@ if (greetingEl){
   }
 }
 
+/* تخصيص عنوان صفحة البداية للمستخدم المسجّل */
+(function personalizeFoundationHead(){
+  var title = document.getElementById('foundationTitle');
+  var lead = document.getElementById('foundationLead');
+  var eyebrow = document.getElementById('foundationEyebrow');
+  if (!title && !lead) return;
+  var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  if (!logged) return;
+  var name = loggedInName || '';
+  if (window.HCIFlow && HCIApi.currentUser){
+    name = HCIFlow.firstName(HCIApi.currentUser()) || name;
+  }
+  if (eyebrow) eyebrow.textContent = '/// خطوتك الآن';
+  if (title && name) title.textContent = name + '، أكمل البداية قبل المسارات';
+  if (lead){
+    lead.textContent = 'أنت مسجّل الدخول. اقرأ النظرة العامة ثم المقال التعريفي — وبعدها تُفتح المسارات بالترتيب.';
+  }
+})();
+
+/* البطل على الرئيسية: جملة توضّح التسلسل حسب الحالة */
+(function personalizeHeroLead(){
+  var lead = document.querySelector('.hero-lead');
+  if (!lead || !document.getElementById('heroCta')) return;
+  var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  if (!logged) return;
+  var name = loggedInName || '';
+  if (window.HCIFlow && window.HCIApi && HCIApi.currentUser){
+    name = HCIFlow.firstName(HCIApi.currentUser()) || name;
+  }
+  if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
+    lead.textContent = (name ? name + '، ' : '') +
+      'مسارك مفتوح. ابدأ من الأداة أو المرحلة التي تحتاجها — دون إعادة البداية أو الاستكشاف.';
+  } else if (!isFoundationDone()){
+    lead.textContent = (name ? name + '، ' : '') +
+      'أنت داخل المنصة. أكمل البداية والمقال التعريفي — ثم تُفتح المسارات السبعة بالترتيب.';
+  } else {
+    lead.textContent = (name ? name + '، ' : '') +
+      'تسلسلك محفوظ. البطاقة الذهبية في المسارات تشير إلى مرحلتك الحالية.';
+  }
+})();
+
+(function revealSpecialistNotes(){
+  if (!(window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist()))) return;
+  ['specialistDiscoverNote', 'specialistFundamentalsNote'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.hidden = false;
+  });
+})();
+
 var navCtaSlot = document.getElementById('navCtaSlot');
 var heroCta = document.getElementById('heroCta');
 
@@ -904,18 +991,23 @@ function getUserAvatar(){
   try { return localStorage.getItem('hci_avatar') || ''; } catch (e) { return ''; }
 }
 
-function setUserAvatar(dataUrl){
+function setUserAvatar(dataUrl, opts){
+  opts = opts || {};
   try {
     if (dataUrl) localStorage.setItem('hci_avatar', dataUrl);
     else localStorage.removeItem('hci_avatar');
   } catch (e) { /* مساحة التخزين ممتلئة */ }
+  if (opts.skipSync) return;
+  if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn() && HCIApi.updateAvatar){
+    HCIApi.updateAvatar(dataUrl || '').catch(function(){ /* */ });
+  }
 }
 
-function applyAvatarToEl(el, name){
+function applyAvatarToEl(el, name, photoOverride){
   if (!el) return;
-  var photo = getUserAvatar();
+  var photo = photoOverride !== undefined ? (photoOverride || '') : getUserAvatar();
   var letter = (name || '?').charAt(0);
-  if (photo){
+  if (photo && String(photo).indexOf('data:image') === 0){
     el.textContent = '';
     el.classList.add('has-photo');
     el.style.backgroundImage = 'url(' + photo + ')';
@@ -925,6 +1017,20 @@ function applyAvatarToEl(el, name){
     el.textContent = letter;
   }
 }
+
+/* إن وُجدت صورة محلية وما انرفعت للسيرفر بعد — ارفعها مرة */
+(function syncLocalAvatarOnce(){
+  try {
+    if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())) return;
+    var local = getUserAvatar();
+    if (!local || local.indexOf('data:image') !== 0) return;
+    var u = HCIApi.currentUser && HCIApi.currentUser();
+    if (u && u.avatar) return;
+    if (sessionStorage.getItem('hci_avatar_synced') === '1') return;
+    sessionStorage.setItem('hci_avatar_synced', '1');
+    HCIApi.updateAvatar(local).catch(function(){ sessionStorage.removeItem('hci_avatar_synced'); });
+  } catch (e) { /* */ }
+})();
 
 function compressImageFile(file, maxSize, quality, callback){
   var reader = new FileReader();
@@ -1084,26 +1190,33 @@ if (navCtaSlot && loggedInName){
 (function setHeroCtaForVisitor(){
   if (!heroCta) return;
   var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
-  var ghost = document.querySelector('.hero-actions .btn-ghost');
+  var ghost = document.getElementById('heroSecondary') || document.querySelector('.hero-actions .btn-ghost');
   if (!logged){
-    heroCta.textContent = 'أنشئ حساب وابدأ ←';
+    heroCta.textContent = 'إنشاء حساب والبدء ←';
     heroCta.setAttribute('href', 'auth.html?tab=signup');
     if (ghost){
-      ghost.textContent = 'تصفّح المقالات';
-      ghost.setAttribute('href', 'articles.html');
+      ghost.hidden = false;
+      ghost.textContent = 'لدي حساب — تسجيل الدخول';
+      ghost.setAttribute('href', 'auth.html');
     }
     return;
   }
-  if (!isFoundationDone()){
-    heroCta.textContent = 'افهم التخصص أولاً ←';
-    heroCta.setAttribute('href', 'foundation.html');
+  if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
+    heroCta.textContent = 'إلى الدورات والأدوات ←';
+    heroCta.setAttribute('href', 'courses.html');
     if (ghost){
-      ghost.textContent = 'شاهد المسارات';
+      ghost.hidden = false;
+      ghost.textContent = 'كل المسارات';
       ghost.setAttribute('href', '#paths');
     }
+  } else if (!isFoundationDone()){
+    heroCta.textContent = 'متابعة البداية ←';
+    heroCta.setAttribute('href', 'foundation.html');
+    if (ghost) ghost.hidden = true;
   } else {
-    heroCta.textContent = 'أكمل مسارك ←';
+    heroCta.textContent = 'متابعة مسارك ←';
     heroCta.setAttribute('href', '#paths');
+    if (ghost) ghost.hidden = true;
   }
 })();
 
@@ -1158,26 +1271,27 @@ function getCurrentStageId(){
 }
 
 var stationsRoot = document.getElementById('stationsList');
+function setPathsSectionCopy(opts){
+  opts = opts || {};
+  var eyebrow = document.getElementById('pathsSectionEyebrow');
+  var title = document.getElementById('pathsSectionTitle');
+  var lead = document.getElementById('pathsSectionLead');
+  if (eyebrow && opts.eyebrow) eyebrow.textContent = opts.eyebrow;
+  if (title && opts.title) title.textContent = opts.title;
+  if (lead && opts.lead) lead.textContent = opts.lead;
+}
+
 if (stationsRoot && !isLoggedInForProgress){
-  var guestGuideTitle = document.getElementById('pathGuideTitle');
-  var guestGuideHint = document.getElementById('pathGuideHint');
-  var guestGuideCta = document.getElementById('pathGuideCta');
-  var guestGuideKicker = document.getElementById('pathGuideKicker');
-  var guestGuideProfile = document.getElementById('pathGuideProfile');
-  if (guestGuideKicker) guestGuideKicker.textContent = 'كيف تبدأ؟';
-  if (guestGuideTitle){
-    guestGuideTitle.textContent = 'حساب ← فهم التخصص ← المسارات';
-  }
-  if (guestGuideHint){
-    guestGuideHint.textContent = 'أنشئ حساباً أولاً عشان تقدّمك ينحفظ وما تضيع. بعدها ثلاث قراءات قصيرة، ثم تفتح المسارات بالترتيب.';
-  }
-  if (guestGuideCta){
-    guestGuideCta.textContent = 'أنشئ حساب وابدأ ←';
-    guestGuideCta.setAttribute('href', 'auth.html?tab=signup');
-  }
-  if (guestGuideProfile){
-    guestGuideProfile.textContent = 'تصفّح المقالات';
-    guestGuideProfile.setAttribute('href', 'articles.html');
+  var guestPhase = (window.HCIFlow && HCIFlow.PHASE.GUEST) || 'guest';
+  if (window.HCIFlow){
+    HCIFlow.applyPathGuide(HCIFlow.pathGuideCopy(guestPhase, {}));
+    HCIFlow.renderFlowRail(guestPhase);
+  } else {
+    setPathsSectionCopy({
+      eyebrow: '/// رحلتك في المنصة',
+      title: 'سبعة مسارات مرتّبة من البداية حتى الإتقان',
+      lead: 'بعد إنشاء الحساب تُوجَّه تلقائياً: اختيار المسار ← البداية ← المقال التعريفي ← المسارات بالترتيب.'
+    });
   }
   stationsRoot.querySelectorAll('[data-stage]').forEach(function(station){
     var statusEl = station.querySelector('.station-status');
@@ -1194,7 +1308,7 @@ if (stationsRoot && !isLoggedInForProgress){
       link.classList.add('show-lock-reason');
       link.setAttribute('aria-disabled', 'true');
       link.setAttribute('href', 'auth.html?tab=signup');
-      link.title = 'أنشئ حساباً أولاً عشان يُحفظ تقدمك وما تضيع';
+      link.title = 'أنشئ حساباً أولاً لحفظ تقدّمك';
       link.addEventListener('click', function(e){
         e.preventDefault();
         location.href = 'auth.html?tab=signup';
@@ -1244,7 +1358,7 @@ if (stationsRoot && !isLoggedInForProgress){
     if (!unlocked){
       station.removeAttribute('aria-current');
       if (statusEl){
-        statusEl.textContent = isFoundationDone() ? 'مقفل' : 'بعد الفهم';
+        statusEl.textContent = isFoundationDone() ? 'مقفل' : 'بعد البداية';
         statusEl.className = 'station-status locked';
       }
       if (link){
@@ -1253,7 +1367,7 @@ if (stationsRoot && !isLoggedInForProgress){
         link.setAttribute('aria-disabled', 'true');
         if (!isFoundationDone()){
           link.setAttribute('href', 'foundation.html');
-          link.title = 'افهم التخصص أولاً قبل المسارات';
+          link.title = 'أكمل البداية أولاً قبل المسارات';
           link.addEventListener('click', function(e){
             e.preventDefault();
             location.href = 'foundation.html';
@@ -1270,7 +1384,17 @@ if (stationsRoot && !isLoggedInForProgress){
       }
     } else if (done){
       station.removeAttribute('aria-current');
-      if (statusEl){ statusEl.textContent = 'مكتمل ✓'; statusEl.className = 'station-status done'; }
+      if (statusEl){ statusEl.textContent = 'مكتمل'; statusEl.className = 'station-status done'; }
+      if (link){
+        link.classList.remove('disabled');
+        link.classList.remove('show-lock-reason');
+        link.removeAttribute('aria-disabled');
+        link.textContent = title;
+      }
+    } else if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
+      /* المتخصص/المدير: لا نُجبرهم على «الحالي» من محطة الاستكشاف */
+      station.removeAttribute('aria-current');
+      if (statusEl){ statusEl.textContent = 'متاح'; statusEl.className = 'station-status open'; }
       if (link){
         link.classList.remove('disabled');
         link.classList.remove('show-lock-reason');
@@ -1281,17 +1405,16 @@ if (stationsRoot && !isLoggedInForProgress){
       station.setAttribute('aria-current', 'step');
       currentAssigned = true;
       currentStageId = id;
-      if (statusEl){ statusEl.textContent = 'أنت هنا'; statusEl.className = 'station-status open'; }
+      if (statusEl){ statusEl.textContent = 'الحالي'; statusEl.className = 'station-status open'; }
       if (link){
         link.classList.remove('disabled');
         link.classList.remove('show-lock-reason');
         link.removeAttribute('aria-disabled');
-        link.textContent = doneCountEarly === 0 ? 'ابدأ من هنا ←' : 'كمّل من هنا ←';
+        link.textContent = doneCountEarly === 0 ? 'ابدأ من هنا ←' : 'تابع من هنا ←';
       }
     } else {
       var bypassOrder = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
       if (bypassOrder){
-        /* المدير / المتخصص: يقدرون يدخلون أي مرحلة */
         station.removeAttribute('aria-current');
         if (statusEl){ statusEl.textContent = 'متاح'; statusEl.className = 'station-status open'; }
         if (link){
@@ -1304,7 +1427,7 @@ if (stationsRoot && !isLoggedInForProgress){
         /* لاحقاً — ما نسمح بالدخول قبل الحالية */
         station.classList.add('is-locked');
         station.removeAttribute('aria-current');
-        if (statusEl){ statusEl.textContent = 'لاحقاً'; statusEl.className = 'station-status locked'; }
+        if (statusEl){ statusEl.textContent = 'بالتسلسل'; statusEl.className = 'station-status locked'; }
         if (link){
           link.classList.add('disabled');
           link.classList.add('show-lock-reason');
@@ -1323,76 +1446,137 @@ if (stationsRoot && !isLoggedInForProgress){
 
   if (!currentStageId) currentStageId = getCurrentStageId();
 
-  var guideTitle = document.getElementById('pathGuideTitle');
-  var guideHint = document.getElementById('pathGuideHint');
-  var guideCta = document.getElementById('pathGuideCta');
-  var guideKicker = document.getElementById('pathGuideKicker');
   var doneCount = JOURNEY_ORDER.filter(isDone).length;
-
-  if (guideTitle && guideCta){
-    if (!isFoundationDone()){
-      if (guideKicker) guideKicker.textContent = 'قبل المسارات';
-      guideTitle.textContent = 'افهم التخصص أولاً';
-      if (guideHint) guideHint.textContent = 'ثلاث قراءات قصيرة — بعدها ينفتح المسار الأول.';
-      guideCta.textContent = 'ابدأ الفهم ←';
-      guideCta.setAttribute('href', 'foundation.html');
-    } else if (doneCount >= JOURNEY_ORDER.length){
-      if (guideKicker) guideKicker.textContent = 'أحسنت';
-      guideTitle.textContent = 'أكملت الرحلة كاملة';
-      if (guideHint) guideHint.textContent = 'تقدر ترجع لأي مسار للمراجعة، أو تطبع شهادتك من الملف الشخصي.';
-      guideCta.textContent = 'عرض الشهادة ←';
-      guideCta.setAttribute('href', 'certificate.html');
+  var userNow = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
+  var sid = currentStageId || 'discover';
+  var phase;
+  if (window.HCIFlow){
+    if (userNow && (userNow.role === 'admin' || userNow.pathType === 'specialist')){
+      phase = userNow.role === 'admin' ? HCIFlow.PHASE.ADMIN : HCIFlow.PHASE.SPECIALIST;
+    } else if (!isFoundationDone() && !(window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist()))){
+      phase = HCIFlow.PHASE.FOUNDATION;
     } else {
-      var sid = currentStageId || 'discover';
-      var title = stageTitle(sid);
-      var num = STAGE_ORDER_LABEL[sid] || '';
-      if (guideKicker) guideKicker.textContent = 'خطوتك التالية · المسار ' + num + ' من 7';
-      guideTitle.textContent = title;
-      if (guideHint){
-        guideHint.textContent = doneCount === 0
-          ? 'ابدأ من هنا بالترتيب. بعد ما تكمّل المسار تُفتح اللي بعده تلقائياً.'
-          : ('أنجزت ' + doneCount + ' من 7. كمّل المسار الذهبي أدناه — هذي مرحلتك الحالية.');
+      phase = HCIFlow.getPhase(userNow || { pathType: 'curious' }, {
+        foundationDone: true,
+        doneCount: doneCount,
+        journeyTotal: JOURNEY_ORDER.length
+      });
+    }
+    var guideCopy = HCIFlow.pathGuideCopy(phase, {
+      firstName: HCIFlow.firstName(userNow) || loggedInName || '',
+      stageNum: STAGE_ORDER_LABEL[sid] || '',
+      stageTitle: stageTitle(sid),
+      stageHref: STAGE_HREFS[sid] || 'discover.html',
+      doneCount: doneCount
+    });
+    if (phase === HCIFlow.PHASE.PATHS_START || phase === HCIFlow.PHASE.PATHS_CONTINUE){
+      if (sid === 'fundamentals'){
+        guideCopy.cta = doneCount === 0 ? 'بدء الأساسيات ←' : 'متابعة الأساسيات ←';
       }
-      guideCta.textContent = doneCount === 0
-        ? (sid === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ من هنا ←')
-        : (sid === 'fundamentals' ? 'كمّل الأساسيات ←' : 'كمّل من هنا ←');
-      guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
+    }
+    HCIFlow.applyPathGuide(guideCopy);
+    HCIFlow.renderFlowRail(phase);
+  } else {
+    var guideTitle = document.getElementById('pathGuideTitle');
+    var guideHint = document.getElementById('pathGuideHint');
+    var guideCta = document.getElementById('pathGuideCta');
+    var guideKicker = document.getElementById('pathGuideKicker');
+    var guideProfile = document.getElementById('pathGuideProfile');
+    if (guideTitle && guideCta){
+      if (!isFoundationDone() && !(window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist()))){
+        setPathsSectionCopy({
+          eyebrow: '/// خطوتك الآن',
+          title: 'أكمل البداية قبل المسارات',
+          lead: 'أنت مسجّل الدخول. المتبقي: صفحة البداية ومقال تعريفي موجز، ثم يُفتح المسار الأول.'
+        });
+        if (guideKicker) guideKicker.textContent = 'مطلوب قبل المسارات';
+        guideTitle.textContent = 'صفحة البداية والمقال التعريفي';
+        if (guideHint) guideHint.textContent = 'شرح موجز للمنصة والتخصص، ثم مقال واحد عن HCI وUX/UI. بعدها تُفتح المسارات بالترتيب.';
+        guideCta.textContent = 'متابعة البداية ←';
+        guideCta.setAttribute('href', 'foundation.html');
+        if (guideProfile) guideProfile.hidden = true;
+      } else if (doneCount >= JOURNEY_ORDER.length){
+        setPathsSectionCopy({
+          eyebrow: '/// أحسنت',
+          title: 'أكملت المسارات السبعة',
+          lead: 'يمكنك مراجعة أي مسار، أو فتح الشهادة من ملفك الشخصي.'
+        });
+        if (guideKicker) guideKicker.textContent = 'مكتمل';
+        guideTitle.textContent = 'الرحلة مكتملة';
+        if (guideHint) guideHint.textContent = 'راجع أي محطة للمراجعة، أو اطبع شهادتك من الملف الشخصي.';
+        guideCta.textContent = 'عرض الشهادة ←';
+        guideCta.setAttribute('href', 'certificate.html');
+        if (guideProfile){
+          guideProfile.hidden = false;
+          guideProfile.textContent = 'الملف الشخصي';
+          guideProfile.setAttribute('href', 'profile.html');
+        }
+      } else {
+        var titleFb = stageTitle(sid);
+        var numFb = STAGE_ORDER_LABEL[sid] || '';
+        setPathsSectionCopy({
+          eyebrow: '/// مساراتك',
+          title: 'سبعة مسارات — مرحلتك الحالية موضّحة أدناه',
+          lead: 'كل مسار يُفتح بعد إكمال الذي قبله. البطاقة الذهبية تشير إلى موضعك الحالي.'
+        });
+        if (guideKicker) guideKicker.textContent = 'خطوتك التالية · المسار ' + numFb + ' من 7';
+        guideTitle.textContent = titleFb;
+        if (guideHint){
+          guideHint.textContent = doneCount === 0
+            ? 'ابدأ بالمسار الذهبي أدناه. بعد إكماله يُفتح التالي تلقائياً.'
+            : ('أنجزت ' + doneCount + ' من 7. تابع المسار الذهبي — هذه مرحلتك الحالية.');
+        }
+        guideCta.textContent = doneCount === 0 ? 'بدء المسار ←' : 'متابعة المسار ←';
+        guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
+        if (guideProfile) guideProfile.hidden = true;
+      }
     }
   }
 
+  var heroSecondary = document.getElementById('heroSecondary');
   if (heroCta){
     var hs = currentStageId || getCurrentStageId() || 'discover';
     var loggedNow = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
     if (!loggedNow){
-      heroCta.textContent = 'أنشئ حساب وابدأ ←';
+      heroCta.textContent = 'إنشاء حساب والبدء ←';
       heroCta.setAttribute('href', 'auth.html?tab=signup');
+      if (heroSecondary){
+        heroSecondary.hidden = false;
+        heroSecondary.textContent = 'لدي حساب — تسجيل الدخول';
+        heroSecondary.setAttribute('href', 'auth.html');
+      }
+    } else if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
+      heroCta.textContent = 'إلى الدورات والأدوات ←';
+      heroCta.setAttribute('href', 'courses.html');
+      if (heroSecondary){
+        heroSecondary.hidden = false;
+        heroSecondary.textContent = 'كل المسارات';
+        heroSecondary.setAttribute('href', '#paths');
+      }
     } else if (!isFoundationDone()){
-      heroCta.textContent = 'افهم التخصص أولاً ←';
+      heroCta.textContent = 'متابعة البداية ←';
       heroCta.setAttribute('href', 'foundation.html');
+      if (heroSecondary) heroSecondary.hidden = true;
     } else if (doneCount >= JOURNEY_ORDER.length){
       heroCta.textContent = 'عرض شهادتك ←';
       heroCta.setAttribute('href', 'certificate.html');
-    } else if (loggedInName){
+      if (heroSecondary){
+        heroSecondary.hidden = false;
+        heroSecondary.textContent = 'الملف الشخصي';
+        heroSecondary.setAttribute('href', 'profile.html');
+      }
+    } else {
       if (doneCount === 0){
-        heroCta.textContent = hs === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ من هنا ←';
+        heroCta.textContent = hs === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ مسارك ←';
       } else if (hs === 'fundamentals'){
-        heroCta.textContent = 'كمّل الأساسيات ←';
+        heroCta.textContent = 'متابعة الأساسيات ←';
       } else if (hs === 'coding'){
-        heroCta.textContent = 'كمّل الترميز ←';
+        heroCta.textContent = 'متابعة الترميز ←';
       } else {
-        heroCta.textContent = 'كمّل مسارك ←';
+        heroCta.textContent = 'متابعة مسارك ←';
       }
       heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
-    } else {
-      // زائر: ابدأ من أول مسار مفتوح — مو من HTML
-      var guestStart = getCurrentStageId() || 'discover';
-      if (guestStart === 'coding' || guestStart === 'courses' || guestStart === 'books'){
-        guestStart = isDone('discover') ? 'fundamentals' : 'discover';
-      }
-      heroCta.textContent = guestStart === 'fundamentals'
-        ? 'ابدأ من الأساسيات ←'
-        : 'ابدأ رحلتك ←';
-      heroCta.setAttribute('href', STAGE_HREFS[guestStart] || 'discover.html');
+      if (heroSecondary) heroSecondary.hidden = true;
     }
   }
 
@@ -2387,10 +2571,37 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
       if (overallPctEl) overallPctEl.textContent = pctNow + '%';
     }
 
-    // صفحات عامة: لو ما اختار مساره أو ما شاف التعريف، نوجّهه
+    // توجيه إجباري للبداية — ما نخلي الجديد يتوه في المقالات أو الرئيسية
     var page = (location.pathname.split('/').pop() || '').toLowerCase();
-    var skipRedirect = ['auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'legal.html'].indexOf(page) !== -1;
-    if (!skipRedirect && !HCIApi.isAdmin()){
+    var staff = HCIApi.isAdmin() || HCIApi.isSpecialist();
+    var previewHome = !!(HCIApi.isPreview && HCIApi.isPreview()) && page === 'index.html';
+    var foundationOk = false;
+    try { foundationOk = isFoundationDone(); } catch (e) { foundationOk = false; }
+    var isStartArticle = page === 'article-what-is-hci.html';
+    var allowWithoutFoundation =
+      staff ||
+      previewHome ||
+      foundationOk ||
+      page === 'auth.html' ||
+      page === 'path-choice.html' ||
+      page === 'intro.html' ||
+      page === 'admin.html' ||
+      page === 'settings.html' ||
+      page === 'legal.html' ||
+      page === 'foundation.html' ||
+      isStartArticle;
+
+    if (!allowWithoutFoundation){
+      location.href = 'foundation.html';
+      return;
+    }
+
+    var skipRedirect = [
+      'auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'legal.html',
+      'articles.html', 'community-article.html', 'foundation.html', 'glossary.html', 'index.html'
+    ].indexOf(page) !== -1 || /^article-[\w-]+\.html$/i.test(page);
+
+    if (!skipRedirect && !HCIApi.isAdmin() && !(HCIApi.isPreview && HCIApi.isPreview() && page === 'index.html')){
       var u = HCIApi.currentUser();
       if (u && !u.pathType){
         location.href = 'path-choice.html';
@@ -2931,10 +3142,32 @@ if (inboxList){
       if (fresh.length){
         var first = fresh[0];
         showToast(first.title, first.body, first.link || 'profile.html#inbox');
+        maybeBrowserNotify(first.title, first.body, first.link || 'profile.html#inbox');
         fresh.forEach(function(n){ seen.push(n.ntype + ':' + n.id); });
         try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen.slice(-80))); } catch (e) { /* */ }
       }
     }).catch(function(){});
+  }
+
+  function maybeBrowserNotify(title, body, link){
+    try {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      var u = HCIApi.currentUser && HCIApi.currentUser();
+      var prefs = (u && u.notifPrefs) || {};
+      if (!prefs.browserPush) return;
+      if (!document.hidden && document.hasFocus && document.hasFocus()) return;
+      var n = new Notification(title || 'HCI', {
+        body: body || '',
+        lang: 'ar',
+        dir: 'rtl',
+        tag: 'hci-' + String(title || '').slice(0, 40)
+      });
+      n.onclick = function(){
+        try { window.focus(); } catch (e) { /* */ }
+        if (link) location.href = link;
+        n.close();
+      };
+    } catch (e) { /* */ }
   }
 
   function bootNotifUi(){
@@ -3027,10 +3260,16 @@ if (journeyMap){
   if (profileOverall) profileOverall.style.width = p + '%';
   if (profileOverallNote){
     profileOverallNote.textContent = p >= 100
-      ? 'أكملت الرحلة كاملة — شهادتك جاهزة للطباعة'
+      ? 'أكملت الرحلة — قيّم تجربتك ثم افتح شهادتك'
       : 'أنجزت ' + p + '% من الرحلة الكاملة';
   }
-  if (certBox) certBox.hidden = p < 100;
+  if (certBox) {
+    certBox.hidden = p < 100;
+    var certSub = certBox.querySelector('.certificate-cta-sub');
+    var certLink = certBox.querySelector('a.btn-primary');
+    if (p >= 100 && certSub) certSub.textContent = 'خطوة أخيرة: تقييم قصير، وبعده شهادتك باسمك.';
+    if (p >= 100 && certLink) certLink.textContent = 'التقييم والشهادة';
+  }
 }
 
 /* ----- مشاركة الموقع وإحصائيات الإحالات ----- */
@@ -3319,53 +3558,37 @@ if (lessonList && codingProgressFill && codingProgressNote){
 
   function renderFoundation(){
     var data = getFoundation();
+    var complete = isFoundationDone();
     var done = 0;
+    var order = FOUNDATION_KEYS;
     stepsRoot.querySelectorAll('.foundation-step').forEach(function(step){
       var id = step.getAttribute('data-foundation');
-      var read = !!(data.read && data.read[id]);
+      var read = complete || !!(data.read && data.read[id]);
       var btn = step.querySelector('.foundation-done-btn');
+      var link = step.querySelector('a.btn-primary');
       step.classList.toggle('is-done', read);
       step.classList.toggle('is-locked-step', false);
       if (btn){
         btn.textContent = read ? 'تم الفهم ✓' : 'قرأت وفهمت ✓';
         btn.classList.toggle('done', read);
+        btn.disabled = false;
       }
+      if (link){ link.classList.remove('disabled'); link.removeAttribute('aria-disabled'); }
       if (read) done++;
     });
-    // قفل الخطوات بالتسلسل: الثانية بعد الأولى، الثالثة بعد الثانية
-    var order = FOUNDATION_KEYS;
-    order.forEach(function(id, i){
-      var step = stepsRoot.querySelector('[data-foundation="' + id + '"]');
-      if (!step) return;
-      var unlocked = i === 0 || !!(data.read && data.read[order[i - 1]]);
-      step.classList.toggle('is-locked-step', !unlocked && !(data.read && data.read[id]));
-      var link = step.querySelector('a.btn-primary');
-      var btn = step.querySelector('.foundation-done-btn');
-      if (!unlocked && !(data.read && data.read[id])){
-        if (link){ link.classList.add('disabled'); link.setAttribute('aria-disabled', 'true'); }
-        if (btn) btn.disabled = true;
-      } else {
-        if (link){ link.classList.remove('disabled'); link.removeAttribute('aria-disabled'); }
-        if (btn) btn.disabled = false;
-      }
-    });
 
-    var pct = Math.round((done / order.length) * 100);
+    var pct = complete ? 100 : Math.round((done / Math.max(order.length, 1)) * 100);
     if (fill) fill.style.width = pct + '%';
     if (note){
-      if (done === 0) note.textContent = '0 من 3 — ابدأ بالمقال الأول';
-      else if (done < 3) note.textContent = 'قرأت ' + done + ' من 3 — كمّل اللي بعده';
-      else note.textContent = 'اكتمل الفهم — المسارات جاهزة تنفتح';
+      if (complete) note.textContent = 'اكتمل — المسارات جاهزة';
+      else note.textContent = 'باقي مقال تعريفي واحد (التخصص + UX و UI)';
     }
-    var complete = done >= 3;
     if (ready) ready.hidden = !complete;
     if (pending) pending.hidden = complete;
     if (startCta){
       startCta.textContent = 'ابدأ المسار الأول ←';
       startCta.setAttribute('href', 'discover.html');
     }
-    var writeCta = document.getElementById('foundationWriteCta');
-    if (writeCta) writeCta.setAttribute('href', 'write-article.html');
   }
 
   stepsRoot.querySelectorAll('.foundation-done-btn').forEach(function(btn){
@@ -3379,7 +3602,7 @@ if (lessonList && codingProgressFill && codingProgressNote){
       markFoundationRead(id);
       renderFoundation();
       if (isFoundationDone()){
-        showUnlockToast('فتحت المسارات — تقدر تبدأ الحين ✨');
+        showUnlockToast('فُتحت المسارات — يمكنك البدء الآن');
       }
     });
   });
@@ -3405,7 +3628,7 @@ if (lessonList && codingProgressFill && codingProgressNote){
   if (!id) return;
   var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
   if (!logged){
-    btn.textContent = 'أنشئ حساب عشان تُحفظ خطوتك ←';
+    btn.textContent = 'أنشئ حساباً لحفظ خطوتك ←';
     btn.addEventListener('click', function(){
       location.href = 'auth.html?tab=signup&next=foundation.html';
     });
@@ -3413,6 +3636,11 @@ if (lessonList && codingProgressFill && codingProgressNote){
   }
   btn.addEventListener('click', function(){
     markFoundationRead(id);
+    if (id === 'hci' && isFoundationDone()){
+      showUnlockToast('فُتحت المسارات — يمكنك البدء الآن');
+      location.href = 'discover.html';
+      return;
+    }
     location.href = 'foundation.html';
   });
 })();
@@ -3628,6 +3856,105 @@ if (settingsSwatchRow){
   syncAccentSwatches();
 }
 
+(function initNotifPrefsSettings(){
+  var rows = {
+    inApp: document.getElementById('notifInAppRow'),
+    browserPush: document.getElementById('notifBrowserRow'),
+    stalled: document.getElementById('notifStalledRow'),
+    updates: document.getElementById('notifUpdatesRow')
+  };
+  if (!rows.inApp) return;
+
+  var state = { inApp: true, browserPush: false, stalled: true, updates: true };
+  var u = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
+  if (u && u.notifPrefs){
+    state.inApp = u.notifPrefs.inApp !== false;
+    state.browserPush = !!u.notifPrefs.browserPush;
+    state.stalled = u.notifPrefs.stalled !== false;
+    state.updates = u.notifPrefs.updates !== false;
+  }
+
+  function paintRow(row, on){
+    if (!row) return;
+    row.querySelectorAll('.size-btn').forEach(function(btn){
+      btn.classList.toggle('active', (btn.getAttribute('data-on') === '1') === !!on);
+    });
+  }
+
+  function paintAll(){
+    paintRow(rows.inApp, state.inApp);
+    paintRow(rows.browserPush, state.browserPush);
+    paintRow(rows.stalled, state.stalled);
+    paintRow(rows.updates, state.updates);
+  }
+  paintAll();
+
+  function bindRow(key, row){
+    if (!row) return;
+    row.addEventListener('click', function(ev){
+      var btn = ev.target.closest('.size-btn');
+      if (!btn) return;
+      state[key] = btn.getAttribute('data-on') === '1';
+      paintRow(row, state[key]);
+      if (key === 'browserPush' && state.browserPush){
+        requestBrowserNotifPermission();
+      }
+    });
+  }
+  bindRow('inApp', rows.inApp);
+  bindRow('browserPush', rows.browserPush);
+  bindRow('stalled', rows.stalled);
+  bindRow('updates', rows.updates);
+
+  window.__hciCollectNotifPrefs = function(){ return {
+    inApp: !!state.inApp,
+    browserPush: !!state.browserPush,
+    stalled: !!state.stalled,
+    updates: !!state.updates
+  }; };
+
+  function requestBrowserNotifPermission(){
+    var note = document.getElementById('notifBrowserNote');
+    if (!('Notification' in window)){
+      state.browserPush = false;
+      paintRow(rows.browserPush, false);
+      if (note){ note.hidden = false; note.textContent = 'متصفحك ما يدعم تنبيهات سطح المكتب.'; }
+      return Promise.resolve(false);
+    }
+    if (Notification.permission === 'granted'){
+      if (note){ note.hidden = false; note.textContent = 'تنبيهات المتصفح مفعّلة ✓'; }
+      return Promise.resolve(true);
+    }
+    if (Notification.permission === 'denied'){
+      state.browserPush = false;
+      paintRow(rows.browserPush, false);
+      if (note){
+        note.hidden = false;
+        note.textContent = 'المتصفح مانع التنبيهات — فعّلها من إعدادات الموقع في المتصفح.';
+      }
+      return Promise.resolve(false);
+    }
+    return Notification.requestPermission().then(function(perm){
+      if (perm === 'granted'){
+        if (note){ note.hidden = false; note.textContent = 'تم السماح بتنبيهات المتصفح ✓'; }
+        return true;
+      }
+      state.browserPush = false;
+      paintRow(rows.browserPush, false);
+      if (note){ note.hidden = false; note.textContent = 'ما تم السماح — تقدر تفعّلها لاحقاً من إعدادات المتصفح.'; }
+      return false;
+    }).catch(function(){ return false; });
+  }
+  window.__hciRequestBrowserNotifPermission = requestBrowserNotifPermission;
+
+  if (location.hash === '#notifications' || location.hash === '#sec-notifications'){
+    var btn = document.querySelector('.settings-side-link[data-target="sec-notifications"]');
+    if (btn) btn.click();
+    var sec = document.getElementById('sec-notifications');
+    if (sec) setTimeout(function(){ sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+  }
+})();
+
 if (settingsSaveAll){
   settingsSaveAll.addEventListener('click', async function(){
     var first = settingsFirstName ? settingsFirstName.value.trim() : '';
@@ -3674,8 +4001,16 @@ if (settingsSaveAll){
     try {
       if (window.HCIApi && HCIApi.isLoggedIn()){
         await HCIApi.updateProfile(first, last);
+        if (typeof window.__hciCollectNotifPrefs === 'function'){
+          var prefs = window.__hciCollectNotifPrefs();
+          if (prefs.browserPush && typeof window.__hciRequestBrowserNotifPermission === 'function'){
+            var ok = await window.__hciRequestBrowserNotifPermission();
+            prefs.browserPush = !!ok;
+          }
+          await HCIApi.updateNotifPrefs(prefs);
+        }
         localStorage.setItem('hci_user_name', first + ' ' + last);
-        if (settingsSaveNote) settingsSaveNote.textContent = 'تم حفظ التغييرات في الحساب والشهادة ولوحة الإدارة.';
+        if (settingsSaveNote) settingsSaveNote.textContent = 'تم حفظ التغييرات في الحساب والشهادة والتنبيهات.';
       } else {
         localStorage.setItem('hci_user_name', first + ' ' + last);
         if (settingsSaveNote) settingsSaveNote.textContent = 'تم حفظ التغييرات محلياً.';
@@ -3686,7 +4021,7 @@ if (settingsSaveAll){
       if (window.HCINotifCenter){
         HCINotifCenter.pushLocal(
           'تم حفظ التعديلات',
-          'حُفظت بياناتك وتفضيلات العرض بنجاح.',
+          'حُفظت بياناتك وتفضيلات العرض والتنبيهات بنجاح.',
           'settings.html'
         );
       }
@@ -3707,6 +4042,34 @@ if (settingsSaveAll){
     }
   });
 }
+
+/* تذكير لطيف مرة واحدة: فعّل التنبيهات */
+(function softNotifPrompt(){
+  try {
+    if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())) return;
+    if (localStorage.getItem('hci_notif_prompted') === '1') return;
+    var page = (location.pathname.split('/').pop() || '').toLowerCase();
+    if (page === 'settings.html' || page === 'auth.html' || page === 'admin.html') return;
+    var u = HCIApi.currentUser && HCIApi.currentUser();
+    if (!u || u.role === 'admin') return;
+    var prefs = u.notifPrefs || {};
+    if (prefs.browserPush) {
+      localStorage.setItem('hci_notif_prompted', '1');
+      return;
+    }
+    setTimeout(function(){
+      localStorage.setItem('hci_notif_prompted', '1');
+      if (window.HCINotifCenter && HCINotifCenter.pushLocal){
+        HCINotifCenter.pushLocal(
+          'فعّل التنبيهات؟',
+          'نقدر نذكّرك لو وقفت، ونبلّغك بالتحديثات — من الإعدادات.',
+          'settings.html#notifications'
+        );
+        HCINotifCenter.refresh(true);
+      }
+    }, 2200);
+  } catch (e) { /* */ }
+})();
 
 // ----- المعجم -----
 var glossaryList = document.getElementById('glossaryList');
@@ -3854,7 +4217,7 @@ if (quizCheckBtn && quizResult){
       jUnlock.unlocked.coding = true;
       jUnlock.done.fundamentals = true;
       saveJourney(jUnlock);
-      quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. تقدر تضغط «التالي» الآن.';
+      quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. يمكنك الضغط على «التالي» الآن.';
       updateCodingNextButton();
       if (window.HCIApi && HCIApi.isLoggedIn()){
         HCIApi.syncProgress().catch(function(){});

@@ -25,7 +25,7 @@
     if (token && !verifiedFlag) {
       try {
         var sessionUser = JSON.parse(localStorage.getItem('hci_user_json') || 'null');
-        if (sessionUser && (sessionUser.emailVerified || sessionUser.phoneVerified || sessionUser.role === 'admin' || sessionUser.pathType)) {
+        if (sessionUser && (sessionUser.emailVerified || sessionUser.phoneVerified || sessionUser.role === 'admin' || sessionUser.isPreview)) {
           verifiedFlag = true;
         }
       } catch (e) { /* */ }

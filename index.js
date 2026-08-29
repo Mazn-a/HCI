@@ -935,7 +935,7 @@ app.post('/api/auth/confirm-otp', (req, res) => {
     if (resolved.channel === 'phone') patch.phone_verified = true;
     db.updateUser(user.id, patch);
     const updated = db.findUserById(user.id);
-    sendAuth(res, updated, { ok: true });
+    sendAuth(res, updated, { ok: true, isNew: !updated.path_type });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر التحقق من الرمز' });
@@ -994,22 +994,22 @@ app.patch('/api/auth/intro-seen', authRequired, (req, res) => {
 
 /* ---------- التقدم ---------- */
 app.get('/api/progress', authRequired, (req, res) => {
-  const row = db.getProgress(req.user.id);
-  if (!row) {
+  const ctx = progressContext(req.user.id);
+  if (!ctx.row) {
     return res.json({
       journey: {}, coding: {}, codingStage: '',
       practice: {}, courses: {}, books: {}, quiz: {}
     });
   }
   res.json({
-    journey: JSON.parse(row.journey_json || '{}'),
-    coding: JSON.parse(row.coding_json || '{}'),
-    codingStage: row.coding_stage || '',
-    practice: JSON.parse(row.practice_json || '{}'),
-    courses: JSON.parse(row.courses_json || '{}'),
-    books: JSON.parse(row.books_json || '{}'),
-    quiz: JSON.parse(row.quiz_json || '{}'),
-    updatedAt: row.updated_at
+    journey: trust.sanitizeJourney(ctx.journey, ctx),
+    coding: parseJsonSafe(ctx.row.coding_json, {}),
+    codingStage: ctx.row.coding_stage || '',
+    practice: ctx.practice,
+    courses: ctx.courses,
+    books: ctx.books,
+    quiz: ctx.quiz,
+    updatedAt: ctx.row.updated_at
   });
 });
 

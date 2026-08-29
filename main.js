@@ -476,7 +476,12 @@ function isFoundationDone(){
   if (data.read && data.read.hci) return true;
   /* توافق مع اللي خلّصوا الخطوات القديمة الثلاث */
   if (data.read && data.read.uxui && data.read.nielsen) return true;
-  return FOUNDATION_KEYS.every(function(k){ return !!(data.read && data.read[k]); });
+  if (FOUNDATION_KEYS.every(function(k){ return !!(data.read && data.read[k]); })) return true;
+  var j = getJourney();
+  if (j.foundationDone) return true;
+  var done = j.done || {};
+  return !!(done.discover || done.fundamentals || done.coding ||
+    done.courses || done.books || done.practice || done.contribute);
 }
 
 function markFoundationRead(id){
@@ -488,6 +493,13 @@ function markFoundationRead(id){
     data.completedAt = data.completedAt || new Date().toISOString();
   }
   saveFoundation(data);
+  if (data.read.hci){
+    var j = getJourney();
+    if (!j.foundationDone){
+      j.foundationDone = true;
+      saveJourney(j);
+    }
+  }
   return isFoundationDone();
 }
 
@@ -2560,7 +2572,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
         statusMsg.textContent = 'تم التأكيد. جاري فتح مسارك…';
         statusMsg.classList.add('show');
-        var dest = await HCIApi.afterAuthFlow(conf.user || HCIApi.currentUser(), true);
+        var dest = await HCIApi.afterAuthFlow(conf.user || HCIApi.currentUser(), !!conf.isNew);
         window.location.href = dest;
       } catch (err) {
         statusMsg.textContent = err.message;
@@ -2690,6 +2702,31 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
     var previewHome = !!(HCIApi.isPreview && HCIApi.isPreview()) && page === 'index.html';
     var foundationOk = false;
     try { foundationOk = isFoundationDone(); } catch (e) { foundationOk = false; }
+    if (page === 'foundation.html' && foundationOk){
+      var pendingCard = document.getElementById('foundationPendingCard');
+      var readyCard = document.getElementById('foundationReadyCard');
+      if (pendingCard) pendingCard.hidden = true;
+      if (readyCard){
+        readyCard.hidden = false;
+        readyCard.classList.add('is-visible');
+        readyCard.classList.remove('reveal-wait');
+      }
+      showStatusBanner('foundationStatus', 'المسار الأول مفتوح. يمكنك مراجعة المقال متى شئت.', 'ok');
+    }
+    document.querySelectorAll('[data-course-done]').forEach(function(btn){
+      var id = btn.getAttribute('data-course-done');
+      if (localStorage.getItem('hci_course_' + id)){
+        btn.textContent = 'تم التسجيل ✓';
+        btn.classList.add('done');
+      }
+    });
+    document.querySelectorAll('[data-book-read]').forEach(function(btn){
+      var id = btn.getAttribute('data-book-read');
+      if (localStorage.getItem('hci_book_' + id)){
+        btn.textContent = 'قرأت الملخص ✓';
+        btn.classList.add('done');
+      }
+    });
     var isStartArticle = page === 'article-what-is-hci.html';
     var allowWithoutFoundation =
       staff ||
@@ -3733,12 +3770,16 @@ function showStatusBanner(id, message, kind){
   if (btn){
     btn.addEventListener('click', function(){
       if (!logged){
-        location.href = 'auth.html?tab=signup&next=article-what-is-hci.html?from=foundation';
+        location.href = 'auth.html?tab=signup&next=' + encodeURIComponent('article-what-is-hci.html?from=foundation');
         return;
       }
       if (!isFoundationDone()){
-        if (sentinel) sentinel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
+        if (reachedArticleEnd()){
+          markFoundationRead('hci');
+        } else {
+          if (sentinel) sentinel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
       }
       showUnlockToast('الانتقال إلى المسار الأول');
       location.href = 'discover.html';
@@ -3765,8 +3806,25 @@ function showStatusBanner(id, message, kind){
     btn.textContent = 'التالي ←';
   }
 
+  var sentinelWasAway = false;
+  function noteIfAway(){
+    if (!sentinel) return;
+    var rect = sentinel.getBoundingClientRect();
+    var view = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (rect.top > view - 24) sentinelWasAway = true;
+  }
+  noteIfAway();
+
   function markAtEnd(){
+    noteIfAway();
     if (counted || !reachedArticleEnd()) return;
+    if (!sentinelWasAway){
+      if (btn){
+        btn.disabled = false;
+        btn.textContent = 'التالي: المسار الأول ←';
+      }
+      return;
+    }
     counted = true;
     if (io) io.disconnect();
     markFoundationRead('hci');
@@ -3776,7 +3834,8 @@ function showStatusBanner(id, message, kind){
   if (sentinel && 'IntersectionObserver' in window){
     io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
-        if (entry.isIntersecting) markAtEnd();
+        if (!entry.isIntersecting) sentinelWasAway = true;
+        else markAtEnd();
       });
     }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
     io.observe(sentinel);
@@ -4408,11 +4467,14 @@ if (spotOptions.length){
         done++;
         localStorage.setItem('hci_practice_count', String(done));
       }
-      if (done >= 3){
-        markComplete('practice');
-      }
       if (window.HCIApi && HCIApi.completePractice){
-        HCIApi.completePractice(sceneId).catch(function(){});
+        HCIApi.completePractice(sceneId).then(function(resp){
+          if (resp && resp.count >= 3) markComplete('practice');
+        }).catch(function(){
+          if (done >= 3) markComplete('practice');
+        });
+      } else if (done >= 3){
+        markComplete('practice');
       }
     });
   });
@@ -4446,9 +4508,16 @@ if (analyzeRoot){
           localStorage.setItem('hci_practice_analyze', '1');
           var doneA = parseInt(localStorage.getItem('hci_practice_count') || '0', 10) + 1;
           localStorage.setItem('hci_practice_count', String(doneA));
-          if (doneA >= 3) markComplete('practice');
-          if (window.HCIApi && HCIApi.completePractice) HCIApi.completePractice('analyze').catch(function(){});
-          else if (window.HCIApi) HCIApi.scheduleSync();
+          if (window.HCIApi && HCIApi.completePractice){
+            HCIApi.completePractice('analyze').then(function(resp){
+              if (resp && resp.count >= 3) markComplete('practice');
+            }).catch(function(){
+              if (doneA >= 3) markComplete('practice');
+            });
+          } else {
+            if (doneA >= 3) markComplete('practice');
+            if (window.HCIApi) HCIApi.scheduleSync();
+          }
         }
       } catch (e) { /* */ }
     } else {

@@ -138,6 +138,13 @@ function sanitizeJourney(journey, ctx) {
   if (noteCount(ctx.courses, VALID_COURSES) < 1) delete done.courses;
   if (noteCount(ctx.books, VALID_BOOKS) < 2) delete done.books;
   j.done = done;
+  if (
+    j.foundationDone ||
+    done.discover || done.fundamentals || done.coding ||
+    done.courses || done.books || done.practice || done.contribute
+  ) {
+    j.foundationDone = true;
+  }
   return j;
 }
 

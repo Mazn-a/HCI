@@ -124,6 +124,32 @@
           hideSecondary: false
         };
 
+      case PHASE.PATH_CHOICE:
+        return {
+          sectionEyebrow: '/// خطوتك الآن',
+          sectionTitle: name ? name + '، اختر مسارك' : 'اختر مسارك',
+          sectionLead: 'حدّد إن كنت تبدأ من الصفر أو تتجاوز المقدمة.',
+          kicker: 'مطلوب الآن',
+          title: 'اختيار المسار',
+          hint: 'مهتم بالتخصص أو متخصص — بعدها نكمّل من مكانك الصحيح.',
+          cta: 'اختيار المسار ←',
+          ctaHref: 'path-choice.html',
+          hideSecondary: true
+        };
+
+      case PHASE.INTRO:
+        return {
+          sectionEyebrow: '/// خطوتك الآن',
+          sectionTitle: name ? name + '، اقرأ المقدمة' : 'اقرأ المقدمة',
+          sectionLead: 'قبل المسارات: فهم سريع لماهية التخصص ولماذا يهم.',
+          kicker: 'المقدمة',
+          title: 'مقدمة HCI',
+          hint: 'اقرأ بهدوء، ثم ابدأ صفحة البداية والمقال التعريفي.',
+          cta: 'متابعة المقدمة ←',
+          ctaHref: 'intro.html',
+          hideSecondary: true
+        };
+
       case PHASE.FOUNDATION:
         return {
           sectionEyebrow: '/// خطوتك الآن',

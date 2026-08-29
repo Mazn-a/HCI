@@ -90,6 +90,7 @@
       'hci_book_eyal',
       'hci_avatar',
       'hci_seen_notif_ids',
+      'hci_local_notifs',
       'hci_foundation'
     ];
     keys.forEach(function (k) {
@@ -126,7 +127,7 @@
     if (isAdmin()) return true;
     if (localStorage.getItem('hci_verified') === '1') return true;
     var u = currentUser();
-    return !!(u && (u.emailVerified || u.phoneVerified || u.pathType));
+    return !!(u && (u.emailVerified || u.phoneVerified || u.isPreview));
   }
 
   function getPathType() {
@@ -490,43 +491,120 @@
     };
   }
 
+  function evidenceFlag(val) {
+    if (!val) return false;
+    if (val === true || val === 1 || val === '1') return true;
+    if (typeof val === 'object' && String(val.note || '').trim().length >= 40) return true;
+    return false;
+  }
+
+  function hydrateFoundation(journey) {
+    var j = journey || {};
+    var done = j.done || {};
+    var inferred = !!(
+      j.foundationDone ||
+      done.discover || done.fundamentals || done.coding ||
+      done.courses || done.books || done.practice || done.contribute
+    );
+    if (!inferred) return;
+    try {
+      var data = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
+      if (!data.read) data.read = {};
+      data.read.hci = true;
+      data.completedAt = data.completedAt || new Date().toISOString();
+      localStorage.setItem('hci_foundation', JSON.stringify(data));
+    } catch (e) { /* */ }
+  }
+
   function applyProgress(data) {
     if (!data) return;
-    if (data.journey) localStorage.setItem('hci_journey', JSON.stringify(data.journey));
+    if (data.journey) {
+      localStorage.setItem('hci_journey', JSON.stringify(data.journey));
+      hydrateFoundation(data.journey);
+    }
     if (data.coding) localStorage.setItem('hci_coding_progress', JSON.stringify(data.coding));
     if (data.codingStage) localStorage.setItem('hci_coding_stage', data.codingStage);
     if (data.quiz) localStorage.setItem('hci_quiz', JSON.stringify(data.quiz));
 
     if (data.practice) {
-      if (data.practice.count) localStorage.setItem('hci_practice_count', String(data.practice.count));
+      var practiceCount = data.practice.count;
+      if (data.practice.scenes && typeof data.practice.scenes === 'object') {
+        Object.keys(data.practice.scenes).forEach(function (id) {
+          if (data.practice.scenes[id]) localStorage.setItem('hci_practice_' + id, '1');
+        });
+        if (practiceCount == null) {
+          practiceCount = Object.keys(data.practice.scenes).filter(function (k) {
+            return !!data.practice.scenes[k];
+          }).length;
+        }
+      }
       Object.keys(data.practice).forEach(function (k) {
-        if (k !== 'count' && data.practice[k]) localStorage.setItem('hci_practice_' + k, '1');
+        if (k !== 'count' && k !== 'scenes' && data.practice[k]) {
+          localStorage.setItem('hci_practice_' + k, '1');
+        }
       });
+      if (practiceCount) localStorage.setItem('hci_practice_count', String(practiceCount));
     }
     if (data.courses) {
-      Object.keys(data.courses).forEach(function (k) {
-        if (data.courses[k]) localStorage.setItem('hci_course_' + k, '1');
+      ['satr', 'google', 'idf', 'figma'].forEach(function (id) {
+        if (evidenceFlag(data.courses[id])) localStorage.setItem('hci_course_' + id, '1');
+        else localStorage.removeItem('hci_course_' + id);
       });
     }
     if (data.books) {
-      Object.keys(data.books).forEach(function (k) {
-        if (data.books[k]) localStorage.setItem('hci_book_' + k, '1');
+      ['norman', 'krug', 'cooper', 'eyal'].forEach(function (id) {
+        if (evidenceFlag(data.books[id])) localStorage.setItem('hci_book_' + id, '1');
+        else localStorage.removeItem('hci_book_' + id);
       });
     }
   }
 
-  // دمج تقدم محلي مع السيرفر (يأخذ الأحدث/الأكمل)
+  function mergeQuiz(localQ, remoteQ) {
+    var local = localQ || {};
+    var remote = remoteQ || {};
+    var out = Object.assign({}, local, remote);
+    var lf = local.fundamentals || {};
+    var rf = remote.fundamentals || {};
+    out.fundamentals = {
+      passed: !!(lf.passed || rf.passed),
+      score: Math.max(Number(lf.score) || 0, Number(rf.score) || 0),
+      total: Number(rf.total || lf.total || 4),
+      at: rf.at || lf.at || null
+    };
+    return out;
+  }
+
+  // دمج الرحلة: السيرفر يحكم المراحل المشروطة، والجهاز يحتفظ بالزيارة والبداية
   function mergeJourney(localJ, remoteJ) {
+    var local = localJ || {};
+    var remote = remoteJ || {};
     var out = { visited: {}, done: {}, unlocked: {}, bootstrapped: true };
-    [localJ || {}, remoteJ || {}].forEach(function (j) {
-      ['visited', 'done', 'unlocked'].forEach(function (key) {
+    [local, remote].forEach(function (j) {
+      ['visited', 'unlocked'].forEach(function (key) {
         var map = j[key] || {};
         Object.keys(map).forEach(function (k) {
           if (map[k]) out[key][k] = true;
         });
       });
       if (j.bootstrapped) out.bootstrapped = true;
+      if (j.completedAt && !out.completedAt) out.completedAt = j.completedAt;
     });
+    var gated = { fundamentals: 1, practice: 1, courses: 1, books: 1 };
+    var rd = remote.done || {};
+    var ld = local.done || {};
+    Object.keys(rd).forEach(function (k) {
+      if (rd[k]) out.done[k] = true;
+    });
+    Object.keys(ld).forEach(function (k) {
+      if (ld[k] && !gated[k]) out.done[k] = true;
+    });
+    if (
+      local.foundationDone || remote.foundationDone ||
+      out.done.discover || out.done.fundamentals || out.done.coding ||
+      out.done.courses || out.done.books || out.done.practice || out.done.contribute
+    ) {
+      out.foundationDone = true;
+    }
     return out;
   }
 
@@ -540,16 +618,29 @@
           journey: mergeJourney(local.journey, remote.journey),
           coding: Object.assign({}, remote.coding || {}, local.coding || {}),
           codingStage: local.codingStage || remote.codingStage || '',
-          practice: Object.assign({}, remote.practice || {}, local.practice || {}),
-          courses: Object.assign({}, remote.courses || {}, local.courses || {}),
-          books: Object.assign({}, remote.books || {}, local.books || {}),
-          quiz: Object.assign({}, remote.quiz || {}, local.quiz || {})
+          practice: remote.practice || {},
+          courses: remote.courses || {},
+          books: remote.books || {},
+          quiz: mergeQuiz(local.quiz, remote.quiz)
         };
         applyProgress(merged);
         try {
           if (typeof sanitizeJourneyProgress === 'function') sanitizeJourneyProgress();
         } catch (e) { /* */ }
-        await saveProgress(merged);
+        var saved = await saveProgress({
+          journey: merged.journey,
+          coding: merged.coding,
+          codingStage: merged.codingStage
+        });
+        if (saved && saved.journey) {
+          applyProgress({
+            journey: saved.journey,
+            practice: remote.practice,
+            courses: remote.courses,
+            books: remote.books,
+            quiz: remote.quiz
+          });
+        }
       })(), 12000, 'مزامنة التقدم استغرقت وقتاً طويلاً');
     } catch (err) {
       console.warn('مزامنة التقدم:', err.message);
@@ -653,7 +744,12 @@
       if (data.completedAt) return true;
       var read = data.read || {};
       if (read.hci) return true;
-      return !!(read.uxui && read.nielsen);
+      if (read.uxui && read.nielsen) return true;
+      var j = JSON.parse(localStorage.getItem('hci_journey') || '{}');
+      if (j.foundationDone) return true;
+      var done = j.done || {};
+      return !!(done.discover || done.fundamentals || done.coding ||
+        done.courses || done.books || done.practice || done.contribute);
     } catch (e) {
       return false;
     }

@@ -1808,21 +1808,63 @@ function updateCodingNextButton(){
 updateCodingNextButton();
 
 // ----- أنيميشن الظهور عند التمرير -----
-var revealEls = document.querySelectorAll('.reveal, .tl-item');
-if (revealEls.length && 'IntersectionObserver' in window){
+// المحتوى فوق الثنية يبقى ظاهراً. العنصر يُخفى فقط إذا كان تحت الشاشة فعلاً.
+(function setupReveal(){
+  var revealEls = document.querySelectorAll('.reveal, .tl-item');
+  if (!revealEls.length) return;
+
+  function showReveal(el){
+    el.classList.add('is-visible');
+    el.classList.remove('reveal-wait');
+  }
+
+  function isHidden(el){
+    if (el.hidden || el.getAttribute('hidden') !== null) return true;
+    var p = el.parentElement;
+    while (p){
+      if (p.hidden || p.getAttribute('hidden') !== null) return true;
+      p = p.parentElement;
+    }
+    return false;
+  }
+
+  function inFirstScreen(el){
+    if (isHidden(el)) return false;
+    var rect = el.getBoundingClientRect();
+    var view = window.innerHeight || document.documentElement.clientHeight || 800;
+    return rect.top < view - 8 && rect.bottom > 0;
+  }
+
+  revealEls.forEach(function(el){ showReveal(el); });
+
+  if (!('IntersectionObserver' in window)) return;
+
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(entry){
       if (entry.isIntersecting){
-        entry.target.classList.add('is-visible');
+        showReveal(entry.target);
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -12% 0px' });
+  }, { threshold: 0, rootMargin: '80px 0px 80px 0px' });
 
-  revealEls.forEach(function(el){ io.observe(el); });
-} else {
-  revealEls.forEach(function(el){ el.classList.add('is-visible'); });
-}
+  revealEls.forEach(function(el){
+    if (isHidden(el)) return;
+    if (inFirstScreen(el)){
+      showReveal(el);
+      return;
+    }
+    el.classList.remove('is-visible');
+    el.classList.add('reveal-wait');
+    io.observe(el);
+  });
+
+  setTimeout(function(){
+    revealEls.forEach(function(el){
+      if (!el.classList.contains('is-visible') && !isHidden(el)) showReveal(el);
+    });
+  }, 600);
+})();
 
 // ----- شريط تقدم القراءة -----
 var readingFill = document.getElementById('readingProgressFill');
@@ -3636,8 +3678,20 @@ function showStatusBanner(id, message, kind){
   var ready = document.getElementById('foundationReadyCard');
   var complete = isFoundationDone();
 
-  if (pending) pending.hidden = complete;
-  if (ready) ready.hidden = !complete;
+  if (pending){
+    pending.hidden = complete;
+    if (!complete){
+      pending.classList.add('is-visible');
+      pending.classList.remove('reveal-wait');
+    }
+  }
+  if (ready){
+    ready.hidden = !complete;
+    if (complete){
+      ready.classList.add('is-visible');
+      ready.classList.remove('reveal-wait');
+    }
+  }
 
   if (complete){
     showStatusBanner('foundationStatus', 'المسار الأول مفتوح. يمكنك مراجعة المقال متى شئت.', 'ok');

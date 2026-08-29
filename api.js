@@ -36,6 +36,13 @@
     try { localStorage.setItem('hci_session', '1'); } catch (e) { /* */ }
     if (token) localStorage.setItem('hci_token', token);
     if (user) {
+      try {
+        var prevId = localStorage.getItem('hci_user_id');
+        if (prevId && String(user.id) !== String(prevId)) {
+          localStorage.removeItem('hci_local_notifs');
+          localStorage.removeItem('hci_seen_notif_ids');
+        }
+      } catch (e) { /* */ }
       localStorage.setItem('hci_user_name', user.fullName || (user.firstName + ' ' + user.lastName));
       localStorage.setItem('hci_user_id', String(user.id));
       localStorage.setItem('hci_user_role', user.role || 'student');
@@ -700,8 +707,13 @@
     });
   }
 
-  /* زائر بلا توكن: امسح الهوية فقط — لا تمسح تقدّم الجهاز */
-  if (!getToken()) clearIdentity();
+  /* زائر بلا توكن ولا جلسة كوكي: امسح الهوية فقط — لا تمسح تقدّم الجهاز */
+  (function clearStaleIdentity(){
+    if (getToken()) return;
+    var sessionFlag = false;
+    try { sessionFlag = localStorage.getItem('hci_session') === '1'; } catch (e) { sessionFlag = false; }
+    if (!sessionFlag) clearIdentity();
+  })();
 
   try {
     var rememberRaw = localStorage.getItem('hci_remember_login');

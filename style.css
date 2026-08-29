@@ -548,8 +548,9 @@ summary:focus-visible, select:focus-visible, textarea:focus-visible{
   opacity:1;
   transform: none;
 }
-html.js .reveal,
-html.js .tl-item{
+/* نخفي فقط العناصر اللي فعلاً تحت الثنية — فوق الثنية تبقى ظاهرة */
+html.js .reveal.reveal-wait,
+html.js .tl-item.reveal-wait{
   opacity:0;
   transform: translateY(22px);
   transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);

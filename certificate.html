@@ -85,9 +85,15 @@
   </div>
 
   <p class="cert-locked no-print" id="certLocked" hidden>
-    الشهادة تُفتح بعد إكمال كل محطات الرحلة (100%).
+    الشهادة تُفتح بعد إكمال المسار بأدلته على السيرفر (اختبار، تمارين، جمل الدورات والكتب)، ثم تقييم قصير.
     <a href="index.html#paths">ارجع للمسارات</a>
   </p>
+
+  <section class="cert-trust no-print" id="certTrustNote">
+    <p><strong>ماذا تعني هذه الشهادة؟</strong> إثبات أنك أتممت مسار منصة HCI، ورقمها يُتحقق منه من سجلات المنصة. ليست اعتماداً من هدف أو جامعة أو NCAAA.</p>
+    <p><strong>كيف تصل لاعتراف خارجي؟</strong> ١) اجعل تقييمك هنا حقيقياً (تم). ٢) أرفق أثراً (تقرير واجهة) في ملفك. ٣) اطلب من قسمك خطاب نشاط لا صفّي إن رغبوا. ٤) للشهادة المهنية المدرجة: مسار قوقل في صفحة الدورات أو أي شهادة في قائمة هدف.</p>
+    <p><a href="legal.html#privacy">تفاصيل الخطاب القانوني</a></p>
+  </section>
 
   <div class="cert-feedback no-print" id="certFeedback" hidden>
     <p class="cert-feedback-kicker">خطوة أخيرة</p>
@@ -481,12 +487,12 @@
 
   if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()) {
     loadServerCertificate().then(function (handled) {
-      if (!handled) renderLocalFallback();
+      if (!handled) showLocked();
     }).catch(function () {
-      renderLocalFallback();
+      showLocked();
     });
   } else {
-    renderLocalFallback();
+    showLocked();
   }
 })();
 </script>

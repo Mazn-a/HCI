@@ -33,6 +33,7 @@
   }
 
   function setSession(token, user, opts) {
+    try { localStorage.setItem('hci_session', '1'); } catch (e) { /* */ }
     if (token) localStorage.setItem('hci_token', token);
     if (user) {
       localStorage.setItem('hci_user_name', user.fullName || (user.firstName + ' ' + user.lastName));
@@ -98,6 +99,7 @@
 
   function clearIdentity() {
     localStorage.removeItem('hci_token');
+    try { localStorage.removeItem('hci_session'); } catch (e) { /* */ }
     localStorage.removeItem('hci_user_id');
     localStorage.removeItem('hci_user_role');
     localStorage.removeItem('hci_user_json');
@@ -130,7 +132,9 @@
   }
 
   function isLoggedIn() {
-    return !!getToken() && isVerified();
+    var sessionFlag = false;
+    try { sessionFlag = localStorage.getItem('hci_session') === '1'; } catch (e) { sessionFlag = false; }
+    return (!!getToken() || sessionFlag) && isVerified();
   }
 
   function currentUser() {
@@ -265,6 +269,7 @@
       var fetchPromise = fetch(API_BASE + path, {
         method: options.method || 'GET',
         headers: headers,
+        credentials: 'include',
         body: options.body
           ? (isForm ? options.body : JSON.stringify(options.body))
           : undefined,
@@ -356,7 +361,24 @@
   }
 
   async function logout() {
+    try { await request('/api/auth/logout', { method: 'POST', body: {} }); } catch (e) { /* */ }
     clearSession();
+  }
+
+  function submitQuiz(answers) {
+    return request('/api/quiz/fundamentals', { method: 'POST', body: { answers: answers } });
+  }
+
+  function fetchQuiz() {
+    return request('/api/quiz/fundamentals');
+  }
+
+  function completePractice(sceneId) {
+    return request('/api/practice/complete', { method: 'POST', body: { sceneId: sceneId } });
+  }
+
+  function saveEvidence(kind, id, note) {
+    return request('/api/evidence', { method: 'POST', body: { kind: kind, id: id, note: note } });
   }
 
   async function fetchProgress() {
@@ -713,6 +735,10 @@
     loginWithGoogle: loginWithGoogle,
     getGoogleAuthConfig: getGoogleAuthConfig,
     logout: logout,
+    fetchQuiz: fetchQuiz,
+    submitQuiz: submitQuiz,
+    completePractice: completePractice,
+    saveEvidence: saveEvidence,
     setPathType: setPathType,
     markIntroSeen: markIntroSeen,
     applySpecialistUnlocks: applySpecialistUnlocks,

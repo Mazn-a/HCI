@@ -12,11 +12,13 @@ const DATABASE_URL = String(process.env.DATABASE_URL || '')
 
 const ADMIN_EMAIL = 'mazntyh7@gmail.com';
 const ADMIN_PHONE = '0536786288';
-const ADMIN_PIN = process.env.ADMIN_PIN || '1111';
+const ADMIN_PIN_ENV = String(process.env.ADMIN_PIN || '').trim();
+const ADMIN_PIN = ADMIN_PIN_ENV || (process.env.NODE_ENV === 'production' ? '' : '1111');
 
 const PREVIEW_EMAIL = process.env.PREVIEW_EMAIL || 'mazen@hci.dev';
 const PREVIEW_PHONE = process.env.PREVIEW_PHONE || '0590000001';
-const PREVIEW_PIN = process.env.PREVIEW_PIN || '11111111';
+const PREVIEW_PIN_ENV = String(process.env.PREVIEW_PIN || '').trim();
+const PREVIEW_PIN = PREVIEW_PIN_ENV || (process.env.NODE_ENV === 'production' ? '' : '11111111');
 
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
@@ -372,7 +374,8 @@ const db = {
       path: data.path,
       pct: data.pct,
       issued_at: data.issuedAt,
-      completed_at: data.completedAt
+      completed_at: data.completedAt,
+      evidence: data.evidence || null
     };
     cache.certificates.push(record);
     persist();
@@ -1167,19 +1170,24 @@ const db = {
 
 /** يضمن حساب الأدمن بالبيانات المطلوبة في كل تشغيل */
 function ensureAdmin() {
-  const hash = bcrypt.hashSync(ADMIN_PIN, 10);
   let admin = db.findAdmin();
+  const patch = {
+    first_name: 'مازن',
+    last_name: 'عطية',
+    email: ADMIN_EMAIL,
+    phone: ADMIN_PHONE,
+    role: 'admin'
+  };
+  if (ADMIN_PIN_ENV) patch.password_hash = bcrypt.hashSync(ADMIN_PIN_ENV, 10);
 
   if (admin) {
-    db.updateUser(admin.id, {
-      first_name: 'مازن',
-      last_name: 'عطية',
-      email: ADMIN_EMAIL,
-      phone: ADMIN_PHONE,
-      password_hash: hash,
-      role: 'admin'
-    });
-    return { email: ADMIN_EMAIL, phone: ADMIN_PHONE, password: ADMIN_PIN, id: admin.id, updated: true };
+    db.updateUser(admin.id, patch);
+    return { email: ADMIN_EMAIL, phone: ADMIN_PHONE, password: ADMIN_PIN_ENV ? '(من البيئة)' : '(بدون تغيير)', id: admin.id, updated: true };
+  }
+
+  if (!ADMIN_PIN) {
+    console.warn('ADMIN_PIN غير معرّف — لم يُنشأ حساب مدير جديد.');
+    return { email: ADMIN_EMAIL, phone: ADMIN_PHONE, password: '', id: null, updated: false };
   }
 
   const user = db.createUser({
@@ -1187,42 +1195,46 @@ function ensureAdmin() {
     lastName: 'عطية',
     email: ADMIN_EMAIL,
     phone: ADMIN_PHONE,
-    passwordHash: hash,
+    passwordHash: bcrypt.hashSync(ADMIN_PIN, 10),
     role: 'admin'
   });
 
-  return { email: ADMIN_EMAIL, phone: ADMIN_PHONE, password: ADMIN_PIN, id: user.id, updated: false };
+  return { email: ADMIN_EMAIL, phone: ADMIN_PHONE, password: process.env.NODE_ENV === 'production' ? '' : ADMIN_PIN, id: user.id, updated: false };
 }
 
 function ensurePreviewOwner() {
-  const hash = bcrypt.hashSync(PREVIEW_PIN, 10);
   const patch = {
     first_name: 'مازن',
     last_name: 'معاينة',
     email: PREVIEW_EMAIL,
     phone: PREVIEW_PHONE,
-    password_hash: hash,
     role: 'student',
     is_preview: true,
     email_verified: true,
     phone_verified: true
   };
+  if (PREVIEW_PIN_ENV || PREVIEW_PIN) {
+    patch.password_hash = bcrypt.hashSync(PREVIEW_PIN_ENV || PREVIEW_PIN, 10);
+  }
   let user = db.findUserByEmail(PREVIEW_EMAIL) || db.findUserByPhone(PREVIEW_PHONE);
   if (user) {
     db.updateUser(user.id, patch);
-    return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: PREVIEW_PIN, id: user.id, updated: true };
+    return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: PREVIEW_PIN ? '(محلي)' : '', id: user.id, updated: true };
+  }
+  if (!PREVIEW_PIN) {
+    return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: '', id: null, updated: false };
   }
   user = db.createUser({
     firstName: 'مازن',
     lastName: 'معاينة',
     email: PREVIEW_EMAIL,
     phone: PREVIEW_PHONE,
-    passwordHash: hash,
+    passwordHash: patch.password_hash,
     role: 'student',
     emailVerified: true
   });
   db.updateUser(user.id, { is_preview: true, phone_verified: true, email_verified: true });
-  return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: PREVIEW_PIN, id: user.id, updated: false };
+  return { email: PREVIEW_EMAIL, phone: PREVIEW_PHONE, password: process.env.NODE_ENV === 'production' ? '' : PREVIEW_PIN, id: user.id, updated: false };
 }
 
 function resetPreviewOwnerProgress(userId) {
@@ -1240,8 +1252,10 @@ function resetPreviewOwnerProgress(userId) {
 
 function checkPassword(user, rawPassword) {
   const normalized = toWesternDigits(rawPassword).trim();
-  if (user.role === 'admin' && normalized === ADMIN_PIN) return true;
-  if (user.is_preview && normalized === PREVIEW_PIN) return true;
+  if (process.env.NODE_ENV !== 'production') {
+    if (ADMIN_PIN && user.role === 'admin' && normalized === ADMIN_PIN) return true;
+    if (PREVIEW_PIN && user.is_preview && normalized === PREVIEW_PIN) return true;
+  }
   try {
     return bcrypt.compareSync(normalized, user.password_hash) ||
            bcrypt.compareSync(String(rawPassword), user.password_hash);

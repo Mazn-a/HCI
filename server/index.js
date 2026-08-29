@@ -672,7 +672,9 @@ app.listen(PORT, () => {
   console.log('  حساب المدير:');
   console.log('  البريد: ' + adminInfo.email);
   console.log('  الجوال: ' + adminInfo.phone);
-  console.log('  كلمة المرور: ' + adminInfo.password);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('  كلمة المرور: ' + adminInfo.password);
+  }
   console.log('═══════════════════════════════════════');
   console.log('');
 });

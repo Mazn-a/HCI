@@ -10,6 +10,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db, ensureAdmin, ensurePreviewOwner, resetPreviewOwnerProgress, checkPassword, ready, dataDir, PREVIEW_EMAIL, PREVIEW_PHONE, PREVIEW_PIN } = require('./db');
 const { sendOtpEmail } = require('./mailer');
+const trust = require('./server-trust');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,8 +57,14 @@ const upload = multer({
 });
 
 app.use(compression());
-app.use(cors());
+app.use(trust.applySecurityHeaders);
+app.use(cors({
+  origin: trust.corsOrigin,
+  credentials: true
+}));
 app.use(express.json({ limit: '1mb' }));
+const authBurstLimit = trust.createRateLimiter(10 * 60 * 1000, 25);
+const otpBurstLimit = trust.createRateLimiter(10 * 60 * 1000, 8);
 
 /* ===== وضع الصيانة للموقع بالكامل =====
    true = الزوار يُحوَّلون لصفحة الصيانة
@@ -148,8 +155,10 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/uploads', express.static(uploadsDir, {
   maxAge: '30d',
+  index: false,
   setHeaders: function (res) {
     res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
   }
 }));
 app.use(express.static(__dirname, {
@@ -173,8 +182,7 @@ function signToken(user) {
 }
 
 function authRequired(req, res, next) {
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  const token = trust.tokenFromRequest(req);
   if (!token) return res.status(401).json({ error: 'يلزم تسجيل الدخول' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
@@ -182,6 +190,24 @@ function authRequired(req, res, next) {
   } catch {
     return res.status(401).json({ error: 'جلسة منتهية — سجّل دخولك من جديد' });
   }
+}
+
+function sendAuth(res, user, extra) {
+  const token = signToken(user);
+  trust.attachAuthCookie(res, token);
+  res.json(Object.assign({ token: token, user: publicUser(user) }, extra || {}));
+}
+
+function progressContext(userId) {
+  const row = db.getProgress(userId) || {};
+  return {
+    quiz: parseJsonSafe(row.quiz_json, {}),
+    practice: parseJsonSafe(row.practice_json, {}),
+    courses: parseJsonSafe(row.courses_json, {}),
+    books: parseJsonSafe(row.books_json, {}),
+    journey: parseJsonSafe(row.journey_json, {}),
+    row: row
+  };
 }
 
 function adminRequired(req, res, next) {
@@ -336,7 +362,7 @@ function normalizePhone(v) {
 }
 
 /* ---------- تسجيل حساب ---------- */
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', authBurstLimit, (req, res) => {
   try {
     const firstName = String(req.body.firstName || '').trim();
     const lastName = String(req.body.lastName || '').trim();
@@ -409,7 +435,7 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 /* ---------- تسجيل دخول (بريد أو جوال) ---------- */
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', authBurstLimit, (req, res) => {
   try {
     let identifier = String(req.body.identifier || req.body.email || '').trim();
     let password = String(req.body.password || '')
@@ -452,7 +478,7 @@ app.post('/api/auth/login', (req, res) => {
     user = db.findUserById(user.id);
     if (!user.is_preview) maybeNudgeStalledUser(user);
 
-    res.json({ token: signToken(user), user: publicUser(user) });
+    sendAuth(res, user);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'خطأ أثناء تسجيل الدخول' });
@@ -589,11 +615,7 @@ app.post('/api/auth/google', async (req, res) => {
       maybeNudgeStalledUser(user);
     }
 
-    res.json({
-      token: signToken(user),
-      user: publicUser(user),
-      isNew: isNew
-    });
+    sendAuth(res, user, { isNew: isNew });
   } catch (err) {
     console.error(err);
     res.status(err.status || 500).json({ error: err.message || 'خطأ أثناء تسجيل الدخول بجوجل' });
@@ -695,8 +717,126 @@ app.patch('/api/auth/avatar', authRequired, (req, res) => {
   }
 });
 
+app.post('/api/auth/logout', (req, res) => {
+  trust.clearAuthCookie(res);
+  res.json({ ok: true });
+});
+
+app.get('/api/quiz/fundamentals', authRequired, (_req, res) => {
+  res.json({ questions: trust.publicQuiz(), passScore: 3 });
+});
+
+app.post('/api/quiz/fundamentals', authRequired, (req, res) => {
+  try {
+    const graded = trust.gradeFundamentals(req.body && req.body.answers);
+    const ctx = progressContext(req.user.id);
+    const quiz = Object.assign({}, ctx.quiz, { fundamentals: graded });
+    const journey = trust.sanitizeJourney(ctx.journey, {
+      quiz: quiz,
+      practice: ctx.practice,
+      courses: ctx.courses,
+      books: ctx.books
+    });
+    if (graded.passed) {
+      if (!journey.done) journey.done = {};
+      journey.done.fundamentals = true;
+      if (!journey.unlocked) journey.unlocked = {};
+      journey.unlocked.coding = true;
+    }
+    db.upsertProgress(req.user.id, {
+      journey_json: JSON.stringify(journey),
+      quiz_json: JSON.stringify(quiz),
+      coding_json: ctx.row.coding_json || '{}',
+      coding_stage: ctx.row.coding_stage || '',
+      practice_json: ctx.row.practice_json || '{}',
+      courses_json: ctx.row.courses_json || '{}',
+      books_json: ctx.row.books_json || '{}'
+    });
+    res.json({ ok: true, result: graded });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'تعذر تصحيح الاختبار' });
+  }
+});
+
+app.post('/api/practice/complete', authRequired, (req, res) => {
+  const ctx = progressContext(req.user.id);
+  const marked = trust.markPracticeScene(ctx.practice, req.body && req.body.sceneId);
+  if (!marked.ok) return res.status(400).json({ error: marked.error });
+  const journey = trust.sanitizeJourney(ctx.journey, {
+    quiz: ctx.quiz,
+    practice: marked.practice,
+    courses: ctx.courses,
+    books: ctx.books
+  });
+  if (marked.count >= 3) {
+    if (!journey.done) journey.done = {};
+    journey.done.practice = true;
+  }
+  db.upsertProgress(req.user.id, {
+    journey_json: JSON.stringify(journey),
+    quiz_json: ctx.row.quiz_json || '{}',
+    coding_json: ctx.row.coding_json || '{}',
+    coding_stage: ctx.row.coding_stage || '',
+    practice_json: JSON.stringify(marked.practice),
+    courses_json: ctx.row.courses_json || '{}',
+    books_json: ctx.row.books_json || '{}'
+  });
+  res.json({ ok: true, count: marked.count });
+});
+
+app.post('/api/evidence', authRequired, (req, res) => {
+  const kind = String((req.body && req.body.kind) || '');
+  const id = req.body && req.body.id;
+  const note = req.body && req.body.note;
+  const ctx = progressContext(req.user.id);
+  let courses = ctx.courses;
+  let books = ctx.books;
+  if (kind === 'course') {
+    const saved = trust.saveNote(courses, trust.VALID_COURSES, id, note);
+    if (!saved.ok) return res.status(400).json({ error: saved.error });
+    courses = saved.store;
+  } else if (kind === 'book') {
+    const saved = trust.saveNote(books, trust.VALID_BOOKS, id, note);
+    if (!saved.ok) return res.status(400).json({ error: saved.error });
+    books = saved.store;
+  } else {
+    return res.status(400).json({ error: 'نوع غير صالح' });
+  }
+  const journey = trust.sanitizeJourney(ctx.journey, {
+    quiz: ctx.quiz,
+    practice: ctx.practice,
+    courses: courses,
+    books: books
+  });
+  if (trust.noteCount(courses, trust.VALID_COURSES) >= 1) {
+    if (!journey.done) journey.done = {};
+    journey.done.courses = true;
+    if (!journey.unlocked) journey.unlocked = {};
+    journey.unlocked.books = true;
+  }
+  if (trust.noteCount(books, trust.VALID_BOOKS) >= 2) {
+    if (!journey.done) journey.done = {};
+    journey.done.books = true;
+  }
+  db.upsertProgress(req.user.id, {
+    journey_json: JSON.stringify(journey),
+    quiz_json: ctx.row.quiz_json || '{}',
+    coding_json: ctx.row.coding_json || '{}',
+    coding_stage: ctx.row.coding_stage || '',
+    practice_json: ctx.row.practice_json || '{}',
+    courses_json: JSON.stringify(courses),
+    books_json: JSON.stringify(books)
+  });
+  res.json({
+    ok: true,
+    courseNotes: trust.noteCount(courses, trust.VALID_COURSES),
+    bookNotes: trust.noteCount(books, trust.VALID_BOOKS)
+  });
+});
+
 /* ---------- طلب رمز تحقق (بريد أو هاتف) ---------- */
-app.post('/api/auth/request-otp', async (req, res) => {
+app.post('/api/auth/request-otp', otpBurstLimit, async (req, res) => {
   try {
     const purpose = String(req.body.purpose || 'verify');
     if (purpose !== 'verify' && purpose !== 'reset') {
@@ -712,11 +852,13 @@ app.post('/api/auth/request-otp', async (req, res) => {
       if (!user) return res.status(404).json({ error: 'لم يُعثر على حساب بهذا المعرف' });
     }
 
-    if (purpose === 'verify' && req.headers.authorization) {
+    if (purpose === 'verify') {
       try {
-        const token = req.headers.authorization.slice(7);
-        const payload = jwt.verify(token, JWT_SECRET);
-        user = db.findUserById(payload.id) || user;
+        const token = trust.tokenFromRequest(req);
+        if (token) {
+          const payload = jwt.verify(token, JWT_SECRET);
+          user = db.findUserById(payload.id) || user;
+        }
       } catch { /* جلسة اختيارية */ }
     }
 
@@ -780,9 +922,10 @@ app.post('/api/auth/confirm-otp', (req, res) => {
     if (!result.ok) return res.status(400).json({ error: result.error });
 
     let user = null;
-    if (req.headers.authorization) {
+    const sessionTok = trust.tokenFromRequest(req);
+    if (sessionTok) {
       try {
-        const payload = jwt.verify(req.headers.authorization.slice(7), JWT_SECRET);
+        const payload = jwt.verify(sessionTok, JWT_SECRET);
         user = db.findUserById(payload.id);
       } catch { /* */ }
     }
@@ -794,11 +937,7 @@ app.post('/api/auth/confirm-otp', (req, res) => {
     if (resolved.channel === 'phone') patch.phone_verified = true;
     db.updateUser(user.id, patch);
     const updated = db.findUserById(user.id);
-    res.json({
-      ok: true,
-      token: signToken(updated),
-      user: publicUser(updated)
-    });
+    sendAuth(res, updated, { ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر التحقق من الرمز' });
@@ -879,7 +1018,7 @@ app.get('/api/progress', authRequired, (req, res) => {
 /* ---------- الشهادة (يُصدرها السيرفر ليصح التحقق من أي جهاز) ---------- */
 const CERT_PATH_NAME = 'مسار تفاعل الإنسان والحاسوب (HCI)';
 
-function ensureCertificateRecord(user, journey) {
+function ensureCertificateRecord(user, journey, evidence) {
   const existing = db.getCertificateByUserId(user.id);
   if (existing) return existing;
   const fullName = (user.first_name + (user.last_name ? ' ' + user.last_name : '')).trim() || 'متعلم HCI';
@@ -889,14 +1028,15 @@ function ensureCertificateRecord(user, journey) {
     path: CERT_PATH_NAME,
     pct: 100,
     issuedAt: new Date().toISOString(),
-    completedAt: (journey && (journey.completedAt || journey.doneAt)) || new Date().toISOString()
+    completedAt: (journey && (journey.completedAt || journey.doneAt)) || new Date().toISOString(),
+    evidence: evidence || null
   });
 }
 
 function maybeIssueCertificateAndNotify(userId, journey) {
-  const done = (journey && journey.done) || {};
-  const ids = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
-  if (ids.filter((k) => done[k]).length < 7) return false;
+  const ctx = progressContext(userId);
+  const clean = trust.sanitizeJourney(journey || ctx.journey, ctx);
+  if (!trust.journeyComplete(clean, ctx)) return false;
 
   const user = db.findUserById(userId);
   if (!user) return false;
@@ -916,7 +1056,7 @@ function maybeIssueCertificateAndNotify(userId, journey) {
     return false;
   }
 
-  ensureCertificateRecord(user, journey);
+  ensureCertificateRecord(user, clean, trust.evidenceSummary(ctx));
 
   const already = db.getNotificationsForUser(user.id).some((n) => n.type === 'certificate');
   if (!already) {
@@ -933,18 +1073,20 @@ function maybeIssueCertificateAndNotify(userId, journey) {
 
 app.put('/api/progress', authRequired, (req, res) => {
   try {
-    const journey = req.body.journey || {};
+    const ctx = progressContext(req.user.id);
+    const incoming = req.body.journey || ctx.journey || {};
+    const journey = trust.sanitizeJourney(incoming, ctx);
     db.upsertProgress(req.user.id, {
       journey_json: JSON.stringify(journey),
-      coding_json: JSON.stringify(req.body.coding || {}),
-      coding_stage: String(req.body.codingStage || ''),
-      practice_json: JSON.stringify(req.body.practice || {}),
-      courses_json: JSON.stringify(req.body.courses || {}),
-      books_json: JSON.stringify(req.body.books || {}),
-      quiz_json: JSON.stringify(req.body.quiz || {})
+      coding_json: JSON.stringify(req.body.coding || parseJsonSafe(ctx.row.coding_json, {})),
+      coding_stage: String(req.body.codingStage != null ? req.body.codingStage : (ctx.row.coding_stage || '')),
+      practice_json: ctx.row.practice_json || '{}',
+      courses_json: ctx.row.courses_json || '{}',
+      books_json: ctx.row.books_json || '{}',
+      quiz_json: ctx.row.quiz_json || '{}'
     });
     const certificateReady = maybeIssueCertificateAndNotify(req.user.id, journey);
-    res.json({ ok: true, certificateReady: certificateReady });
+    res.json({ ok: true, certificateReady: certificateReady, journey: journey });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر حفظ التقدم' });
@@ -952,11 +1094,11 @@ app.put('/api/progress', authRequired, (req, res) => {
 });
 
 function computeProgressPercent(userId) {
-  const p = db.getProgress(userId);
-  const journey = parseJsonSafe(p && p.journey_json, {});
-  const done = journey.done || {};
-  const doneCount = Object.keys(done).filter((k) => done[k]).length;
-  return { pct: Math.round((doneCount / 7) * 100), journey, updatedAt: p ? p.updated_at : null };
+  const ctx = progressContext(userId);
+  const journey = trust.sanitizeJourney(ctx.journey, ctx);
+  const ids = ['discover', 'fundamentals', 'coding', 'courses', 'books', 'practice', 'contribute'];
+  const doneCount = ids.filter((k) => !!(journey.done && journey.done[k])).length;
+  return { pct: Math.round((doneCount / 7) * 100), journey, updatedAt: ctx.row ? ctx.row.updated_at : null };
 }
 
 app.get('/api/certificate/me', authRequired, (req, res) => {
@@ -973,7 +1115,7 @@ app.get('/api/certificate/me', authRequired, (req, res) => {
     return res.json({ needsFeedback: true, pct: 100 });
   }
 
-  const record = ensureCertificateRecord(user, journey);
+  const record = ensureCertificateRecord(user, journey, trust.evidenceSummary(progressContext(user.id)));
   res.json({ certificate: record });
 });
 
@@ -1041,7 +1183,10 @@ app.get('/api/certificate/:id', (req, res) => {
       path: record.path,
       pct: record.pct,
       issued_at: record.issued_at,
-      completed_at: record.completed_at
+      completed_at: record.completed_at,
+      evidence: record.evidence || null,
+      issuer: 'منصة HCI',
+      claim: 'إتمام مسار تعليمي داخلي — ليست اعتماداً حكومياً أو جامعياً'
     }
   });
 });

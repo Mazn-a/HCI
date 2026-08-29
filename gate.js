@@ -19,7 +19,7 @@
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     if (!page || page === '/' || page === '') page = 'index.html';
     var search = location.search || '';
-    var token = localStorage.getItem('hci_token');
+    var token = localStorage.getItem('hci_token') || (localStorage.getItem('hci_session') === '1' ? 'session' : '');
     var role = localStorage.getItem('hci_user_role') || '';
     var verifiedFlag = localStorage.getItem('hci_verified') === '1' || role === 'admin';
     if (token && !verifiedFlag) {

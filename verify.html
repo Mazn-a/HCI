@@ -78,8 +78,8 @@
   function showValid(rec) {
     var meta = document.getElementById('verifyMeta');
     var card = document.getElementById('verifyResult');
-    document.getElementById('verifyTitle').textContent = 'شهادة موثّقة';
-    document.getElementById('verifySub').textContent = 'تم التحقق بنجاح — هذه الشهادة صادرة عن منصة HCI.';
+    document.getElementById('verifyTitle').textContent = 'شهادة صادرة عن منصة HCI';
+    document.getElementById('verifySub').textContent = rec.claim || 'تم التحقق من الرقم في سجلات المنصة. هذه شهادة إتمام مسار داخلي، وليست اعتماداً حكومياً أو جامعياً.';
     meta.hidden = false;
     meta.innerHTML =
       '<div><dt>الاسم</dt><dd>' + escapeHtml(rec.name) + '</dd></div>' +
@@ -88,6 +88,12 @@
       '<div><dt>تاريخ الإصدار</dt><dd>' + escapeHtml(rec.issuedAr || formatArDate(rec.issued_at)) + '</dd></div>' +
       '<div><dt>تاريخ الإكمال</dt><dd>' + escapeHtml(rec.completedAr || formatArDate(rec.completed_at)) + '</dd></div>' +
       '<div><dt>رقم الشهادة</dt><dd dir="ltr">' + escapeHtml(rec.id) + '</dd></div>';
+    if (rec.evidence) {
+      meta.innerHTML +=
+        '<div><dt>اختبار الأساسيات</dt><dd>' + escapeHtml(String(rec.evidence.quizScore || 0) + ' / ' + String(rec.evidence.quizTotal || 4)) + '</dd></div>' +
+        '<div><dt>تمارين مسجّلة</dt><dd>' + escapeHtml(String(rec.evidence.practiceCount || 0)) + '</dd></div>' +
+        '<div><dt>جمل الدورات / الكتب</dt><dd>' + escapeHtml(String(rec.evidence.courseNotes || 0) + ' / ' + String(rec.evidence.bookNotes || 0)) + '</dd></div>';
+    }
     card.classList.add('is-valid');
     card.classList.remove('is-invalid');
   }
@@ -108,9 +114,6 @@
         if (resp && resp.certificate) { showValid(resp.certificate); return; }
       } catch (e) { /* نكمل للاحتياطي المحلي */ }
     }
-
-    var rec = getRecord(id);
-    if (rec) { showValid(rec); return; }
 
     showInvalid(id);
   }

@@ -1652,6 +1652,26 @@ if (pageStage){
 // تلميح قوائم المراجعة + شرط تحديد الكل قبل التالي
 annotateChecklists();
 
+(function injectLearningGoal(){
+  var goals = {
+    discover: 'بعد هذا المسار: تقدر تقرر بجملة واضحة إن كان التخصص يناسبك ولماذا.',
+    fundamentals: 'بعد هذا المسار: تسمّي مبدأً وتربطه بمشكلة في واجهة حقيقية.',
+    coding: 'بعد هذا المسار: تبني صفحة بسيطة وتشرح لماذا بنيتها هكذا.',
+    courses: 'بعد هذا المسار: تسجّل ما فهمت من دورة واحدة بجملة تطبيق، لا مجرد رابط.',
+    books: 'بعد هذا المسار: تربط فكرة كتاب بتطبيق تستخدمه يومياً.',
+    practice: 'بعد هذا المسار: تكتشف خطأ تصميم وتذكر المبدأ وراءه.',
+    contribute: 'بعد هذا المسار: توجّه مبتدئاً أو تراجع واجهة بدل رمي روابط.'
+  };
+  var text = pageStage && goals[pageStage];
+  if (!text) return;
+  var head = document.querySelector('.lesson-head');
+  if (!head || head.querySelector('.learning-goal')) return;
+  var p = document.createElement('p');
+  p.className = 'learning-goal';
+  p.textContent = text;
+  head.appendChild(p);
+})();
+
 // زر إكمال مرحلة (contribute وغيرها) — يكمل ويوجّه إن لزم
 var markCompleteBtn = document.getElementById('markCompleteBtn');
 if (markCompleteBtn && pageStage){
@@ -4200,38 +4220,27 @@ var quizCheckBtn = document.getElementById('quizCheckBtn');
 var quizResult = document.getElementById('quizResult');
 
 if (quizCheckBtn && quizResult){
-  quizCheckBtn.addEventListener('click', function(){
+  quizCheckBtn.addEventListener('click', async function(){
     var questions = document.querySelectorAll('.quiz-q');
-    var correctCount = 0;
+    var answers = {};
     var answeredAll = true;
 
-    questions.forEach(function(q){
-      var correctValue = q.getAttribute('data-correct');
+    questions.forEach(function(q, idx){
       var selected = q.querySelector('input[type="radio"]:checked');
       var feedback = q.querySelector('.quiz-feedback');
       var labels = q.querySelectorAll('.quiz-options label');
-
       labels.forEach(function(label){ label.classList.remove('selected'); });
       q.classList.remove('correct', 'wrong');
-
       if (!selected){
         answeredAll = false;
-        feedback.textContent = 'ما اخترت إجابة لهذا السؤال';
+        if (feedback) feedback.textContent = 'ما اخترت إجابة لهذا السؤال';
         q.classList.add('wrong');
         return;
       }
-
       var selectedLabel = selected.closest('label');
-      selectedLabel.classList.add('selected');
-
-      if (selected.value === correctValue){
-        correctCount++;
-        q.classList.add('correct');
-        feedback.textContent = '✓ صحيح!';
-      } else {
-        q.classList.add('wrong');
-        feedback.textContent = '✕ غير صحيح — راجع القسم اللي فوق وحاول مرة ثانية';
-      }
+      if (selectedLabel) selectedLabel.classList.add('selected');
+      var qid = q.getAttribute('data-qid') || ('q' + (idx + 1));
+      answers[qid] = selected.value;
     });
 
     if (!answeredAll){
@@ -4240,59 +4249,65 @@ if (quizCheckBtn && quizResult){
       return;
     }
 
-    quizResult.textContent = 'نتيجتك: ' + correctCount + ' من ' + questions.length + ' صحيحة';
-    quizResult.classList.add('show');
-
-    // حفظ نتيجة الاختبار أولاً (قبل markComplete)
-    try {
-      var answers = [];
-      questions.forEach(function(q, idx){
-        var correctValue = q.getAttribute('data-correct');
-        var selected = q.querySelector('input[type="radio"]:checked');
-        var titleEl = q.querySelector('p:not(.quiz-feedback)');
-        var title = titleEl ? titleEl.textContent.trim().slice(0, 100) : ('سؤال ' + (idx + 1));
-        var qid = 'fundamentals-q' + (idx + 1);
-        var chosen = selected ? selected.value : '';
-        answers.push({
-          qid: qid,
-          title: title,
-          chosen: chosen,
-          correct: correctValue,
-          ok: !!(selected && selected.value === correctValue)
-        });
-      });
-      var quizStore = {};
-      try { quizStore = JSON.parse(localStorage.getItem('hci_quiz') || '{}'); } catch (err) { quizStore = {}; }
-      quizStore.fundamentals = {
-        score: correctCount,
-        total: questions.length,
-        passed: correctCount >= 3,
-        answers: answers,
-        updatedAt: new Date().toISOString()
-      };
-      localStorage.setItem('hci_quiz', JSON.stringify(quizStore));
-      if (window.HCIApi && HCIApi.isLoggedIn()) HCIApi.scheduleSync();
-    } catch (err) { /* */ }
-
-    // فتح الترميز عند 3/4 أو أكثر فقط
-    if (correctCount >= 3){
-      markComplete('fundamentals');
-      var jUnlock = getJourney();
-      if (!jUnlock.unlocked) jUnlock.unlocked = {};
-      if (!jUnlock.done) jUnlock.done = {};
-      jUnlock.unlocked.coding = true;
-      jUnlock.done.fundamentals = true;
-      saveJourney(jUnlock);
-      quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. يمكنك الضغط على «التالي» الآن.';
-      updateCodingNextButton();
-      if (window.HCIApi && HCIApi.isLoggedIn()){
-        HCIApi.syncProgress().catch(function(){});
-      }
-      showUnlockToast('فتحت مرحلة جديدة: ترميز HTML & CSS ✨');
-    } else {
-      quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
-      updateCodingNextButton();
+    if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn() && HCIApi.submitQuiz)){
+      quizResult.textContent = 'سجّل دخولك لتصحيح الاختبار على السيرفر.';
+      quizResult.classList.add('show');
+      return;
     }
+
+    quizCheckBtn.disabled = true;
+    try {
+      var data = await HCIApi.submitQuiz(answers);
+      var result = data && data.result ? data.result : {};
+      var detail = result.answers || [];
+      questions.forEach(function(q, idx){
+        var qid = q.getAttribute('data-qid') || ('q' + (idx + 1));
+        var row = null;
+        detail.forEach(function(d){ if (d.id === qid) row = d; });
+        var feedback = q.querySelector('.quiz-feedback');
+        if (row && row.ok){
+          q.classList.add('correct');
+          if (feedback) feedback.textContent = '✓ صحيح!';
+        } else {
+          q.classList.add('wrong');
+          if (feedback) feedback.textContent = '✕ غير صحيح — راجع القسم اللي فوق وحاول مرة ثانية';
+        }
+      });
+      var correctCount = Number(result.score) || 0;
+      quizResult.textContent = 'نتيجتك: ' + correctCount + ' من ' + (result.total || questions.length) + ' صحيحة';
+      quizResult.classList.add('show');
+      try {
+        var quizStore = {};
+        try { quizStore = JSON.parse(localStorage.getItem('hci_quiz') || '{}'); } catch (err) { quizStore = {}; }
+        quizStore.fundamentals = {
+          score: correctCount,
+          total: result.total || questions.length,
+          passed: !!result.passed,
+          updatedAt: result.updatedAt || new Date().toISOString()
+        };
+        localStorage.setItem('hci_quiz', JSON.stringify(quizStore));
+      } catch (err) { /* */ }
+      if (result.passed){
+        markComplete('fundamentals');
+        var jUnlock = getJourney();
+        if (!jUnlock.unlocked) jUnlock.unlocked = {};
+        if (!jUnlock.done) jUnlock.done = {};
+        jUnlock.unlocked.coding = true;
+        jUnlock.done.fundamentals = true;
+        saveJourney(jUnlock);
+        quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. يمكنك الضغط على «التالي» الآن.';
+        updateCodingNextButton();
+        HCIApi.syncProgress().catch(function(){});
+        showUnlockToast('فتحت مرحلة جديدة: ترميز HTML & CSS ✨');
+      } else {
+        quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
+        updateCodingNextButton();
+      }
+    } catch (err) {
+      quizResult.textContent = (err && err.message) || 'تعذر تصحيح الاختبار';
+      quizResult.classList.add('show');
+    }
+    quizCheckBtn.disabled = false;
   });
 }
 
@@ -4342,6 +4357,9 @@ if (spotOptions.length){
       if (done >= 3){
         markComplete('practice');
       }
+      if (window.HCIApi && HCIApi.completePractice){
+        HCIApi.completePractice(sceneId).catch(function(){});
+      }
     });
   });
 }
@@ -4375,7 +4393,8 @@ if (analyzeRoot){
           var doneA = parseInt(localStorage.getItem('hci_practice_count') || '0', 10) + 1;
           localStorage.setItem('hci_practice_count', String(doneA));
           if (doneA >= 3) markComplete('practice');
-          if (window.HCIApi) HCIApi.scheduleSync();
+          if (window.HCIApi && HCIApi.completePractice) HCIApi.completePractice('analyze').catch(function(){});
+          else if (window.HCIApi) HCIApi.scheduleSync();
         }
       } catch (e) { /* */ }
     } else {
@@ -4412,56 +4431,74 @@ if (analyzeRoot){
   }
 }
 
-// حفظ تقدم الدورات عند الضغط على "سجّلت اهتمامي"
-document.querySelectorAll('[data-course-done]').forEach(function(btn){
-  var id = btn.getAttribute('data-course-done');
-  var key = 'hci_course_' + id;
-  if (localStorage.getItem(key)){
-    btn.textContent = 'تم التسجيل ✓';
-    btn.classList.add('done');
-  }
-  btn.addEventListener('click', function(){
-    localStorage.setItem(key, '1');
-    btn.textContent = 'تم التسجيل ✓';
-    var courses = document.querySelectorAll('[data-course-done]');
-    var all = true;
-    courses.forEach(function(b){
-      if (!localStorage.getItem('hci_course_' + b.getAttribute('data-course-done'))) all = false;
-    });
-    // فتح الكتب بعد تسجيل اهتمام بدورة واحدة على الأقل
-    var j = getJourney();
-    if (!j.unlocked) j.unlocked = {};
-    if (!j.unlocked.books){
-      j.unlocked.books = true;
-      saveJourney(j);
-      showUnlockToast('فتحت مكتبة الكتب والمراجع ✨');
+function bindEvidenceControls(selector, kind, doneLabel, completeWhen){
+  document.querySelectorAll(selector).forEach(function(btn){
+    var id = btn.getAttribute(kind === 'course' ? 'data-course-done' : 'data-book-read');
+    var key = (kind === 'course' ? 'hci_course_' : 'hci_book_') + id;
+    var host = btn.parentNode;
+    if (!host || host.querySelector('.evidence-box')) return;
+    var box = document.createElement('div');
+    box.className = 'evidence-box';
+    var label = document.createElement('label');
+    label.textContent = kind === 'course'
+      ? 'اكتب جملة: وش فهمت أو طبّقت من هذه الدورة؟'
+      : 'اكتب جملة: كيف تطبّق فكرة من هذا الكتاب على تطبيق تستخدمه؟';
+    var ta = document.createElement('textarea');
+    ta.rows = 2;
+    ta.maxLength = 400;
+    ta.setAttribute('aria-label', label.textContent);
+    var save = document.createElement('button');
+    save.type = 'button';
+    save.className = 'btn-primary';
+    save.textContent = 'احفظ في مسارك';
+    var status = document.createElement('p');
+    status.className = 'evidence-status';
+    box.appendChild(label);
+    box.appendChild(ta);
+    box.appendChild(save);
+    box.appendChild(status);
+    host.appendChild(box);
+    if (localStorage.getItem(key)){
+      btn.textContent = doneLabel;
+      btn.classList.add('done');
+      status.textContent = 'محفوظ في مسارك.';
     }
-    var anyDone = false;
-    courses.forEach(function(b){
-      if (localStorage.getItem('hci_course_' + b.getAttribute('data-course-done'))) anyDone = true;
+    btn.addEventListener('click', function(){
+      ta.focus();
+      status.textContent = 'الضغطة وحدها لا تُحتسب. اكتب جملة ثم احفظ.';
     });
-    if (anyDone) markComplete('courses', true);
-  });
-});
-
-// كتب — تتبع القراءة
-document.querySelectorAll('[data-book-read]').forEach(function(btn){
-  var id = btn.getAttribute('data-book-read');
-  var key = 'hci_book_' + id;
-  if (localStorage.getItem(key)){
-    btn.textContent = 'قرأت الملخص ✓';
-  }
-  btn.addEventListener('click', function(){
-    localStorage.setItem(key, '1');
-    btn.textContent = 'قرأت الملخص ✓';
-    var books = document.querySelectorAll('[data-book-read]');
-    var count = 0;
-    books.forEach(function(b){
-      if (localStorage.getItem('hci_book_' + b.getAttribute('data-book-read'))) count++;
+    save.addEventListener('click', async function(){
+      if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())){
+        status.textContent = 'سجّل دخولك لحفظ الجملة في مسارك.';
+        return;
+      }
+      save.disabled = true;
+      try {
+        var resp = await HCIApi.saveEvidence(kind, id, ta.value);
+        localStorage.setItem(key, '1');
+        btn.textContent = doneLabel;
+        btn.classList.add('done');
+        status.textContent = 'حُفظت. هذا ما يُحسب في مسارك.';
+        if (kind === 'course' && resp && resp.courseNotes >= 1){
+          var j = getJourney();
+          if (!j.unlocked) j.unlocked = {};
+          j.unlocked.books = true;
+          saveJourney(j);
+          markComplete('courses', true);
+          showUnlockToast('فتحت مكتبة الكتب والمراجع ✨');
+        }
+        if (kind === 'book' && resp && resp.bookNotes >= 2){
+          markComplete('books');
+        }
+      } catch (err) {
+        status.textContent = (err && err.message) || 'تعذر الحفظ';
+      }
+      save.disabled = false;
     });
-    if (count >= 2) markComplete('books');
   });
-});
+}
+bindEvidenceControls('[data-course-done]', 'course', 'تم التسجيل ✓');
+bindEvidenceControls('[data-book-read]', 'book', 'قرأت الملخص ✓');
 
 // ----- بلّغ عن مشكلة — رابط بالتذييل + نموذج منبثق -----
 (function injectReportSection(){

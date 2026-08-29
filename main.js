@@ -436,25 +436,7 @@ function markComplete(stageId, silent){
     }
   }
 
-  // التمارين تفتح بعد الاكتشاف أو الأساسيات
-  if (stageId === 'discover' || stageId === 'fundamentals'){
-    if (!j.unlocked.practice && !j.done.practice){
-      j.unlocked.practice = true;
-      if (!toastMsg) toastMsg = 'فتحت تمارين «تعلّم بالمرح» ✨';
-    } else {
-      j.unlocked.practice = true;
-    }
-  }
-
-  // contribute بعد 4 مراحل مكتملة
-  var doneCount = Object.keys(j.done).filter(function(k){ return j.done[k]; }).length;
-  var contribWasLocked = !j.unlocked.contribute && !j.done.contribute;
-  if (doneCount >= 4){
-    j.unlocked.contribute = true;
-    if (contribWasLocked){
-      toastMsg = 'فتحت مرحلة «أفد غيرك» — صرت جاهز تساعد غيرك ✨';
-    }
-  }
+  // لا نعلن فتح مرحلة إلا إذا قاعدة القفل تسمح بها فعلاً
 
   var allDone = JOURNEY_ORDER.every(function(id){ return !!j.done[id]; });
   if (allDone && !j.completedAt) j.completedAt = new Date().toISOString();
@@ -583,14 +565,14 @@ var STAGE_LOCK_INFO = {
     cta: 'تصفح الدورات'
   },
   practice: {
-    reason: 'لفتح التمارين أكمل أولاً مسار «اكتشف التخصص».',
-    href: 'discover.html',
-    cta: 'افتح اكتشف التخصص'
+    reason: 'لفتح التمارين أكمل أولاً مسار «كتب ومراجع».',
+    href: 'books.html',
+    cta: 'افتح الكتب والمراجع'
   },
   contribute: {
-    reason: 'لفتح «أفد غيرك» أكمل 4 مسارات على الأقل من رحلتك التعليمية.',
-    href: 'index.html#paths',
-    cta: 'عرض المسارات'
+    reason: 'لفتح «أفد غيرك» أكمل مسار التمارين أولاً.',
+    href: 'practice.html',
+    cta: 'افتح التمارين'
   }
 };
 
@@ -618,12 +600,14 @@ function showLockAlert(message, href, ctaLabel){
   backdrop.setAttribute('role', 'alertdialog');
   backdrop.setAttribute('aria-modal', 'true');
   backdrop.setAttribute('aria-labelledby', 'lockDialogTitle');
+  backdrop.setAttribute('aria-describedby', 'lockDialogReason');
+  var prevFocus = document.activeElement;
 
   backdrop.innerHTML =
     '<div class="lock-dialog">' +
       '<p class="lock-dialog-eyebrow">/// خطوة مطلوبة قبل المتابعة</p>' +
       '<h3 id="lockDialogTitle">كيف تفتح هالمرحلة؟</h3>' +
-      '<p class="lock-dialog-reason">' + message + '</p>' +
+      '<p class="lock-dialog-reason" id="lockDialogReason">' + message + '</p>' +
       '<div class="lock-dialog-actions">' +
         '<button type="button" class="btn-ghost" id="lockDialogClose">فهمت</button>' +
         (href
@@ -637,13 +621,34 @@ function showLockAlert(message, href, ctaLabel){
 
   function close(){
     backdrop.classList.remove('show');
-    setTimeout(function(){ backdrop.remove(); }, 220);
+    setTimeout(function(){
+      backdrop.remove();
+      if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus();
+    }, 220);
   }
 
-  document.getElementById('lockDialogClose').addEventListener('click', close);
+  var closeBtn = document.getElementById('lockDialogClose');
+  var goBtn = document.getElementById('lockDialogGo');
+  if (closeBtn) closeBtn.addEventListener('click', close);
   backdrop.addEventListener('click', function(e){
     if (e.target === backdrop) close();
   });
+  backdrop.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ e.preventDefault(); close(); return; }
+    if (e.key !== 'Tab') return;
+    var focusable = [closeBtn, goBtn].filter(Boolean);
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first){
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last){
+      e.preventDefault();
+      first.focus();
+    }
+  });
+  if (closeBtn) closeBtn.focus();
 }
 
 function showStageLock(stageId){
@@ -669,7 +674,7 @@ function showCertReadyDialog(){
       '<p class="lock-dialog-reason">أكملت المسار كاملاً. شهادتك جاهزة باسمك — افتحها الآن للعرض أو الطباعة.</p>' +
       '<div class="lock-dialog-actions">' +
         '<button type="button" class="btn-ghost" id="lockDialogClose">لاحقاً</button>' +
-        '<a href="certificate.html" class="btn-primary" id="lockDialogGo">فك الشهادة ←</a>' +
+        '<a href="certificate.html" class="btn-primary" id="lockDialogGo">إلى صفحة الشهادة ←</a>' +
       '</div>' +
     '</div>';
 
@@ -735,17 +740,36 @@ function ensureChecklistsComplete(){
 }
 
 function annotateChecklists(){
-  document.querySelectorAll('.checklist').forEach(function(list){
-    if (!list.classList.contains('required-checklist')) list.classList.add('required-checklist');
-    list.setAttribute('data-required', 'true');
-    if (!list.querySelector('.checklist-hint')){
-      var hint = document.createElement('p');
-      hint.className = 'checklist-hint';
-      hint.innerHTML = 'حدّد كل البنود، ثم اضغط الزر للمتابعة.';
-      var h4 = list.querySelector('h4');
-      if (h4) h4.insertAdjacentElement('afterend', hint);
-      else list.insertBefore(hint, list.firstChild);
+  var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  var storeKey = 'hci_checklist_' + page;
+  var saved = {};
+  try { saved = JSON.parse(sessionStorage.getItem(storeKey) || '{}'); } catch (e) { saved = {}; }
+
+  document.querySelectorAll('.checklist').forEach(function(list, listIdx){
+    var required = list.classList.contains('required-checklist') || list.getAttribute('data-required') === 'true';
+    if (required){
+      list.classList.add('required-checklist');
+      list.setAttribute('data-required', 'true');
+      if (!list.querySelector('.checklist-hint')){
+        var hint = document.createElement('p');
+        hint.className = 'checklist-hint';
+        hint.innerHTML = 'حدّد كل البنود، ثم اضغط الزر للمتابعة.';
+        var h4 = list.querySelector('h4');
+        if (h4) h4.insertAdjacentElement('afterend', hint);
+        else list.insertBefore(hint, list.firstChild);
+      }
     }
+    list.querySelectorAll('input[type="checkbox"]').forEach(function(cb, i){
+      var id = 'cl-' + listIdx + '-' + i;
+      if (saved[id]) cb.checked = true;
+      cb.addEventListener('change', function(){
+        try {
+          var next = JSON.parse(sessionStorage.getItem(storeKey) || '{}');
+          next[id] = !!cb.checked;
+          sessionStorage.setItem(storeKey, JSON.stringify(next));
+        } catch (err) { /* */ }
+      });
+    });
   });
 }
 
@@ -886,30 +910,38 @@ var loggedInName = localStorage.getItem('hci_user_name');
   });
 })();
 
-/* توجيه إجباري فوري بعد الدخول: ابدأ هنا قبل أي صفحة ثانية (إلا مقال البداية) */
+/* توجيه بعد الدخول: المقدمة للمهتم، ثم البداية، مع إبقاء المعجم والمقالات مفتوحة */
 (function forceOnboardingLanding(){
   try {
     if (!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())) return;
     if (HCIApi.isAdmin() || HCIApi.isSpecialist()) return;
-    if (HCIApi.isPreview && HCIApi.isPreview()) {
-      var previewPage = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-      if (!previewPage || previewPage === '/') previewPage = 'index.html';
-      if (previewPage === 'index.html') return;
-    }
-    if (isFoundationDone()) return;
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     if (!page || page === '/') page = 'index.html';
-    var allowed = {
-      'foundation.html': true,
-      'article-what-is-hci.html': true,
+    if (HCIApi.isPreview && HCIApi.isPreview() && page === 'index.html') return;
+
+    var u = HCIApi.currentUser ? HCIApi.currentUser() : null;
+    var openAlways = {
+      'auth.html': true,
+      'legal.html': true,
+      'settings.html': true,
+      'glossary.html': true,
+      'articles.html': true,
       'path-choice.html': true,
       'intro.html': true,
-      'auth.html': true,
-      'settings.html': true,
-      'legal.html': true,
       'admin.html': true
     };
-    if (allowed[page]) return;
+    if (openAlways[page] || /^article-[\w-]+\.html$/i.test(page)) return;
+
+    if (u && !u.pathType){
+      location.replace('path-choice.html');
+      return;
+    }
+    if (u && u.pathType === 'curious' && !u.introSeen){
+      location.replace('intro.html');
+      return;
+    }
+    if (isFoundationDone()) return;
+    if (page === 'foundation.html' || page === 'article-what-is-hci.html') return;
     location.replace('foundation.html');
   } catch (e) { /* */ }
 })();
@@ -1432,6 +1464,7 @@ if (stationsRoot && !isLoggedInForProgress){
           link.classList.add('disabled');
           link.classList.add('show-lock-reason');
           link.setAttribute('aria-disabled', 'true');
+          link.setAttribute('tabindex', '-1');
           link.setAttribute('href', '#paths');
           link.textContent = title;
           link.title = 'لازم تكمل المرحلة الحالية أولاً';
@@ -1623,7 +1656,7 @@ annotateChecklists();
 var markCompleteBtn = document.getElementById('markCompleteBtn');
 if (markCompleteBtn && pageStage){
   if (pageStage === 'contribute'){
-    markCompleteBtn.textContent = 'فك الشهادة ←';
+    markCompleteBtn.textContent = 'إلى صفحة الشهادة ←';
     markCompleteBtn.setAttribute('href', 'certificate.html');
   } else if (isDone(pageStage) && markCompleteBtn.tagName === 'BUTTON'){
     markCompleteBtn.textContent = 'أكملت هالمرحلة ✓';
@@ -1650,7 +1683,7 @@ if (markCompleteBtn && pageStage){
       if (window.HCINotifCenter){
         HCINotifCenter.pushLocal(
           'حصلت على شهادتك',
-          'أكملت المسار كامل. شهادتك جاهزة — اضغط لفكّها.',
+          'أكملت المسار كامل. شهادتك جاهزة — افتحها للعرض أو الطباعة.',
           'certificate.html',
           true
         );
@@ -1702,6 +1735,15 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
         'العودة للاختبار'
       );
       return;
+    }
+
+    if (pageStage === 'practice'){
+      var practiceDone = parseInt(localStorage.getItem('hci_practice_count') || '0', 10);
+      if (practiceDone < 3){
+        e.preventDefault();
+        showLockAlert('أكمل 3 تمارين على الأقل قبل إنهاء هذه المرحلة.', null, null);
+        return;
+      }
     }
 
     // إكمال المرحلة الحالية عند الضغط على التالي (الأساسيات فقط عبر الاختبار)
@@ -1796,8 +1838,16 @@ function showTab(tab){
   var isSignup = tab === 'signup';
   var isReset = tab === 'reset';
   var isVerify = tab === 'verify';
-  if (tabLogin) tabLogin.classList.toggle('active', isLogin);
-  if (tabSignup) tabSignup.classList.toggle('active', isSignup);
+  if (tabLogin){
+    tabLogin.classList.toggle('active', isLogin);
+    tabLogin.setAttribute('aria-selected', isLogin ? 'true' : 'false');
+    tabLogin.setAttribute('tabindex', isLogin ? '0' : '-1');
+  }
+  if (tabSignup){
+    tabSignup.classList.toggle('active', isSignup);
+    tabSignup.setAttribute('aria-selected', isSignup ? 'true' : 'false');
+    tabSignup.setAttribute('tabindex', isSignup ? '0' : '-1');
+  }
   if (formLogin) formLogin.classList.toggle('active', isLogin);
   if (formSignup) formSignup.classList.toggle('active', isSignup);
   if (formReset) formReset.classList.toggle('active', isReset);
@@ -1966,6 +2016,8 @@ function validateField(input, errorEl, checkFn){
   if (!input || !errorEl) return false;
   var ok = checkFn(input.value);
   errorEl.classList.toggle('show', !ok);
+  input.setAttribute('aria-invalid', ok ? 'false' : 'true');
+  if (errorEl.id) input.setAttribute('aria-describedby', errorEl.id);
   return ok;
 }
 
@@ -2025,30 +2077,29 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   var rememberForget = document.getElementById('rememberForget');
   var REMEMBER_KEY = 'hci_remember_login';
 
-  function encodeRememberSecret(value){
-    try { return btoa(unescape(encodeURIComponent(String(value || '')))); }
-    catch (e) { return ''; }
-  }
-  function decodeRememberSecret(value){
-    try { return decodeURIComponent(escape(atob(String(value || '')))); }
-    catch (e) { return ''; }
-  }
   function readRememberedLogin(){
     try {
       var raw = localStorage.getItem(REMEMBER_KEY);
       if (!raw) return null;
       var data = JSON.parse(raw);
       if (!data || !data.identifier) return null;
+      if (data.password) {
+        delete data.password;
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({
+          identifier: data.identifier,
+          name: data.name || '',
+          savedAt: data.savedAt || new Date().toISOString()
+        }));
+      }
       return data;
     } catch (e) {
       return null;
     }
   }
-  function saveRememberedLogin(identifier, password, displayName){
+  function saveRememberedLogin(identifier, displayName){
     try {
       localStorage.setItem(REMEMBER_KEY, JSON.stringify({
         identifier: String(identifier || '').trim(),
-        secret: encodeRememberSecret(password || ''),
         name: String(displayName || '').trim(),
         savedAt: new Date().toISOString()
       }));
@@ -2065,7 +2116,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
     var label = data.name || data.identifier || 'حسابك';
     if (rememberPromptText){
       rememberPromptText.textContent =
-        'وجدنا حساب «' + label + '» محفوظ على هذا الجهاز. هل تريد ملء البيانات تلقائياً؟';
+        'وجدنا حساب «' + label + '» محفوظ على هذا الجهاز. هل تريد ملء البريد أو الجوال؟';
     }
     rememberPrompt.hidden = false;
   }
@@ -2073,8 +2124,8 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
   // عرض طلب الموافقة إذا فيه حساب محفوظ على الجهاز
   (function offerRememberedFill(){
     if (!loginIdentifier || !loginPass) return;
-    if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()) return;
     var remembered = readRememberedLogin();
+    if (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()) return;
     if (!remembered) return;
     if (rememberMe) rememberMe.checked = true;
     showRememberPrompt(remembered);
@@ -2085,7 +2136,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       var remembered = readRememberedLogin();
       if (!remembered){ hideRememberPrompt(); return; }
       if (loginIdentifier) loginIdentifier.value = remembered.identifier || '';
-      if (loginPass) loginPass.value = decodeRememberSecret(remembered.secret);
+      if (loginPass) loginPass.value = '';
       if (rememberMe) rememberMe.checked = true;
       hideRememberPrompt();
       if (loginPass && loginPass.value) loginPass.focus();
@@ -2169,7 +2220,7 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       // حفظ / مسح التذكر حسب اختيار المستخدم
       if (rememberMe && rememberMe.checked){
         var displayName = (data.user && (data.user.fullName || data.user.firstName)) || identifierValue;
-        saveRememberedLogin(identifierValue, passwordValue, displayName);
+        saveRememberedLogin(identifierValue, displayName);
       } else {
         clearRememberedLogin();
       }
@@ -2589,7 +2640,11 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
       page === 'settings.html' ||
       page === 'legal.html' ||
       page === 'foundation.html' ||
-      isStartArticle;
+      page === 'glossary.html' ||
+      page === 'articles.html' ||
+      page === 'community-article.html' ||
+      isStartArticle ||
+      /^article-[\w-]+\.html$/i.test(page);
 
     if (!allowWithoutFoundation){
       location.href = 'foundation.html';
@@ -2598,7 +2653,7 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
 
     var skipRedirect = [
       'auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'legal.html',
-      'articles.html', 'community-article.html', 'foundation.html', 'glossary.html', 'index.html'
+      'articles.html', 'community-article.html', 'glossary.html', 'index.html'
     ].indexOf(page) !== -1 || /^article-[\w-]+\.html$/i.test(page);
 
     if (!skipRedirect && !HCIApi.isAdmin() && !(HCIApi.isPreview && HCIApi.isPreview() && page === 'index.html')){

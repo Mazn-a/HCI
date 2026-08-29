@@ -38,9 +38,9 @@
       </div>
     </div>
 
-    <div class="tabs">
-      <button type="button" class="tab-btn active" id="tabLogin">تسجيل الدخول</button>
-      <button type="button" class="tab-btn" id="tabSignup">إنشاء حساب</button>
+    <div class="tabs" role="tablist" aria-label="نوع الحساب">
+      <button type="button" class="tab-btn active" id="tabLogin" role="tab" aria-selected="true" aria-controls="formLogin" tabindex="0">تسجيل الدخول</button>
+      <button type="button" class="tab-btn" id="tabSignup" role="tab" aria-selected="false" aria-controls="formSignup" tabindex="-1">إنشاء حساب</button>
     </div>
 
     <form id="formLogin" class="active" novalidate>
@@ -64,7 +64,7 @@
         <input type="checkbox" id="rememberMe">
         <span>تذكرني على هذا الجهاز</span>
       </label>
-      <p class="remember-hint">إذا وافقت لاحقاً، نملأ بيانات حسابك تلقائياً عند فتح تسجيل الدخول من نفس الجهاز.</p>
+      <p class="remember-hint">إذا وافقت لاحقاً، نملأ البريد أو الجوال فقط. لا نحفظ كلمة المرور على الجهاز.</p>
       <button type="submit" class="submit-btn" id="loginSubmit">تسجيل الدخول</button>
       <div class="auth-divider google-auth-only" hidden><span>أو</span></div>
       <div class="google-btn-wrap google-auth-only" id="googleLoginBtnWrap" hidden></div>

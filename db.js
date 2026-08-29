@@ -12,11 +12,11 @@ const DATABASE_URL = String(process.env.DATABASE_URL || '')
 
 const ADMIN_EMAIL = 'mazntyh7@gmail.com';
 const ADMIN_PHONE = '0536786288';
-const ADMIN_PIN = '1111';
+const ADMIN_PIN = process.env.ADMIN_PIN || '1111';
 
-const PREVIEW_EMAIL = 'mazen@hci.dev';
-const PREVIEW_PHONE = '0590000001';
-const PREVIEW_PIN = '11111111';
+const PREVIEW_EMAIL = process.env.PREVIEW_EMAIL || 'mazen@hci.dev';
+const PREVIEW_PHONE = process.env.PREVIEW_PHONE || '0590000001';
+const PREVIEW_PIN = process.env.PREVIEW_PIN || '11111111';
 
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 

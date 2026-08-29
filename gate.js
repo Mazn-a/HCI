@@ -9,6 +9,7 @@
     */
     var MAINTENANCE_MODE = false;
 
+    document.documentElement.classList.add('js');
     var theme = localStorage.getItem('hci_theme') || 'dark';
     /* الوضع الفاتح تحت الصيانة */
     if (theme === 'light') theme = 'dark';
@@ -72,10 +73,12 @@
       'verify.html': true
     };
 
-    /* المقالات بعد حساب فقط — عشان الزائر يسجّل، وبعد التسجيل يقدر يقرأ فوراً */
-    if (isArticlePage && !loggedIn) {
-      var next = encodeURIComponent(page + (search || '') + (location.hash || ''));
-      location.replace('auth.html?tab=signup&next=' + next);
+    /* كتابة مقال المجتمع فقط بعد الدخول — القراءة عامة */
+    if (page === 'write-article.html' && !loggedIn) {
+      location.replace('auth.html?tab=signup&next=' + encodeURIComponent(page));
+      return;
+    }
+    if (isArticlePage) {
       return;
     }
 

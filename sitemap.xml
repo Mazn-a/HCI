@@ -6,21 +6,6 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://hci-1-fk7w.onrender.com/index.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://hci-1-fk7w.onrender.com/glossary.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://hci-1-fk7w.onrender.com/community-article.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://hci-1-fk7w.onrender.com/foundation.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
@@ -49,6 +34,11 @@
     <loc>https://hci-1-fk7w.onrender.com/intro.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://hci-1-fk7w.onrender.com/glossary.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://hci-1-fk7w.onrender.com/auth.html</loc>

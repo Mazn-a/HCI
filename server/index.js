@@ -10,7 +10,9 @@ const { db, ensureAdmin, checkPassword } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'hci-platform-secret-change-in-production-2026';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production'
+  ? require('crypto').randomBytes(48).toString('hex')
+  : 'hci-local-dev-secret-only');
 
 const uploadsDir = path.join(__dirname, '..', 'data', 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -269,15 +271,15 @@ app.post('/api/auth/request-otp', (req, res) => {
 
     // بدون خدمة SMS/بريد خارجية: نُظهر الرمز مرة واحدة في الاستجابة للتجربة
     // لاحقاً يُستبدل بإرسال حقيقي للجوال أو البريد
-    res.json({
+    const payload = {
       ok: true,
       channel: resolved.channel,
       message: resolved.channel === 'email'
         ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
-        : 'تم إنشاء رمز تحقق للجوال. أدخله خلال 10 دقائق.',
-      demoCode: code,
-      deliveryNote: 'حالياً يظهر الرمز هنا لأن خدمة الإرسال الخارجية غير مفعّلة بعد.'
-    });
+        : 'تم إنشاء رمز تحقق للجوال. أدخله خلال 10 دقائق.'
+    };
+    if (process.env.NODE_ENV !== 'production') payload.demoCode = code;
+    res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'تعذر إرسال رمز التحقق' });

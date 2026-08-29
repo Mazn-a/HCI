@@ -119,8 +119,8 @@
           hint: 'الحساب يحفظ تقدّمك. بعد التسجيل نوجّهك إلى مكانك مباشرة.',
           cta: 'إنشاء حساب والبدء ←',
           ctaHref: 'auth.html?tab=signup',
-          secondary: 'لدي حساب — تسجيل الدخول',
-          secondaryHref: 'auth.html',
+          secondary: 'استعرض المسارات السبعة',
+          secondaryHref: '#paths',
           hideSecondary: false
         };
 

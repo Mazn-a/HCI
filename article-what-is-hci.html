@@ -28,7 +28,7 @@
   <header>
     <div class="wrap nav">
       <a href="index.html" class="nav-brand" aria-label="HCI"><span class="logo">HCI</span></a>
-      <nav class="nav-links" id="navLinks">
+      <nav class="nav-links" id="navLinks" aria-label="القائمة الرئيسية">
         <a href="foundation.html">ابدأ هنا</a>
         <a href="index.html#paths">المسارات</a>
         <a href="articles.html">المقالات</a>
@@ -79,8 +79,8 @@
       <div class="article-end-mark" id="articleReadSentinel" aria-hidden="true"></div>
 
       <div class="article-cta reveal">
-        <p id="articleCtaHint">بعد المقال تنتقل إلى المسار الأول.</p>
-        <button type="button" class="btn-primary" id="articleFoundationDone" data-foundation-id="hci" disabled>التالي ←</button>
+        <p id="articleCtaHint">الزر يتفعّل بعد نهاية المقال.</p>
+        <button type="button" class="btn-primary" id="articleFoundationDone" data-foundation-id="hci" disabled aria-describedby="articleCtaHint">التالي ←</button>
         <a href="foundation.html" class="btn-ghost" id="articleBackToStart">العودة لصفحة البداية</a>
       </div>
     </div>

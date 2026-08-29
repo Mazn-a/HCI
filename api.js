@@ -96,7 +96,7 @@
     } catch (e) { /* */ }
   }
 
-  function clearSession() {
+  function clearIdentity() {
     localStorage.removeItem('hci_token');
     localStorage.removeItem('hci_user_id');
     localStorage.removeItem('hci_user_role');
@@ -106,6 +106,10 @@
     localStorage.removeItem('hci_verified');
     try { localStorage.removeItem('hci_is_preview'); } catch (e) { /* */ }
     try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
+  }
+
+  function clearSession() {
+    clearIdentity();
     clearLocalProgress();
   }
 
@@ -674,8 +678,22 @@
     });
   }
 
-  /* زائر بدون جلسة: امسح هوية/تقدّم شخص سابق على نفس المتصفح */
-  if (!getToken()) clearSession();
+  /* زائر بلا توكن: امسح الهوية فقط — لا تمسح تقدّم الجهاز */
+  if (!getToken()) clearIdentity();
+
+  try {
+    var rememberRaw = localStorage.getItem('hci_remember_login');
+    if (rememberRaw) {
+      var rememberData = JSON.parse(rememberRaw);
+      if (rememberData && rememberData.password) {
+        localStorage.setItem('hci_remember_login', JSON.stringify({
+          identifier: rememberData.identifier || '',
+          name: rememberData.name || '',
+          savedAt: rememberData.savedAt || new Date().toISOString()
+        }));
+      }
+    }
+  } catch (e) { /* */ }
 
   window.HCIApi = {
     API_BASE: API_BASE,

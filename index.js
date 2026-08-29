@@ -8,12 +8,30 @@ const crypto = require('crypto');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { db, ensureAdmin, ensurePreviewOwner, resetPreviewOwnerProgress, checkPassword, ready, dataDir } = require('./db');
+const { db, ensureAdmin, ensurePreviewOwner, resetPreviewOwnerProgress, checkPassword, ready, dataDir, PREVIEW_EMAIL, PREVIEW_PHONE, PREVIEW_PIN } = require('./db');
 const { sendOtpEmail } = require('./mailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'hci-platform-secret-change-in-production-2026';
+function resolveJwtSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV !== 'production') {
+    return 'hci-local-dev-secret-only';
+  }
+  const secretFile = path.join(dataDir, '.jwt-secret');
+  try {
+    if (fs.existsSync(secretFile)) {
+      const existing = String(fs.readFileSync(secretFile, 'utf8') || '').trim();
+      if (existing.length >= 32) return existing;
+    }
+    const generated = crypto.randomBytes(48).toString('hex');
+    fs.writeFileSync(secretFile, generated, { mode: 0o600 });
+    return generated;
+  } catch (e) {
+    return crypto.randomBytes(48).toString('hex');
+  }
+}
+const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 
 const uploadsDir = path.join(dataDir, 'uploads');
@@ -412,15 +430,12 @@ app.post('/api/auth/login', (req, res) => {
       user = db.findUserByPhone(normalizePhone(identifier));
     }
 
-    const previewEmail = 'mazen@hci.dev';
-    const previewPhone = '0590000001';
-    const previewPin = '11111111';
     const idNorm = identifier.includes('@')
       ? identifier.toLowerCase()
       : normalizePhone(identifier);
     const isPreviewCreds =
-      (idNorm === previewEmail || idNorm === previewPhone) &&
-      String(password).replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').trim() === previewPin;
+      (idNorm === PREVIEW_EMAIL || idNorm === PREVIEW_PHONE) &&
+      String(password).replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').trim() === PREVIEW_PIN;
     if (isPreviewCreds && (!user || !user.is_preview)) {
       ensurePreviewOwner();
       user = db.findUserByEmail(PREVIEW_EMAIL) || db.findUserByPhone(PREVIEW_PHONE);
@@ -739,8 +754,7 @@ app.post('/api/auth/request-otp', async (req, res) => {
           ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
           : 'تم إنشاء رمز تحقق لرقم الهاتف. أدخله خلال 10 دقائق.')
     };
-    /* demoCode يظهر بالواجهة فقط لو ما قدرنا نرسل بريد فعلي (وضع تجريبي بدون SMTP مُعد) */
-    if (!emailSent) payload.demoCode = code;
+    if (!emailSent && process.env.NODE_ENV !== 'production') payload.demoCode = code;
 
     res.json(payload);
   } catch (err) {
@@ -910,7 +924,7 @@ function maybeIssueCertificateAndNotify(userId, journey) {
       userId: user.id,
       type: 'certificate',
       title: 'حصلت على شهادتك',
-      body: 'شكراً لتقييمك. شهادتك جاهزة — اضغط لفكّها وطباعتها.',
+      body: 'شكراً لتقييمك. شهادتك جاهزة — افتحها للعرض أو الطباعة.',
       link: 'certificate.html'
     });
   }
@@ -2239,19 +2253,23 @@ ready.then(() => {
     console.log('  لوحة الإدارة: http://localhost:' + PORT + '/admin.html');
     console.log('  حفظ البيانات: ' + (process.env.DATABASE_URL ? 'Postgres (دائم)' : 'ملف محلي'));
     console.log('');
-    console.log('  حساب المدير:');
-    console.log('  البريد: ' + adminInfo.email);
-    console.log('  الجوال: ' + adminInfo.phone);
-    console.log('  كلمة المرور: ' + adminInfo.password);
-    console.log('');
-    console.log('  حساب المعاينة (يفتح الرئيسية من الصفر):');
-    console.log('  البريد: ' + previewInfo.email);
-    console.log('  الجوال: ' + previewInfo.phone);
-    console.log('  كلمة المرور: ' + previewInfo.password);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('  حساب المدير:');
+      console.log('  البريد: ' + adminInfo.email);
+      console.log('  الجوال: ' + adminInfo.phone);
+      console.log('  كلمة المرور: ' + adminInfo.password);
+      console.log('');
+      console.log('  حساب المعاينة (يفتح الرئيسية من الصفر):');
+      console.log('  البريد: ' + previewInfo.email);
+      console.log('  الجوال: ' + previewInfo.phone);
+      console.log('  كلمة المرور: ' + previewInfo.password);
+    } else {
+      console.log('  حساب المدير والمعاينة: جاهزان (كلمات المرور لا تُطبع في الإنتاج).');
+    }
     console.log('═══════════════════════════════════════');
     if (!process.env.JWT_SECRET) {
-      console.warn('⚠️  تحذير: JWT_SECRET غير معرّف بمتغيرات البيئة — يُستخدم سر افتراضي غير آمن للنشر العام.');
-      console.warn('   أضف JWT_SECRET بقيمة عشوائية طويلة في Render → Environment قبل الإطلاق الفعلي.');
+      console.warn('⚠️  JWT_SECRET غير معرّف في البيئة. محلياً يُستخدم سر تطوير، وفي الإنتاج يُولَّد سر دائم في مجلد البيانات.');
+      console.warn('   للأمان الأوضح: أضف JWT_SECRET عشوائياً طويلاً في Render → Environment.');
     }
     console.log('');
   });

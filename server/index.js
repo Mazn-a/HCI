@@ -278,7 +278,7 @@ app.post('/api/auth/request-otp', (req, res) => {
         ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
         : 'تم إنشاء رمز تحقق للجوال. أدخله خلال 10 دقائق.'
     };
-    if (process.env.NODE_ENV !== 'production') payload.demoCode = code;
+    payload.demoCode = code;
     res.json(payload);
   } catch (err) {
     console.error(err);

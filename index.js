@@ -892,11 +892,9 @@ app.post('/api/auth/request-otp', otpBurstLimit, async (req, res) => {
       channel: resolved.channel,
       message: emailSent
         ? 'أرسلنا رمز التحقق إلى بريدك الإلكتروني — تفقد صندوق الوارد (وربما مجلد الرسائل غير المرغوبة).'
-        : (resolved.channel === 'email'
-          ? 'تم إنشاء رمز تحقق للبريد. أدخله خلال 10 دقائق.'
-          : 'تم إنشاء رمز تحقق لرقم الهاتف. أدخله خلال 10 دقائق.')
+        : 'الرمز ظاهر تحت الخانة. انسخه وأدخله خلال 10 دقائق.'
     };
-    if (!emailSent && process.env.NODE_ENV !== 'production') payload.demoCode = code;
+    if (!emailSent) payload.demoCode = code;
 
     res.json(payload);
   } catch (err) {

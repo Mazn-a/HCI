@@ -49,8 +49,16 @@
     return;
   }
 
-  // لو اختار مسبقاً، لا نعيد السؤال
+  if (HCIApi.isPreview && HCIApi.isPreview()) {
+    location.href = 'index.html';
+    return;
+  }
+
   var user = HCIApi.currentUser();
+  if (user && HCIApi.needsVerification && HCIApi.needsVerification(user)) {
+    location.href = 'auth.html?tab=verify';
+    return;
+  }
   if (user && user.pathType) {
     location.href = HCIApi.resolvePostAuthDestination(user, false);
     return;
@@ -89,6 +97,12 @@
       // مهتم / جديد → صفحة التعريف الكاملة
       location.href = 'intro.html';
     } catch (err) {
+      if (err && err.status === 409) {
+        var existing = (err.data && err.data.user) || (HCIApi.currentUser && HCIApi.currentUser()) || user;
+        if (existing && err.data && err.data.user) HCIApi.setSession(HCIApi.getToken(), err.data.user);
+        location.href = HCIApi.resolvePostAuthDestination(existing, false);
+        return;
+      }
       statusMsg.textContent = err.message;
       busy = false;
     }

@@ -184,15 +184,18 @@
     return;
   }
   if (user && user.pathType === 'curious' && user.introSeen) {
+    var foundationOk = false;
     try {
-      var f = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
-      var r = f.read || {};
-      if (!(r.hci || (r.uxui && r.nielsen))) {
-        location.href = 'foundation.html';
-        return;
+      if (window.HCIApi && HCIApi.isFoundationCompleteLocal) {
+        foundationOk = HCIApi.isFoundationCompleteLocal();
+      } else {
+        var f = JSON.parse(localStorage.getItem('hci_foundation') || '{}');
+        var r = f.read || {};
+        var j = JSON.parse(localStorage.getItem('hci_journey') || '{}');
+        foundationOk = !!(f.completedAt || r.hci || (r.uxui && r.nielsen) || j.foundationDone);
       }
     } catch (e) { /* */ }
-    location.href = 'index.html#paths';
+    location.href = foundationOk ? 'index.html#paths' : 'foundation.html';
     return;
   }
   if (user && !user.pathType) {

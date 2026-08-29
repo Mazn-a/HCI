@@ -936,6 +936,7 @@ var loggedInName = localStorage.getItem('hci_user_name');
       'auth.html': true,
       'legal.html': true,
       'settings.html': true,
+      'profile.html': true,
       'glossary.html': true,
       'articles.html': true,
       'path-choice.html': true,
@@ -1103,7 +1104,7 @@ if (navCtaSlot && loggedInName){
   var navAccountHref = 'profile.html';
   try {
     var navUser = window.HCIApi && HCIApi.currentUser ? HCIApi.currentUser() : null;
-    if (navUser && navUser.pathType === 'curious' && !navUser.introSeen) navAccountHref = 'settings.html';
+    if (navUser && navUser.pathType === 'curious' && !navUser.introSeen) navAccountHref = 'intro.html';
   } catch (e) { /* */ }
   /* ملاحظة: زر الإدارة الذهبي يظهر مرة واحدة بجانب الحساب — القائمة احتياطي */
   navCtaSlot.innerHTML =
@@ -2301,6 +2302,11 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
       // لا نعلّق الدخول على المزامنة — نكمل ولو فشلت/تأخّرت
       try { await HCIApi.syncProgress(); } catch (syncErr) { /* تجاهل */ }
       if (data.user.pathType === 'specialist') HCIApi.applySpecialistUnlocks();
+      if (data.needsVerification || (window.HCIApi.needsVerification && HCIApi.needsVerification(data.user))){
+        try { sessionStorage.setItem('hci_pending_verify', identifierValue); } catch (e) { /* */ }
+        window.location.href = 'auth.html?tab=verify';
+        return;
+      }
       var dest = await HCIApi.afterAuthFlow(data.user, false);
       window.location.href = dest;
     } catch (err) {
@@ -2572,7 +2578,10 @@ if (tabLogin && tabSignup && formLogin && formSignup && statusMsg){
         try { sessionStorage.removeItem('hci_pending_verify'); } catch (e) { /* */ }
         statusMsg.textContent = 'تم التأكيد. جاري فتح مسارك…';
         statusMsg.classList.add('show');
-        var dest = await HCIApi.afterAuthFlow(conf.user || HCIApi.currentUser(), !!conf.isNew);
+        try { await HCIApi.syncProgress(); } catch (e) { /* */ }
+        var verifiedUser = conf.user || HCIApi.currentUser();
+        if (verifiedUser && verifiedUser.pathType === 'specialist') HCIApi.applySpecialistUnlocks();
+        var dest = await HCIApi.afterAuthFlow(verifiedUser, !!conf.isNew);
         window.location.href = dest;
       } catch (err) {
         statusMsg.textContent = err.message;
@@ -2727,6 +2736,12 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
         btn.classList.add('done');
       }
     });
+    if (page === 'articles.html' && (foundationOk || staff)){
+      var articlesGate = document.getElementById('articlesOnboardingGate');
+      var articlesBody = document.getElementById('articlesLibraryBody');
+      if (articlesGate) articlesGate.hidden = true;
+      if (articlesBody) articlesBody.hidden = false;
+    }
     var isStartArticle = page === 'article-what-is-hci.html';
     var allowWithoutFoundation =
       staff ||
@@ -2737,6 +2752,7 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
       page === 'intro.html' ||
       page === 'admin.html' ||
       page === 'settings.html' ||
+      page === 'profile.html' ||
       page === 'legal.html' ||
       page === 'foundation.html' ||
       page === 'glossary.html' ||
@@ -2751,7 +2767,7 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
     }
 
     var skipRedirect = [
-      'auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'legal.html',
+      'auth.html', 'path-choice.html', 'intro.html', 'admin.html', 'settings.html', 'profile.html', 'legal.html',
       'articles.html', 'community-article.html', 'glossary.html', 'index.html'
     ].indexOf(page) !== -1 || /^article-[\w-]+\.html$/i.test(page);
 

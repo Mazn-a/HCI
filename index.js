@@ -478,7 +478,8 @@ app.post('/api/auth/login', authBurstLimit, (req, res) => {
     user = db.findUserById(user.id);
     if (!user.is_preview) maybeNudgeStalledUser(user);
 
-    sendAuth(res, user);
+    const verified = !!(user.email_verified || user.phone_verified || user.role === 'admin' || user.is_preview);
+    sendAuth(res, user, { needsVerification: !verified });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'خطأ أثناء تسجيل الدخول' });
@@ -980,7 +981,19 @@ app.patch('/api/auth/path', authRequired, (req, res) => {
   const user = db.findUserById(req.user.id);
   if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
 
-  db.updateUser(user.id, { path_type: pathType });
+  if (user.path_type && user.path_type !== pathType) {
+    return res.status(409).json({
+      error: 'مسارك محفوظ مسبقاً. نكمّل من حيث توقفت.',
+      user: publicUser(user)
+    });
+  }
+  if (user.path_type === pathType) {
+    return res.json({ user: publicUser(user) });
+  }
+
+  const patch = { path_type: pathType };
+  if (pathType === 'specialist') patch.intro_seen = true;
+  db.updateUser(user.id, patch);
   const updated = db.findUserById(user.id);
   res.json({ user: publicUser(updated) });
 });

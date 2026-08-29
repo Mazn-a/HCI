@@ -328,6 +328,7 @@
       }
       var err = new Error(msg);
       err.status = res.status;
+      err.data = data;
       throw err;
     }
     return data;
@@ -348,7 +349,7 @@
       method: 'POST',
       body: { identifier: identifier, password: password }
     });
-    setSession(data.token, data.user, { siteUnlock: true, resetPreview: !!data.user.isPreview });
+    setSession(data.token, data.user, { resetPreview: !!data.user.isPreview });
     return data;
   }
 
@@ -685,6 +686,7 @@
     j.done.discover = true;
     j.visited.discover = true;
     j.bootstrapped = true;
+    j.foundationDone = true;
     j.pathType = 'specialist';
     localStorage.setItem('hci_journey', JSON.stringify(j));
     scheduleSync();
@@ -769,9 +771,16 @@
     }
   }
 
+  function needsVerification(user) {
+    if (!user) return true;
+    if (user.role === 'admin' || user.isPreview) return false;
+    return !(user.emailVerified || user.phoneVerified);
+  }
+
   /** بعد تسجيل الدخول أو إنشاء الحساب — أين نودّي المستخدم؟ */
   function resolvePostAuthDestination(user, isNewSignup) {
-    if (!user) return 'index.html';
+    if (!user) return 'auth.html';
+    if (needsVerification(user)) return 'auth.html?tab=verify';
     if (user.isPreview) return 'index.html';
     if (user.role === 'admin') return 'index.html';
 
@@ -853,6 +862,8 @@
     showWelcomeOverlay: showWelcomeOverlay,
     resolvePostAuthDestination: resolvePostAuthDestination,
     afterAuthFlow: afterAuthFlow,
+    isFoundationCompleteLocal: isFoundationCompleteLocal,
+    needsVerification: needsVerification,
     fetchProgress: fetchProgress,
     saveProgress: saveProgress,
     fetchMyCertificate: fetchMyCertificate,

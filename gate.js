@@ -31,6 +31,7 @@
       } catch (e) { /* */ }
     }
     var loggedIn = !!token && verifiedFlag;
+    document.documentElement.classList.toggle('is-authed', loggedIn);
 
     // ملفات تحقق قوقل
     if (/^google[a-z0-9]+\.html$/i.test(page)) return;

@@ -892,6 +892,9 @@ if (menuBtn && navLinks){
 
 // ----- حساب المستخدم -----
 var loggedInName = localStorage.getItem('hci_user_name');
+if (loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn())){
+  document.documentElement.classList.add('is-authed');
+}
 
 /* شريط نظيف حسب حالة الزائر/المسجّل — توجيه إجباري للبداية قبل المقالات/المسارات */
 (function tidyNavLinks(){
@@ -999,26 +1002,55 @@ if (greetingEl){
   }
 })();
 
-/* البطل على الرئيسية: جملة توضّح التسلسل حسب الحالة */
-(function personalizeHeroLead(){
+function displayGivenName(){
+  var fallback = loggedInName || '';
+  var user = (window.HCIApi && HCIApi.currentUser) ? HCIApi.currentUser() : null;
+  if (window.HCIFlow && HCIFlow.firstName){
+    return HCIFlow.firstName(user, fallback) || '';
+  }
+  var parts = String((user && (user.firstName || user.fullName)) || fallback).trim().split(/\s+/);
+  return parts[0] || '';
+}
+
+function setHeroSecondary(mode, text, href){
+  var ghost = document.getElementById('heroSecondary') || document.querySelector('.hero-actions .btn-ghost');
+  if (!ghost) return;
+  if (mode === 'hide' || !mode){
+    ghost.hidden = true;
+    ghost.classList.add('js-guest-only');
+    return;
+  }
+  ghost.hidden = false;
+  ghost.textContent = text;
+  if (href) ghost.setAttribute('href', href);
+  if (mode === 'guest') ghost.classList.add('js-guest-only');
+  else ghost.classList.remove('js-guest-only');
+}
+
+function applyHeroLeadCopy(){
   var lead = document.querySelector('.hero-lead');
   if (!lead || !document.getElementById('heroCta')) return;
   var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
   if (!logged) return;
-  var name = loggedInName || '';
-  if (window.HCIFlow && window.HCIApi && HCIApi.currentUser){
-    name = HCIFlow.firstName(HCIApi.currentUser()) || name;
-  }
+  var name = displayGivenName();
+  var prefix = name ? name + '، ' : '';
   if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
-    lead.textContent = (name ? name + '، ' : '') +
-      'مسارك مفتوح. ابدأ من الأداة أو المرحلة التي تحتاجها — دون إعادة البداية أو الاستكشاف.';
+    lead.textContent = prefix + 'مسارك مفتوح. ابدأ من الأداة أو المرحلة التي تحتاجها — دون إعادة البداية أو الاستكشاف.';
   } else if (!isFoundationDone()){
-    lead.textContent = (name ? name + '، ' : '') +
-      'أنت داخل المنصة. أكمل البداية والمقال التعريفي — ثم تُفتح المسارات السبعة بالترتيب.';
+    lead.textContent = prefix + 'أنت داخل المنصة. أكمل البداية والمقال التعريفي — ثم تُفتح المسارات السبعة بالترتيب.';
   } else {
-    lead.textContent = (name ? name + '، ' : '') +
-      'تسلسلك محفوظ. البطاقة الذهبية في المسارات تشير إلى مرحلتك الحالية.';
+    lead.textContent = prefix + 'تسلسلك محفوظ. البطاقة الذهبية في المسارات تشير إلى مرحلتك الحالية.';
   }
+}
+applyHeroLeadCopy();
+
+(function personalizeFoundationHeadName(){
+  var title = document.getElementById('foundationTitle');
+  if (!title) return;
+  var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
+  if (!logged) return;
+  var name = displayGivenName();
+  if (name) title.textContent = name + '، ابدأ من هنا';
 })();
 
 (function revealSpecialistNotes(){
@@ -1235,33 +1267,24 @@ if (navCtaSlot && loggedInName){
 (function setHeroCtaForVisitor(){
   if (!heroCta) return;
   var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
-  var ghost = document.getElementById('heroSecondary') || document.querySelector('.hero-actions .btn-ghost');
   if (!logged){
     heroCta.textContent = 'إنشاء حساب والبدء ←';
     heroCta.setAttribute('href', 'auth.html?tab=signup');
-    if (ghost){
-      ghost.hidden = false;
-      ghost.textContent = 'لدي حساب — تسجيل الدخول';
-      ghost.setAttribute('href', 'auth.html');
-    }
+    setHeroSecondary('guest', 'لدي حساب — تسجيل الدخول', 'auth.html');
     return;
   }
   if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
     heroCta.textContent = 'إلى الدورات والأدوات ←';
     heroCta.setAttribute('href', 'courses.html');
-    if (ghost){
-      ghost.hidden = false;
-      ghost.textContent = 'كل المسارات';
-      ghost.setAttribute('href', '#paths');
-    }
+    setHeroSecondary('alt', 'كل المسارات', '#paths');
   } else if (!isFoundationDone()){
     heroCta.textContent = 'متابعة البداية ←';
     heroCta.setAttribute('href', 'foundation.html');
-    if (ghost) ghost.hidden = true;
+    setHeroSecondary('hide');
   } else {
     heroCta.textContent = 'متابعة مسارك ←';
     heroCta.setAttribute('href', '#paths');
-    if (ghost) ghost.hidden = true;
+    setHeroSecondary('hide');
   }
 })();
 
@@ -1509,7 +1532,7 @@ if (stationsRoot && !isLoggedInForProgress){
       });
     }
     var guideCopy = HCIFlow.pathGuideCopy(phase, {
-      firstName: HCIFlow.firstName(userNow) || loggedInName || '',
+      firstName: displayGivenName() || loggedInName || '',
       stageNum: STAGE_ORDER_LABEL[sid] || '',
       stageTitle: stageTitle(sid),
       stageHref: STAGE_HREFS[sid] || 'discover.html',
@@ -1579,38 +1602,25 @@ if (stationsRoot && !isLoggedInForProgress){
     }
   }
 
-  var heroSecondary = document.getElementById('heroSecondary');
   if (heroCta){
     var hs = currentStageId || getCurrentStageId() || 'discover';
     var loggedNow = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
     if (!loggedNow){
       heroCta.textContent = 'إنشاء حساب والبدء ←';
       heroCta.setAttribute('href', 'auth.html?tab=signup');
-      if (heroSecondary){
-        heroSecondary.hidden = false;
-        heroSecondary.textContent = 'لدي حساب — تسجيل الدخول';
-        heroSecondary.setAttribute('href', 'auth.html');
-      }
+      setHeroSecondary('guest', 'لدي حساب — تسجيل الدخول', 'auth.html');
     } else if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
       heroCta.textContent = 'إلى الدورات والأدوات ←';
       heroCta.setAttribute('href', 'courses.html');
-      if (heroSecondary){
-        heroSecondary.hidden = false;
-        heroSecondary.textContent = 'كل المسارات';
-        heroSecondary.setAttribute('href', '#paths');
-      }
+      setHeroSecondary('alt', 'كل المسارات', '#paths');
     } else if (!isFoundationDone()){
       heroCta.textContent = 'متابعة البداية ←';
       heroCta.setAttribute('href', 'foundation.html');
-      if (heroSecondary) heroSecondary.hidden = true;
+      setHeroSecondary('hide');
     } else if (doneCount >= JOURNEY_ORDER.length){
       heroCta.textContent = 'عرض شهادتك ←';
       heroCta.setAttribute('href', 'certificate.html');
-      if (heroSecondary){
-        heroSecondary.hidden = false;
-        heroSecondary.textContent = 'الملف الشخصي';
-        heroSecondary.setAttribute('href', 'profile.html');
-      }
+      setHeroSecondary('alt', 'الملف الشخصي', 'profile.html');
     } else {
       if (doneCount === 0){
         heroCta.textContent = hs === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ مسارك ←';
@@ -1622,7 +1632,7 @@ if (stationsRoot && !isLoggedInForProgress){
         heroCta.textContent = 'متابعة مسارك ←';
       }
       heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
-      if (heroSecondary) heroSecondary.hidden = true;
+      setHeroSecondary('hide');
     }
   }
 
@@ -2688,12 +2698,14 @@ if (window.HCIApi && HCIApi.isLoggedIn()){
     if (me && me.user){
       HCIApi.setSession(HCIApi.getToken(), me.user);
       if (typeof window.HCIEnsureAdminNav === 'function') window.HCIEnsureAdminNav();
+      applyHeroLeadCopy();
     }
   }).catch(function(){});
 
   HCIApi.syncProgress().then(function(){
     // بعد المزامنة: أعد تقييم القفل (قد يكون الترميز مفتوحاً على السيرفر)
     if (typeof refreshPageLockGate === 'function') refreshPageLockGate();
+    applyHeroLeadCopy();
 
     var overallFillEl = document.getElementById('overallProgressFill');
     var overallPctEl = document.getElementById('overallProgressPct');

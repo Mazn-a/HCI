@@ -28,10 +28,25 @@
     { id: 'paths', label: 'المسارات' }
   ];
 
-  function firstName(user) {
-    if (!user) return '';
-    var raw = String(user.fullName || user.firstName || '').trim();
-    return raw.split(/\s+/)[0] || '';
+  function firstName(user, fallback) {
+    var particles = { 'ال': 1, 'آل': 1, 'بن': 1, 'ابن': 1, 'بنت': 1, 'أبو': 1, 'ابو': 1, 'أم': 1, 'ام': 1 };
+    function pick(raw) {
+      var parts = String(raw || '').trim().split(/\s+/).filter(Boolean);
+      var i;
+      var part;
+      var clean;
+      for (i = 0; i < parts.length; i++) {
+        part = parts[i];
+        clean = part.replace(/[^\u0600-\u06FFa-zA-Z]/g, '');
+        if ((clean === 'ال' || clean === 'آل') && parts[i + 1]) continue;
+        if (clean.length >= 2 && !particles[clean]) return part;
+      }
+      return '';
+    }
+    if (typeof user === 'string') return pick(user) || pick(fallback);
+    var fromUser = pick(user && user.firstName) || pick(user && user.fullName);
+    if (fromUser) return fromUser;
+    return pick(fallback);
   }
 
   /**
@@ -251,8 +266,10 @@
     if (guideProfile) {
       if (copy.hideSecondary) {
         guideProfile.hidden = true;
+        guideProfile.classList.add('js-guest-only');
       } else {
         guideProfile.hidden = false;
+        guideProfile.classList.remove('js-guest-only');
         guideProfile.textContent = copy.secondary || '';
         if (copy.secondaryHref) guideProfile.setAttribute('href', copy.secondaryHref);
       }

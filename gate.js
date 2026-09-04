@@ -65,6 +65,9 @@
       'index.html': true,
       'auth.html': true,
       'intro.html': true,
+      /* عامة لقوقل وللدكاترة بدون حساب */
+      'discover.html': true,
+      'foundation.html': true,
       'glossary.html': true,
       'maintenance.html': true,
       'legal.html': true,

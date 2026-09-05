@@ -103,11 +103,12 @@ app.use(function maintenanceGate(req, res, next) {
   return res.redirect(302, '/maintenance.html');
 });
 
-/* robots أثناء الصيانة: قوقل يبقى على صفحة الصيانة فقط */
+/* robots: أثناء التشغيل اسمح بالزحف. لا تمنع قوقل إلا والصيانة شغالة فعلاً. */
 app.get('/robots.txt', (_req, res) => {
   res.status(200);
   res.type('text/plain; charset=utf-8');
-  res.set('Cache-Control', 'no-store');
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('CDN-Cache-Control', 'no-store');
   if (MAINTENANCE_MODE) {
     res.send(
       [
@@ -123,18 +124,7 @@ app.get('/robots.txt', (_req, res) => {
     );
     return;
   }
-  res.send(
-    [
-      'User-agent: *',
-      'Allow: /',
-      '',
-      'User-agent: Googlebot',
-      'Allow: /',
-      '',
-      'Sitemap: https://hci-1-fk7w.onrender.com/sitemap.xml',
-      ''
-    ].join('\n')
-  );
+  res.sendFile(path.join(__dirname, 'robots.txt'));
 });
 
 app.get('/sitemap.xml', (_req, res) => {

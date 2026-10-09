@@ -211,8 +211,8 @@
       if (s.recentLogins && s.recentLogins.length) {
         s.recentLogins.forEach(function (row) {
           var li = document.createElement('li');
-          li.innerHTML = '<strong>' + escapeHtml(row.name) + '</strong>' +
-            '<span>' + visitWhenHtml(row.lastLogin) + '</span>';
+          li.innerHTML = '<strong class="recent-login-name">' + escapeHtml(row.name) + '</strong>' +
+            '<span class="recent-login-when">' + visitWhenHtml(row.lastLogin) + '</span>';
           loginList.appendChild(li);
         });
         bindVisitWhen(loginList);

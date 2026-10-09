@@ -104,15 +104,21 @@
   }
   .admin-settings-card h3{ margin:0 0 6px; font-size:1rem; color:var(--gold); }
   .admin-settings-card p{ margin:0 0 14px; color:var(--text-mid); font-size:0.88rem; line-height:1.65; }
-  .admin-insight{ padding:0; }
-  .admin-insight-grid{ display:grid; grid-template-columns:1.35fr 1fr; gap:14px; }
+  .admin-insight{ padding:0; min-width:0; }
+  .admin-insight-grid{ display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:28px; align-items:start; }
   .recent-logins-list{ list-style:none; margin:0; padding:0; }
   .recent-logins-list li{
-    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    padding:8px 0; border-bottom:1px solid var(--ink-3); font-size:0.88rem;
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:baseline;
+    padding:10px 0; border-bottom:1px solid var(--ink-3); font-size:0.88rem;
   }
   .recent-logins-list li:last-child{ border-bottom:none; }
-  .recent-logins-list span{ color:var(--text-mid); font-size:0.8rem; }
+  .recent-login-name{
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .recent-login-when{
+    color:var(--text-mid); font-size:0.78rem; white-space:nowrap; text-align:left;
+  }
+  .recent-logins-list .visit-when{ color:inherit; font-size:inherit; white-space:nowrap; }
   .admin-user-card-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
   .admin-user-card-top span{ font-family:var(--font-mono); color:var(--gold); font-weight:700; }
   .admin-user-identity{
@@ -273,11 +279,11 @@
   .admin-attn-card .n{ font-family:var(--font-mono); font-size:1.6rem; color:var(--gold); font-weight:700; line-height:1; }
   .admin-attn-card .h{ margin-top:8px; color:var(--text-mid); font-size:0.78rem; line-height:1.4; }
   .admin-funnel{ display:flex; flex-direction:column; gap:10px; margin:0; padding:0; list-style:none; }
-  .admin-funnel li{ display:grid; grid-template-columns:7.5rem 1fr 2.2rem; gap:10px; align-items:center; }
+  .admin-funnel li{ display:grid; grid-template-columns:minmax(0,7.5rem) minmax(0,1fr) 2.6rem; gap:10px; align-items:center; }
   .admin-funnel .label{ font-size:0.8rem; color:var(--text-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .admin-funnel .track{ height:8px; border-radius:999px; background:var(--ink-3); overflow:hidden; }
+  .admin-funnel .track{ height:8px; border-radius:999px; background:var(--ink-3); overflow:hidden; min-width:0; }
   .admin-funnel .fill{ height:100%; background:var(--gold); border-radius:999px; min-width:0; }
-  .admin-funnel .count{ font-family:var(--font-mono); font-size:0.78rem; color:var(--gold); text-align:left; }
+  .admin-funnel .count{ font-family:var(--font-mono); font-size:0.78rem; color:var(--gold); text-align:center; }
   .admin-toolbar{
     display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
     margin-bottom:14px;

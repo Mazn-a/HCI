@@ -231,17 +231,47 @@
     }
   }
 
-  var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  function riyadhDayKey(date) {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Riyadh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
+  }
+
+  function calendarDaysAgo(date) {
+    var visit = Date.parse(riyadhDayKey(date) + 'T00:00:00+03:00');
+    var today = Date.parse(riyadhDayKey(new Date()) + 'T00:00:00+03:00');
+    return Math.round((today - visit) / 86400000);
+  }
+
+  function visitDayLabel(days) {
+    if (days <= 0) return 'اليوم';
+    if (days === 1) return 'أمس';
+    if (days === 2) return 'قبل يومين';
+    if (days === 3) return 'قبل ٣ أيام';
+    if (days === 4) return 'قبل ٤ أيام';
+    if (days === 5) return 'قبل ٥ أيام';
+    if (days === 6) return 'قبل ٦ أيام';
+    if (days === 7) return 'قبل ٧ أيام';
+    return '+٧';
+  }
 
   function visitWhenHtml(iso) {
     if (!iso) return '—';
     var d = new Date(iso);
     if (isNaN(d.getTime())) return '—';
-    var ago = Date.now() - d.getTime();
+    var days = calendarDaysAgo(d);
     var full = formatDate(iso);
-    var shortLabel = ago > WEEK_MS
-      ? '+٧'
-      : d.toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Riyadh' });
+    var shortLabel = visitDayLabel(days);
+    if (days >= 0 && days <= 7) {
+      shortLabel += ' · ' + d.toLocaleTimeString('ar-SA', {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: 'Asia/Riyadh'
+      });
+    }
     return '<button type="button" class="visit-when" data-short="' + escapeHtml(shortLabel) +
       '" data-full="' + escapeHtml(full) + '" title="' + escapeHtml(full) + '">' +
       escapeHtml(shortLabel) + '</button>';

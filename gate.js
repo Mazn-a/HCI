@@ -10,6 +10,13 @@
     var MAINTENANCE_MODE = false;
 
     document.documentElement.classList.add('js');
+    try {
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (r) { r.unregister(); });
+        });
+      }
+    } catch (e) { /* */ }
     var theme = localStorage.getItem('hci_theme') || 'dark';
     /* الوضع الفاتح تحت الصيانة */
     if (theme === 'light') theme = 'dark';

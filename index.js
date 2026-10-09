@@ -34,6 +34,8 @@ function resolveJwtSecret() {
 }
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+/* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009').replace(/[^\w]/g, '').slice(0, 12) || '20261009';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -143,6 +145,41 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+function applyNoStoreHtml(res) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('CDN-Cache-Control', 'no-store');
+  res.setHeader('Surrogate-Control', 'no-store');
+}
+
+function withAssetVersion(html) {
+  let out = String(html).replace(/(\b(?:href|src))="(?!https?:\/\/)([^"?]+\.(?:css|js))"/gi, function (_m, attr, file) {
+    return attr + '="' + file + '?v=' + ASSET_V + '"';
+  });
+  if (!/http-equiv="Cache-Control"/i.test(out)) {
+    out = out.replace(/<head>/i, '<head>\n<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">');
+  }
+  return out;
+}
+
+app.use(function serveFreshHtml(req, res, next) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  const pathOnly = (req.path || '/').split('?')[0];
+  let fileName = '';
+  if (pathOnly === '/' || pathOnly === '/index.html') fileName = 'index.html';
+  else if (/^\/[\w.-]+\.html$/i.test(pathOnly)) fileName = path.basename(pathOnly);
+  else return next();
+  const full = path.join(__dirname, fileName);
+  if (!fs.existsSync(full)) return next();
+  fs.readFile(full, 'utf8', function (err, html) {
+    if (err) return next();
+    applyNoStoreHtml(res);
+    res.type('html; charset=utf-8');
+    res.send(withAssetVersion(html));
+  });
+});
+
 app.use('/uploads', express.static(uploadsDir, {
   maxAge: '30d',
   index: false,
@@ -158,7 +195,7 @@ app.use(express.static(__dirname, {
     } else if (/\.(png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf)$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'public, max-age=604800');
     } else if (/\.html$/i.test(filePath)) {
-      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      applyNoStoreHtml(res);
     }
   }
 }));

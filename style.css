@@ -3489,7 +3489,7 @@ body.nav-open{ overflow: hidden; }
 .lesson-code{
   direction: ltr;
   text-align: left;
-  unicode-bidi: plaintext;
+  unicode-bidi: isolate;
   background: #10131a;
   color: #d7e0ea;
   border: 1px solid rgba(255,255,255,0.08);
@@ -3501,6 +3501,12 @@ body.nav-open{ overflow: hidden; }
   overflow-x: auto;
   margin: 0 0 10px;
   white-space: pre;
+}
+.lesson-code .code-ar{
+  display: inline-block;
+  direction: rtl;
+  unicode-bidi: isolate;
+  text-align: right;
 }
 .lesson-preview-label{ font-size: 0.78rem !important; color: var(--text-mid); margin-bottom: 6px !important; }
 .lesson-preview-frame{
@@ -3550,7 +3556,7 @@ body.nav-open{ overflow: hidden; }
   min-height: 90px;
   direction: ltr;
   text-align: left;
-  unicode-bidi: plaintext;
+  unicode-bidi: isolate;
 }
 .try-code:focus{ background: #131722; }
 .try-lab-bar{

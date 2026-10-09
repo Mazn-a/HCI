@@ -3888,13 +3888,47 @@ var CODING_PREVIEW_CSS = [
   'button{padding:5px 14px;border:1px solid #888;border-radius:4px;background:transparent;color:#e8e8e8}'
 ].join('');
 
+function stripBidiMarks(s){
+  return String(s || '').replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '');
+}
+
+function isolateArabicInSource(src){
+  var text = stripBidiMarks(src);
+  return text.replace(/[\u0600-\u06FF][\u0600-\u06FF\u064B-\u065F\u0670\s،؛؟.!:\-\u2013\u2014]*/g, function(run){
+    return '\u2067' + run + '\u2069';
+  });
+}
+
+function escapeCodeHtml(s){
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatLessonCodeDisplay(src){
+  var text = stripBidiMarks(src);
+  var re = /[\u0600-\u06FF][\u0600-\u06FF\u064B-\u065F\u0670\s،؛؟.!:\-\u2013\u2014]*/g;
+  var out = '';
+  var last = 0;
+  var m;
+  while ((m = re.exec(text))){
+    if (m.index > last) out += escapeCodeHtml(text.slice(last, m.index));
+    out += '<span class="code-ar" dir="rtl">' + escapeCodeHtml(m[0]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out += escapeCodeHtml(text.slice(last));
+  return out;
+}
+
 function wrapCodingPreview(raw){
-  var inner = String(raw || '');
+  var inner = stripBidiMarks(raw || '');
   var bodyMatch = inner.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   if (bodyMatch) inner = bodyMatch[1];
   return '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><style>' +
     CODING_PREVIEW_CSS + '</style></head><body>' + inner + '</body></html>';
 }
+
+document.querySelectorAll('.lesson-code code').forEach(function(el){
+  el.innerHTML = formatLessonCodeDisplay(el.textContent);
+});
 
 document.querySelectorAll('.lesson-preview-frame').forEach(function(frame){
   var raw = frame.getAttribute('srcdoc') || '';
@@ -3907,11 +3941,12 @@ document.querySelectorAll('.try-lab').forEach(function(lab){
   var frame = lab.querySelector('.try-frame');
   var resetBtn = lab.querySelector('.try-reset');
   if (!codeBox || !frame) return;
+  codeBox.value = isolateArabicInSource(codeBox.value);
   var originalCode = codeBox.value;
   var renderTimer = null;
 
   function renderTry(){
-    var src = codeBox.value;
+    var src = stripBidiMarks(codeBox.value);
     if (!/<html[\s>]|<body[\s>]/i.test(src)){
       src = wrapCodingPreview(src);
     }

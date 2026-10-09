@@ -43,7 +43,7 @@ function resolveJwtSecret() {
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 /* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
-const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009').replace(/[^\w]/g, '').slice(0, 12) || '20261009';
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009c').replace(/[^\w]/g, '').slice(0, 12) || '20261009c';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });

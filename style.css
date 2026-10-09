@@ -3347,7 +3347,6 @@ body.nav-open{ overflow: hidden; }
   padding: 22px 20px;
   border: 1px solid var(--ink-3);
   border-radius: 14px;
-  background: linear-gradient(165deg, rgba(255,255,255,0.03), rgba(0,0,0,0.12));
 }
 .coding-mobile-overview .coding-stage-head{ margin-bottom: 8px; }
 .mobile-info-card{
@@ -3490,7 +3489,7 @@ body.nav-open{ overflow: hidden; }
 .lesson-code{
   direction: ltr;
   text-align: left;
-  unicode-bidi: isolate;
+  unicode-bidi: plaintext;
   background: #10131a;
   color: #d7e0ea;
   border: 1px solid rgba(255,255,255,0.08);
@@ -3507,11 +3506,13 @@ body.nav-open{ overflow: hidden; }
 .lesson-preview-frame{
   display: block;
   width: 100%;
-  height: 110px;
+  height: 120px;
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
-  background: #fff;
+  background: #000;
+  color-scheme: dark;
 }
+.lesson-preview-frame.is-tall{ height: 168px; }
 /* محرر «جرّب بنفسك» */
 .try-lab{
   margin-top: 14px;
@@ -3549,7 +3550,7 @@ body.nav-open{ overflow: hidden; }
   min-height: 90px;
   direction: ltr;
   text-align: left;
-  unicode-bidi: isolate;
+  unicode-bidi: plaintext;
 }
 .try-code:focus{ background: #131722; }
 .try-lab-bar{
@@ -3579,7 +3580,8 @@ body.nav-open{ overflow: hidden; }
   height: 180px;
   border: 0;
   border-top: 1px solid rgba(255,255,255,0.12);
-  background: #fff;
+  background: #000;
+  color-scheme: dark;
 }
 
 /* المشروع الختامي */

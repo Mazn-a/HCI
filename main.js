@@ -3872,7 +3872,36 @@ function showStatusBanner(id, message, kind){
   window.addEventListener('scroll', markAtEnd, { passive: true });
 })();
 
-// ----- محرر «جرّب بنفسك» -----
+// ----- محرر «جرّب بنفسك» ومعاينات الدروس (بدون خلفية فاتحة) -----
+var CODING_PREVIEW_CSS = [
+  'html,body{margin:0;background:#000;color:#e8e8e8;color-scheme:dark}',
+  'body{font-family:sans-serif;padding:12px;font-size:14px}',
+  'a{color:#8ec8ff}',
+  'ul,ol{padding-inline-start:1.4em;margin:0 0 10px}',
+  'li{unicode-bidi:isolate}',
+  'h1,h2,h3{margin:0 0 6px}',
+  'p{margin:0 0 8px}',
+  'table{border-collapse:collapse;width:100%}',
+  'th,td{border:1px solid #555;padding:6px;text-align:right}',
+  'input,textarea,button{font:inherit;color-scheme:dark}',
+  'input,textarea{background:transparent;color:#e8e8e8;border:1px solid #666;border-radius:4px;padding:5px}',
+  'button{padding:5px 14px;border:1px solid #888;border-radius:4px;background:transparent;color:#e8e8e8}'
+].join('');
+
+function wrapCodingPreview(raw){
+  var inner = String(raw || '');
+  var bodyMatch = inner.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  if (bodyMatch) inner = bodyMatch[1];
+  return '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><style>' +
+    CODING_PREVIEW_CSS + '</style></head><body>' + inner + '</body></html>';
+}
+
+document.querySelectorAll('.lesson-preview-frame').forEach(function(frame){
+  var raw = frame.getAttribute('srcdoc') || '';
+  if (!raw) return;
+  frame.srcdoc = wrapCodingPreview(raw);
+});
+
 document.querySelectorAll('.try-lab').forEach(function(lab){
   var codeBox = lab.querySelector('.try-code');
   var frame = lab.querySelector('.try-frame');
@@ -3883,8 +3912,8 @@ document.querySelectorAll('.try-lab').forEach(function(lab){
 
   function renderTry(){
     var src = codeBox.value;
-    if (!/<html|<body/i.test(src)){
-      src = '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;margin:12px;color:#111;font-size:14px}</style></head><body>' + src + '</body></html>';
+    if (!/<html[\s>]|<body[\s>]/i.test(src)){
+      src = wrapCodingPreview(src);
     }
     frame.srcdoc = src;
   }

@@ -155,6 +155,14 @@
   async function loadStats() {
     var s = await HCIApi.request('/api/admin/stats');
     document.getElementById('statStudents').textContent = s.students;
+    var vis = document.getElementById('statVisitors');
+    if (vis) vis.textContent = s.siteVisitors != null ? s.siteVisitors : '—';
+    var visHint = document.getElementById('statVisitorsHint');
+    if (visHint) {
+      var todayN = s.siteVisitsToday != null ? s.siteVisitsToday : '—';
+      var weekN = s.siteVisitsWeek != null ? s.siteVisitsWeek : '—';
+      visHint.textContent = 'اليوم ' + todayN + ' · هذا الأسبوع ' + weekN;
+    }
     document.getElementById('statActive').textContent = s.activeWeek;
     var nw = document.getElementById('statNewWeek');
     if (nw) nw.textContent = s.newThisWeek != null ? s.newThisWeek : '—';
@@ -528,7 +536,7 @@
   var BLOCK_ORDER_KEY = 'hci_admin_block_order';
   var STAT_ORDER_KEY = 'hci_admin_stat_order';
   var DEFAULT_BLOCKS = ['attention', 'stats', 'insights'];
-  var DEFAULT_STATS = ['students', 'active', 'newWeek', 'completed', 'certificates', 'stalled', 'quiz', 'articlesPub'];
+  var DEFAULT_STATS = ['students', 'visitors', 'active', 'newWeek', 'completed', 'certificates', 'stalled', 'quiz', 'articlesPub'];
 
   function setLayoutEditing(on) {
     document.body.classList.toggle('admin-layout-editing', !!on);
@@ -565,7 +573,13 @@
         if (fallback.indexOf(id) !== -1 && clean.indexOf(id) === -1) clean.push(id);
       });
       fallback.forEach(function (id) {
-        if (clean.indexOf(id) === -1) clean.push(id);
+        if (clean.indexOf(id) !== -1) return;
+        if (id === 'visitors') {
+          var afterStudents = clean.indexOf('students');
+          clean.splice(afterStudents >= 0 ? afterStudents + 1 : 0, 0, id);
+        } else {
+          clean.push(id);
+        }
       });
       return clean;
     } catch (e) {

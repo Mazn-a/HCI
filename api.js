@@ -820,6 +820,26 @@
     if (!sessionFlag) clearIdentity();
   })();
 
+  (function trackSiteVisit() {
+    if (location.protocol === 'file:') return;
+    var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    if (!page || page === '/' || page === '') page = 'index.html';
+    if (page === 'admin.html' || page === 'maintenance.html') return;
+    if (/^google[a-z0-9]+\.html$/i.test(page)) return;
+    try {
+      var last = Number(sessionStorage.getItem('hci_visit_sent') || 0);
+      if (last && Date.now() - last < 2 * 60 * 1000) return;
+      sessionStorage.setItem('hci_visit_sent', String(Date.now()));
+    } catch (e) { /* */ }
+    request('/api/visit', {
+      method: 'POST',
+      body: {
+        visitorKey: getVisitorKey(),
+        path: page
+      }
+    }).catch(function () {});
+  })();
+
   try {
     var rememberRaw = localStorage.getItem('hci_remember_login');
     if (rememberRaw) {

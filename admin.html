@@ -78,6 +78,7 @@
   }
   .stat-box .n{ font-family:var(--font-mono); font-size:1.55rem; color:var(--gold); font-weight:700; }
   .stat-box .l{ color:var(--text-mid); font-size:0.78rem; margin-top:4px; line-height:1.35; }
+  .stat-box .h{ color:var(--text-mid); font-size:0.7rem; margin-top:6px; line-height:1.4; opacity:0.88; }
   .stat-box .stat-move{
     position:absolute; top:8px; inset-inline-start:8px;
     display:none; gap:2px;
@@ -452,6 +453,11 @@
               </div>
               <div class="admin-stats" id="adminStats">
                 <div class="stat-box" data-stat="students"><div class="n" id="statStudents">—</div><div class="l">طلاب مسجّلون</div></div>
+                <div class="stat-box" data-stat="visitors">
+                  <div class="n" id="statVisitors">—</div>
+                  <div class="l">زوار الموقع</div>
+                  <div class="h" id="statVisitorsHint">أشخاص فريدون فتحوا الصفحة</div>
+                </div>
                 <div class="stat-box" data-stat="active"><div class="n" id="statActive">—</div><div class="l">نشطون آخر 7 أيام</div></div>
                 <div class="stat-box" data-stat="newWeek"><div class="n" id="statNewWeek">—</div><div class="l">تسجيلات هذا الأسبوع</div></div>
                 <div class="stat-box" data-stat="completed"><div class="n" id="statCompleted">—</div><div class="l">أكملوا المسار</div></div>

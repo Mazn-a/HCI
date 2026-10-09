@@ -43,6 +43,7 @@ function defaultDb() {
     offers: [],
     offer_interests: [],
     site_feedback: [],
+    site_traffic: { hits: 0, unique: 0, keys: {}, days: {} },
     nextUserId: 1,
     nextMessageId: 1,
     nextReportId: 1,
@@ -114,6 +115,15 @@ function migrate(cache) {
   if (!cache.nextOfferInterestId) { cache.nextOfferInterestId = 1; changed = true; }
   if (!cache.site_feedback) { cache.site_feedback = []; changed = true; }
   if (!cache.nextFeedbackId) { cache.nextFeedbackId = 1; changed = true; }
+  if (!cache.site_traffic || typeof cache.site_traffic !== 'object') {
+    cache.site_traffic = { hits: 0, unique: 0, keys: {}, days: {} };
+    changed = true;
+  } else {
+    if (typeof cache.site_traffic.hits !== 'number') cache.site_traffic.hits = 0;
+    if (typeof cache.site_traffic.unique !== 'number') cache.site_traffic.unique = 0;
+    if (!cache.site_traffic.keys || typeof cache.site_traffic.keys !== 'object') cache.site_traffic.keys = {};
+    if (!cache.site_traffic.days || typeof cache.site_traffic.days !== 'object') cache.site_traffic.days = {};
+  }
   cache.users.forEach(function (u) {
     if (typeof u.is_preview === 'undefined') { u.is_preview = false; changed = true; }
     if (typeof u.path_type === 'undefined') { u.path_type = null; changed = true; }
@@ -208,6 +218,31 @@ function toWesternDigits(str) {
   return String(str || '')
     .replace(/[٠-٩]/g, function (d) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)); })
     .replace(/[۰-۹]/g, function (d) { return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); });
+}
+
+function riyadhDayKey(ts) {
+  const d = ts instanceof Date ? ts : new Date(ts || Date.now());
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' }).format(d);
+}
+
+function addCalendarDays(dayKey, delta) {
+  const parts = String(dayKey || '').split('-').map(Number);
+  if (parts.length !== 3 || !parts[0]) return dayKey;
+  const dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + Number(delta || 0)));
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(dt.getUTCDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+
+function pruneSiteTrafficDays(traffic) {
+  const days = traffic && traffic.days;
+  if (!days) return;
+  const today = riyadhDayKey(Date.now());
+  const cutoff = addCalendarDays(today, -90);
+  Object.keys(days).forEach(function (day) {
+    if (day < cutoff) delete days[day];
+  });
 }
 
 const db = {
@@ -884,6 +919,80 @@ const db = {
       if (u.role !== 'student' || !u.last_login) return false;
       return new Date(u.last_login).getTime() >= weekAgo;
     }).length;
+  },
+
+  recordSiteVisit({ visitorKey, path, userId }) {
+    const key = String(visitorKey || '').trim().slice(0, 80);
+    if (!key || key.length < 12) return { ok: false, skipped: true };
+    if (!cache.site_traffic || typeof cache.site_traffic !== 'object') {
+      cache.site_traffic = { hits: 0, unique: 0, keys: {}, days: {} };
+    }
+    const traffic = cache.site_traffic;
+    if (!traffic.keys || typeof traffic.keys !== 'object') traffic.keys = {};
+    if (!traffic.days || typeof traffic.days !== 'object') traffic.days = {};
+    if (typeof traffic.hits !== 'number') traffic.hits = 0;
+    if (typeof traffic.unique !== 'number') traffic.unique = 0;
+
+    const now = Date.now();
+    const iso = new Date(now).toISOString();
+    const day = riyadhDayKey(now);
+    const prev = traffic.keys[key];
+    const last = prev && prev.last ? Date.parse(prev.last) : 0;
+    const isNew = !prev;
+    if (!traffic.days[day] || typeof traffic.days[day] !== 'object') {
+      traffic.days[day] = { hits: 0, keys: {} };
+    }
+    const dayRow = traffic.days[day];
+    if (!dayRow.keys || typeof dayRow.keys !== 'object') dayRow.keys = {};
+    if (typeof dayRow.hits !== 'number') dayRow.hits = 0;
+
+    const alreadyToday = !!dayRow.keys[key];
+    const tooSoon = Number.isFinite(last) && last > 0 && (now - last) < 30 * 60 * 1000;
+
+    if (isNew) {
+      traffic.unique += 1;
+      traffic.keys[key] = { first: iso, last: iso, path: path || '', userId: userId || null };
+    } else {
+      prev.last = iso;
+      if (path) prev.path = String(path).slice(0, 80);
+      if (userId) prev.userId = userId;
+    }
+
+    if (tooSoon && alreadyToday) return { ok: true, duplicate: true };
+
+    if (!tooSoon) {
+      traffic.hits += 1;
+      dayRow.hits += 1;
+    }
+    if (!alreadyToday) dayRow.keys[key] = 1;
+
+    pruneSiteTrafficDays(traffic);
+    persist();
+    return { ok: true, duplicate: false };
+  },
+
+  getSiteVisitStats() {
+    const traffic = cache.site_traffic || { hits: 0, unique: 0, keys: {}, days: {} };
+    const days = traffic.days || {};
+    const today = riyadhDayKey(Date.now());
+    const todayRow = days[today] || { hits: 0, keys: {} };
+    const weekKeys = {};
+    let weekHits = 0;
+    for (let i = 0; i < 7; i++) {
+      const key = addCalendarDays(today, -i);
+      const row = days[key];
+      if (!row) continue;
+      weekHits += Number(row.hits) || 0;
+      Object.keys(row.keys || {}).forEach(function (k) { weekKeys[k] = 1; });
+    }
+    return {
+      unique: Number(traffic.unique) || Object.keys(traffic.keys || {}).length,
+      hits: Number(traffic.hits) || 0,
+      todayUnique: Object.keys(todayRow.keys || {}).length,
+      todayHits: Number(todayRow.hits) || 0,
+      weekUnique: Object.keys(weekKeys).length,
+      weekHits: weekHits
+    };
   },
 
   countCertificates() {

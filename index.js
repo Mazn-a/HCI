@@ -43,7 +43,7 @@ function resolveJwtSecret() {
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 /* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
-const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009d').replace(/[^\w]/g, '').slice(0, 12) || '20261009d';
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009e').replace(/[^\w]/g, '').slice(0, 12) || '20261009e';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -75,6 +75,7 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 const authBurstLimit = trust.createRateLimiter(10 * 60 * 1000, 25);
 const otpBurstLimit = trust.createRateLimiter(10 * 60 * 1000, 8);
+const visitBurstLimit = trust.createRateLimiter(10 * 60 * 1000, 40);
 
 /* ===== وضع الصيانة للموقع بالكامل =====
    true = الزوار يُحوَّلون لصفحة الصيانة
@@ -677,6 +678,31 @@ app.get('/api/auth/me', authRequired, (req, res) => {
   if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
   touchLastSeen(user.id);
   res.json({ user: publicUser(db.findUserById(user.id) || user) });
+});
+
+/* ---------- زيارات الموقع (زوار فريدون، بما فيهم بدون حساب) ---------- */
+app.post('/api/visit', visitBurstLimit, (req, res) => {
+  const ua = String(req.get('user-agent') || '');
+  if (/bot|crawl|spider|slurp|facebookexternalhit|preview|lighthouse/i.test(ua)) {
+    return res.json({ ok: true, skipped: true });
+  }
+  const pathName = String((req.body && req.body.path) || '').split('?')[0].replace(/^\//, '').slice(0, 80);
+  if (/^admin\.html$/i.test(pathName) || /^maintenance\.html$/i.test(pathName)) {
+    return res.json({ ok: true, skipped: true });
+  }
+  let visitorUserId = null;
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (token) {
+    try { visitorUserId = jwt.verify(token, JWT_SECRET).id; } catch { /* زائر */ }
+  }
+  const result = db.recordSiteVisit({
+    visitorKey: req.body && req.body.visitorKey,
+    path: pathName,
+    userId: visitorUserId
+  });
+  if (!result.ok) return res.json({ ok: true, skipped: true });
+  res.json({ ok: true, duplicate: !!result.duplicate });
 });
 
 /* ---------- مشاركة الموقع وتتبع الإحالات ---------- */
@@ -1422,6 +1448,7 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
   const contacts = db.countContacts();
   const reports = db.countReports();
   const interests = db.countNewOfferInterests();
+  const siteVisits = db.getSiteVisitStats();
 
   res.json({
     students: db.countStudents(),
@@ -1446,6 +1473,10 @@ app.get('/api/admin/stats', adminRequired, (req, res) => {
     stopBuckets,
     mostMissed,
     recentLogins,
+    siteVisitors: siteVisits.unique,
+    siteVisitsToday: siteVisits.todayUnique,
+    siteVisitsWeek: siteVisits.weekUnique,
+    siteHits: siteVisits.hits,
     attention: {
       articles: articlesPending,
       contacts,

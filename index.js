@@ -43,7 +43,7 @@ function resolveJwtSecret() {
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 /* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
-const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009c').replace(/[^\w]/g, '').slice(0, 12) || '20261009c';
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009d').replace(/[^\w]/g, '').slice(0, 12) || '20261009d';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -1318,7 +1318,7 @@ const STAGE_ORDER = ['discover', 'fundamentals', 'coding', 'courses', 'books', '
 const STAGE_LABELS = {
   discover: 'اكتشف التخصص',
   fundamentals: 'أساسيات HCI',
-  coding: 'ترميز HTML & CSS',
+  coding: 'ترميز HTML و CSS',
   courses: 'دورات متخصصة',
   books: 'كتب ومراجع',
   practice: 'تعلّم بالمرح',

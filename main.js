@@ -347,7 +347,7 @@ var JOURNEY_ORDER = ['discover', 'fundamentals', 'coding', 'courses', 'books', '
 var STAGE_META = {
   discover:      { title: 'اكتشف التخصص', unlocks: 'fundamentals' },
   fundamentals:  { title: 'أساسيات HCI', unlocks: 'coding' },
-  coding:        { title: 'ترميز HTML & CSS', unlocks: 'courses' },
+  coding:        { title: 'ترميز HTML و CSS', unlocks: 'courses' },
   courses:       { title: 'الدورات المتخصصة', unlocks: 'books' },
   books:         { title: 'الكتب والمراجع', unlocks: null },
   practice:      { title: 'تعلّم بالمرح', unlocks: null },
@@ -3387,7 +3387,7 @@ if (journeyMap){
   var labels = {
     discover: 'اكتشف التخصص',
     fundamentals: 'أساسيات HCI',
-    coding: 'ترميز HTML & CSS',
+    coding: 'ترميز HTML و CSS',
     courses: 'الدورات المتخصصة',
     books: 'الكتب والمراجع',
     practice: 'تعلّم بالمرح',
@@ -4503,7 +4503,7 @@ if (quizCheckBtn && quizResult){
         quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. يمكنك الضغط على «التالي» الآن.';
         updateCodingNextButton();
         HCIApi.syncProgress().catch(function(){});
-        showUnlockToast('فتحت مرحلة جديدة: ترميز HTML & CSS ✨');
+        showUnlockToast('فتحت مرحلة جديدة: ترميز HTML و CSS ✨');
       } else {
         quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
         updateCodingNextButton();

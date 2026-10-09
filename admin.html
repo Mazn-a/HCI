@@ -173,12 +173,16 @@
   .modal textarea{ min-height:120px; resize:vertical; }
   .modal input:focus, .modal textarea:focus{ border-color:var(--gold); }
   .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+  .pct-pills{ display:inline-flex; align-items:center; gap:6px; flex-wrap:nowrap; vertical-align:middle; }
   .pct-pill{
-    display:inline-flex; align-items:center; white-space:nowrap; unicode-bidi:isolate;
+    display:inline-flex; align-items:center; justify-content:center;
+    white-space:nowrap; flex-shrink:0;
+    unicode-bidi:isolate;
     font-family:var(--font-mono); font-size:0.75rem; color:var(--line-green);
     border:1px solid rgba(143,193,92,0.35); padding:3px 8px; border-radius:12px;
-    max-width:100%;
   }
+  .pct-pill-label{ direction:rtl; }
+  .pct-pill-num{ direction:ltr; }
   .admin-tabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
   .detail-block{ margin-top:16px; padding:14px; border:1px solid var(--ink-3); border-radius:8px; background:var(--ink); font-size:0.85rem; color:var(--text-mid); white-space:pre-wrap; direction:ltr; text-align:left; max-height:200px; overflow:auto; }
   .admin-users-mobile{ display:none; }

@@ -186,7 +186,8 @@ app.use(function serveFreshHtml(req, res, next) {
   fs.readFile(full, 'utf8', function (err, html) {
     if (err) return next();
     applyNoStoreHtml(res);
-    res.type('html; charset=utf-8');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', 'inline; filename="index.html"');
     res.send(withAssetVersion(html));
   });
 });

@@ -109,7 +109,7 @@
   var STAGE_LABELS = {
     discover: 'اكتشف التخصص',
     fundamentals: 'أساسيات HCI',
-    coding: 'ترميز HTML & CSS',
+    coding: 'ترميز HTML و CSS',
     courses: 'الدورات',
     books: 'الكتب',
     practice: 'تعلّم بالمرح',
@@ -369,7 +369,7 @@
       tr.innerHTML =
         '<td>' + identity + '</td>' +
         '<td><span class="pct-pill">' + escapeHtml(stopLabel) + '</span></td>' +
-        '<td><span class="pct-pill">' + u.progressPercent + '% · ' + u.doneStages + '/7</span></td>' +
+        '<td><span class="pct-pill">' + u.progressPercent + '%\u00a0·\u00a0' + u.doneStages + '/7</span></td>' +
         '<td>' + quizLabel + (u.quizWrong != null && u.quizScore ? '<br><span style="font-size:0.72rem;color:var(--text-mid)">صح ' + u.quizCorrect + ' · خطأ ' + u.quizWrong + '</span>' : '') + '</td>' +
         '<td>' + visitWhenHtml(u.lastLogin) + '</td>' +
         '<td>' + visitWhenHtml(u.progressUpdated) + '</td>' +
@@ -1453,7 +1453,7 @@
     var stageLabels = {
       discover: 'اكتشف التخصص',
       fundamentals: 'أساسيات HCI',
-      coding: 'ترميز HTML & CSS',
+      coding: 'ترميز HTML و CSS',
       courses: 'دورات متخصصة',
       books: 'كتب ومراجع',
       practice: 'تعلّم بالمرح',

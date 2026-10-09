@@ -77,11 +77,17 @@
                 <pre class="lesson-code"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
   &lt;head&gt;
-    &lt;title&gt;صفحتي&lt;/title&gt;
+    &lt;title&gt;
+صفحتي
+    &lt;/title&gt;
   &lt;/head&gt;
   &lt;body&gt;
-    &lt;h1&gt;مرحباً&lt;/h1&gt;
-    &lt;p&gt;هذه أول صفحة ويب لي.&lt;/p&gt;
+    &lt;h1&gt;
+مرحباً
+    &lt;/h1&gt;
+    &lt;p&gt;
+هذه أول صفحة ويب لي.
+    &lt;/p&gt;
   &lt;/body&gt;
 &lt;/html&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
@@ -89,7 +95,7 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر كلمة «مرحباً» لاسمك، وشوف الصفحة تتغير قدامك فوراً.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="8"><h1>
+                  <textarea class="try-code" spellcheck="false" rows="8"><h1>
 مرحباً
 </h1>
 <p>
@@ -118,16 +124,27 @@
               <summary>اشرحلي المفهوم هنا</summary>
               <div class="lesson-explainer-body">
                 <p>كل عنصر HTML له وسم فتح ووسم إغلاق يحيطان بالمحتوى، مثل <code dir="ltr">&lt;p&gt;...&lt;/p&gt;</code> — أشهر العناصر: <code dir="ltr">h1</code> إلى <code dir="ltr">h6</code> للعناوين بأحجام مختلفة، <code dir="ltr">p</code> للفقرات، <code dir="ltr">div</code> لتقسيم المحتوى لصناديق.</p>
-                <pre class="lesson-code"><code>&lt;h1&gt;عنوان رئيسي&lt;/h1&gt;
-&lt;h2&gt;عنوان فرعي&lt;/h2&gt;
-&lt;p&gt;فقرة عادية فيها &lt;span&gt;كلمة مميزة&lt;/span&gt;.&lt;/p&gt;
-&lt;div&gt;صندوق يحتوي عناصر ثانية&lt;/div&gt;</code></pre>
+                <pre class="lesson-code"><code>&lt;h1&gt;
+عنوان رئيسي
+&lt;/h1&gt;
+&lt;h2&gt;
+عنوان فرعي
+&lt;/h2&gt;
+&lt;p&gt;
+فقرة عادية فيها
+&lt;span&gt;
+كلمة مميزة
+&lt;/span&gt;
+&lt;/p&gt;
+&lt;div&gt;
+صندوق يحتوي عناصر ثانية
+&lt;/div&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
                 <iframe class="lesson-preview-frame is-tall" title="معاينة حية" loading="lazy" srcdoc="&lt;body&gt;&lt;h1 style='font-size:20px'&gt;عنوان رئيسي&lt;/h1&gt;&lt;h2 style='font-size:16px'&gt;عنوان فرعي&lt;/h2&gt;&lt;p&gt;فقرة عادية فيها &lt;span&gt;كلمة مميزة&lt;/span&gt;.&lt;/p&gt;&lt;div style='border:1px dashed #777;padding:6px;font-size:13px'&gt;صندوق يحتوي عناصر ثانية&lt;/div&gt;&lt;/body&gt;"></iframe>
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">أضف عنوان <code>&lt;h3&gt;</code> جديد تحت الفقرة واكتب فيه أي شي.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="12"><h1>
+                  <textarea class="try-code" spellcheck="false" rows="12"><h1>
 عنوان رئيسي
 </h1>
 <h2>
@@ -162,14 +179,20 @@
               <summary>اشرحلي المفهوم هنا</summary>
               <div class="lesson-explainer-body">
                 <p>الخاصية Attribute معلومة تُكتب داخل وسم الفتح. <code>class</code> تجمع عناصر متشابهة للتنسيق لاحقاً، و<code>id</code> يعرّف عنصراً واحداً فقط في الصفحة.</p>
-                <pre class="lesson-code"><code>&lt;p class="note"&gt;ملاحظة عامة&lt;/p&gt;
-&lt;p id="intro"&gt;مقدمة فريدة&lt;/p&gt;</code></pre>
+                <pre class="lesson-code"><code>&lt;p class="note"&gt;
+ملاحظة عامة
+&lt;/p&gt;
+&lt;p id="intro"&gt;
+مقدمة فريدة
+&lt;/p&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
                 <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body&gt;&lt;p class='note'&gt;ملاحظة عامة&lt;/p&gt;&lt;p id='intro' style='font-weight:700'&gt;مقدمة فريدة&lt;/p&gt;&lt;/body&gt;"></iframe>
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر النص داخل <code>title</code> ثم مرّر الفأرة فوق الجملة بالنتيجة، وغيّر نص <code>placeholder</code>.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="3"><p title="أهلاً! أنا تلميح يظهر عند التمرير">مرّر الفأرة فوق هذا النص وانتظر ثانية</p>
+                  <textarea class="try-code" spellcheck="false" rows="6"><p title="أهلاً! أنا تلميح يظهر عند التمرير">
+مرّر الفأرة فوق هذا النص وانتظر ثانية
+</p>
 <input placeholder="اكتب أي شي هنا..."></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
@@ -194,16 +217,19 @@
               <summary>اشرحلي المفهوم هنا</summary>
               <div class="lesson-explainer-body">
                 <p>وسم <code>&lt;a&gt;</code> يصنع رابط، وخاصية <code>href</code> تحدد وجهته (صفحة بنفس الموقع أو رابط خارجي). خاصية <code>target="_blank"</code> تفتح الرابط بصفحة/تبويب جديد بدل ما تطلع من صفحتك الحالية.</p>
-                <pre class="lesson-code"><code>&lt;a href="about.html"&gt;من نحن&lt;/a&gt;
+                <pre class="lesson-code"><code>&lt;a href="about.html"&gt;
+من نحن
+&lt;/a&gt;
 &lt;a href="https://example.com" target="_blank"&gt;
-  زوروا هذا الموقع (يفتح بصفحة جديدة)
+زوروا هذا الموقع
+(يفتح بصفحة جديدة)
 &lt;/a&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
                 <iframe class="lesson-preview-frame" title="معاينة حية" loading="lazy" srcdoc="&lt;body&gt;&lt;a href='#' style='display:block;margin-bottom:8px'&gt;من نحن&lt;/a&gt;&lt;a href='#'&gt;زوروا هذا الموقع (يفتح بصفحة جديدة) ↗&lt;/a&gt;&lt;/body&gt;"></iframe>
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر الرابط داخل <code>href</code> لموقعك المفضل، وغيّر نص الرابط.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="4"><a href="https://www.google.com" target="_blank">
+                  <textarea class="try-code" spellcheck="false" rows="4"><a href="https://www.google.com" target="_blank">
 اضغطني — أفتح بصفحة جديدة
 </a></textarea>
                   <div class="try-lab-bar">
@@ -229,14 +255,22 @@
               <summary>اشرحلي المفهوم هنا</summary>
               <div class="lesson-explainer-body">
                 <p>وسم <code>&lt;img&gt;</code> يعرض صورة، وما يحتاج وسم إغلاق. خاصية <code>src</code> تحدد مسار الصورة، وخاصية <code>alt</code> نص بديل يظهر لو الصورة ما تحمّلت — ومهم جداً لذوي الإعاقة البصرية ومحركات البحث.</p>
-                <pre class="lesson-code"><code>&lt;img src="cat.jpg" alt="قطة بيضاء تجلس على أريكة" width="220"&gt;</code></pre>
+                <pre class="lesson-code"><code>&lt;img
+  src="cat.jpg"
+  alt="قطة بيضاء تجلس على أريكة"
+  width="220"&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
                 <iframe class="lesson-preview-frame is-tall" title="معاينة حية" loading="lazy" srcdoc="&lt;body&gt;&lt;div style='width:180px;height:110px;border:1px dashed #777;display:flex;align-items:center;justify-content:center;font-size:12px;text-align:center'&gt;قطة بيضاء تجلس على أريكة&lt;/div&gt;&lt;/body&gt;"></iframe>
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر <code>width</code> إلى 120 وشوف الصورة تصغر. جرّب تحذف <code>src</code> حرف منه وشوف كيف يظهر النص البديل <code>alt</code>.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="3"><img src="https://picsum.photos/240/140" alt="صورة تجريبية من الإنترنت" width="240">
-<p>صورة حقيقية من الإنترنت — جرّب تغيّر مقاسها.</p></textarea>
+                  <textarea class="try-code" spellcheck="false" rows="6"><img
+  src="https://picsum.photos/240/140"
+  alt="صورة تجريبية من الإنترنت"
+  width="240">
+<p>
+صورة حقيقية من الإنترنت — جرّب تغيّر مقاسها.
+</p></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
                     <button type="button" class="try-reset">↺ رجّع الكود الأصلي</button>
@@ -261,23 +295,37 @@
               <div class="lesson-explainer-body">
                 <p>وسم <code>&lt;ul&gt;</code> يصنع قائمة غير مرقّمة (نقاط)، ووسم <code>&lt;ol&gt;</code> يصنع قائمة مرقّمة (1، 2، 3...). داخل كل قائمة تحط عناصرها بوسم <code>&lt;li&gt;</code>.</p>
                 <pre class="lesson-code"><code>&lt;ul&gt;
-  &lt;li&gt;حليب&lt;/li&gt;
-  &lt;li&gt;خبز&lt;/li&gt;
+  &lt;li&gt;
+حليب
+  &lt;/li&gt;
+  &lt;li&gt;
+خبز
+  &lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;ol&gt;
-  &lt;li&gt;افتح الموقع&lt;/li&gt;
-  &lt;li&gt;سجّل حساب&lt;/li&gt;
+  &lt;li&gt;
+افتح الموقع
+  &lt;/li&gt;
+  &lt;li&gt;
+سجّل حساب
+  &lt;/li&gt;
 &lt;/ol&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
                 <iframe class="lesson-preview-frame is-tall" title="معاينة حية" loading="lazy" srcdoc="&lt;body&gt;&lt;ul&gt;&lt;li&gt;حليب&lt;/li&gt;&lt;li&gt;خبز&lt;/li&gt;&lt;/ul&gt;&lt;ol&gt;&lt;li&gt;افتح الموقع&lt;/li&gt;&lt;li&gt;سجّل حساب&lt;/li&gt;&lt;/ol&gt;&lt;/body&gt;"></iframe>
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">أضف عنصر ثالث للقائمة بوسم <code>&lt;li&gt;</code>، وجرّب تغيّر <code>ul</code> إلى <code>ol</code> وشوف وش يصير.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="5"><h3>قائمة مشترياتي</h3>
+                  <textarea class="try-code" spellcheck="false" rows="9"><h3>
+قائمة مشترياتي
+</h3>
 <ul>
-  <li>حليب</li>
-  <li>خبز</li>
+  <li>
+حليب
+  </li>
+  <li>
+خبز
+  </li>
 </ul></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
@@ -304,11 +352,17 @@
                 <p>الجدول يتكوّن من <code>&lt;table&gt;</code>، وكل صف <code>&lt;tr&gt;</code>. رأس العمود <code>&lt;th&gt;</code> والخلية العادية <code>&lt;td&gt;</code>. مفيد لجداول الدرجات أو المقارنات.</p>
                 <pre class="lesson-code"><code>&lt;table&gt;
   &lt;tr&gt;
-    &lt;th&gt;الاسم&lt;/th&gt;
-    &lt;th&gt;الدرجة&lt;/th&gt;
+    &lt;th&gt;
+الاسم
+    &lt;/th&gt;
+    &lt;th&gt;
+الدرجة
+    &lt;/th&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-    &lt;td&gt;سارة&lt;/td&gt;
+    &lt;td&gt;
+سارة
+    &lt;/td&gt;
     &lt;td&gt;95&lt;/td&gt;
   &lt;/tr&gt;
 &lt;/table&gt;</code></pre>
@@ -317,13 +371,19 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">أضف صف <code>&lt;tr&gt;</code> جديد باسمك ودرجتك المتوقعة.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="10"><table border="1" cellpadding="6">
+                  <textarea class="try-code" spellcheck="false" rows="14"><table border="1" cellpadding="6">
   <tr>
-    <th>الاسم</th>
-    <th>الدرجة</th>
+    <th>
+الاسم
+    </th>
+    <th>
+الدرجة
+    </th>
   </tr>
   <tr>
-    <td>سارة</td>
+    <td>
+سارة
+    </td>
     <td>95</td>
   </tr>
 </table></textarea>
@@ -351,18 +411,28 @@
               <div class="lesson-explainer-body">
                 <p>وسم <code>&lt;form&gt;</code> يجمّع حقول إدخال بيانات المستخدم، مثل فورم تسجيل الدخول اللي استخدمته بهذا الموقع. أهم عناصره: <code>&lt;input&gt;</code> لحقل الإدخال، <code>&lt;label&gt;</code> لتسمية توضيحية، و<code>&lt;button&gt;</code> لزر الإرسال.</p>
                 <pre class="lesson-code"><code>&lt;form&gt;
-  &lt;label for="name"&gt;الاسم:&lt;/label&gt;
+  &lt;label for="name"&gt;
+الاسم:
+  &lt;/label&gt;
   &lt;input type="text" id="name"&gt;
-  &lt;button type="submit"&gt;إرسال&lt;/button&gt;
+  &lt;button type="submit"&gt;
+إرسال
+  &lt;/button&gt;
 &lt;/form&gt;</code></pre>
                 <p class="lesson-preview-label">كذا بتطلع بالمتصفح:</p>
                 <iframe class="lesson-preview-frame is-tall" title="معاينة حية" loading="lazy" srcdoc="&lt;body&gt;&lt;label style='display:block;margin-bottom:4px'&gt;الاسم:&lt;/label&gt;&lt;input style='margin-bottom:8px;display:block' placeholder='اكتب اسمك'&gt;&lt;button&gt;إرسال&lt;/button&gt;&lt;/body&gt;"></iframe>
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر نص الزر، وأضف حقل ثاني للبريد الإلكتروني بنوع <code>type="email"</code>.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="4"><label>الاسم:</label><br>
-<input type="text" placeholder="اكتب اسمك"><br><br>
-<button>إرسال</button></textarea>
+                  <textarea class="try-code" spellcheck="false" rows="8"><label>
+الاسم:
+</label>
+<br>
+<input type="text" placeholder="اكتب اسمك">
+<br><br>
+<button>
+إرسال
+</button></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
                     <button type="button" class="try-reset">↺ رجّع الكود الأصلي</button>
@@ -404,7 +474,7 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر اللون إلى <code>crimson</code> والحجم إلى <code>40px</code> وشوف العنوان يتغير فوراً.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="9"><style>
+                  <textarea class="try-code" spellcheck="false" rows="9"><style>
   h1 {
     color: #8ec8ff;
     font-size: 28px;
@@ -412,7 +482,9 @@
   }
 </style>
 
-<h1>مرحباً</h1></textarea>
+<h1>
+مرحباً
+</h1></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
                     <button type="button" class="try-reset">↺ رجّع الكود الأصلي</button>
@@ -444,15 +516,21 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">أضف للقاعدة <code>.note</code> خاصية <code>font-style: italic;</code> وشوف الملاحظة تتميز.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="10"><style>
+                  <textarea class="try-code" spellcheck="false" rows="10"><style>
   p { color: #c8c8c8; }
   .note { color: #e8c47c; }
   #intro { font-weight: bold; }
 </style>
 
-<p>فقرة عادية</p>
-<p class="note">ملاحظة بلون مميز</p>
-<p id="intro">مقدمة بخط أثقل</p></textarea>
+<p>
+فقرة عادية
+</p>
+<p class="note">
+ملاحظة بلون مميز
+</p>
+<p id="intro">
+مقدمة بخط أثقل
+</p></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
                     <button type="button" class="try-reset">↺ رجّع الكود الأصلي</button>
@@ -486,7 +564,7 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر نوع الخط إلى <code>Georgia</code> والحجم إلى <code>24px</code> وشوف النص يتغير.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="10"><style>
+                  <textarea class="try-code" spellcheck="false" rows="10"><style>
   body {
     font-family: Tahoma, sans-serif;
     color: #e8e8e8;
@@ -494,7 +572,9 @@
   }
 </style>
 
-<p>غيّر نوع الخط وحجمه لأي قيمة تعجبك.</p></textarea>
+<p>
+غيّر نوع الخط وحجمه لأي قيمة تعجبك.
+</p></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
                     <button type="button" class="try-reset">↺ رجّع الكود الأصلي</button>
@@ -529,7 +609,7 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">كبّر <code>padding</code> إلى <code>40px</code> وشوف الصندوق يتوسع من الداخل، ثم كبّر <code>margin</code> وشوفه يبتعد عن الحواف.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="12"><style>
+                  <textarea class="try-code" spellcheck="false" rows="12"><style>
   .box {
     width: 160px;
     padding: 16px;
@@ -538,7 +618,9 @@
   }
 </style>
 
-<div class="box">أنا صندوق — جرّب توسعني</div></textarea>
+<div class="box">
+أنا صندوق — جرّب توسعني
+</div></textarea>
                   <div class="try-lab-bar">
                     <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>
                     <button type="button" class="try-reset">↺ رجّع الكود الأصلي</button>
@@ -571,7 +653,7 @@
                 <div class="try-lab">
                   <p class="try-lab-label">جرّب بنفسك</p>
                   <p class="try-task">غيّر <code>gap</code> إلى <code>30px</code>، وأضف صندوق رابع <code>&lt;div&gt;4&lt;/div&gt;</code> وشوفه ينضم للصف تلقائياً.</p>
-                  <textarea class="try-code" dir="ltr" spellcheck="false" rows="14"><style>
+                  <textarea class="try-code" spellcheck="false" rows="14"><style>
   .row { display: flex; gap: 12px; }
   .row div {
     flex: 1;
@@ -670,7 +752,7 @@
         </ol>
         <div class="try-lab try-lab-project">
           <p class="try-lab-label">بطاقتك — عدّلها وشوفها تتغير</p>
-          <textarea class="try-code" dir="ltr" spellcheck="false" rows="22"><style>
+          <textarea class="try-code" spellcheck="false" rows="22"><style>
   body {
     font-family: sans-serif;
     display: flex;
@@ -709,13 +791,23 @@
 
 <div class="card">
   <div class="avatar">م</div>
-  <h1>اكتب اسمك هنا</h1>
-  <p>أتعلم تفاعل الإنسان والحاسوب</p>
+  <h1>
+اكتب اسمك هنا
+  </h1>
+  <p>
+أتعلم تفاعل الإنسان والحاسوب
+  </p>
   <ul>
-    <li>✦ أتقن بناء الواجهات</li>
-    <li>✦ أحب التصميم</li>
+    <li>
+✦ أتقن بناء الواجهات
+    </li>
+    <li>
+✦ أحب التصميم
+    </li>
   </ul>
-  <button>تواصل معي</button>
+  <button>
+تواصل معي
+  </button>
 </div></textarea>
           <div class="try-lab-bar">
             <span class="try-hint">النتيجة تتحدث تلقائياً وأنت تكتب</span>

@@ -3892,10 +3892,11 @@ function stripBidiMarks(s){
   return String(s || '').replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '');
 }
 
-function isolateArabicInSource(src){
-  var text = stripBidiMarks(src);
-  return text.replace(/[\u0600-\u06FF][\u0600-\u06FF\u064B-\u065F\u0670\s،؛؟.!:\-\u2013\u2014]*/g, function(run){
-    return '\u2067' + run + '\u2069';
+function breakArabicOutOfTags(src){
+  return stripBidiMarks(src).replace(/>([^<\n]*[\u0600-\u06FF][^<]*)</g, function (_full, inner) {
+    var trimmed = String(inner).replace(/^\s+|\s+$/g, '');
+    if (!trimmed) return '>' + inner + '<';
+    return '>\n' + trimmed + '\n<';
   });
 }
 
@@ -3904,18 +3905,7 @@ function escapeCodeHtml(s){
 }
 
 function formatLessonCodeDisplay(src){
-  var text = stripBidiMarks(src);
-  var re = /[\u0600-\u06FF][\u0600-\u06FF\u064B-\u065F\u0670\s،؛؟.!:\-\u2013\u2014]*/g;
-  var out = '';
-  var last = 0;
-  var m;
-  while ((m = re.exec(text))){
-    if (m.index > last) out += escapeCodeHtml(text.slice(last, m.index));
-    out += '<span class="code-ar" dir="rtl">' + escapeCodeHtml(m[0]) + '</span>';
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) out += escapeCodeHtml(text.slice(last));
-  return out;
+  return escapeCodeHtml(breakArabicOutOfTags(src));
 }
 
 function wrapCodingPreview(raw){
@@ -3926,7 +3916,9 @@ function wrapCodingPreview(raw){
     CODING_PREVIEW_CSS + '</style></head><body>' + inner + '</body></html>';
 }
 
-document.querySelectorAll('.lesson-code code').forEach(function(el){
+document.querySelectorAll('.lesson-code').forEach(function(pre){
+  pre.removeAttribute('dir');
+  var el = pre.querySelector('code') || pre;
   el.innerHTML = formatLessonCodeDisplay(el.textContent);
 });
 
@@ -3941,7 +3933,8 @@ document.querySelectorAll('.try-lab').forEach(function(lab){
   var frame = lab.querySelector('.try-frame');
   var resetBtn = lab.querySelector('.try-reset');
   if (!codeBox || !frame) return;
-  codeBox.value = isolateArabicInSource(codeBox.value);
+  codeBox.removeAttribute('dir');
+  codeBox.value = breakArabicOutOfTags(codeBox.value);
   var originalCode = codeBox.value;
   var renderTimer = null;
 

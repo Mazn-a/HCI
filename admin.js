@@ -212,9 +212,10 @@
         s.recentLogins.forEach(function (row) {
           var li = document.createElement('li');
           li.innerHTML = '<strong>' + escapeHtml(row.name) + '</strong>' +
-            '<span>' + formatDate(row.lastLogin) + '</span>';
+            '<span>' + visitWhenHtml(row.lastLogin) + '</span>';
           loginList.appendChild(li);
         });
+        bindVisitWhen(loginList);
       } else {
         loginList.innerHTML = '<li style="color:var(--text-mid)">ما فيه دخول مسجّل بعد.</li>';
       }
@@ -224,10 +225,37 @@
   function formatDate(iso) {
     if (!iso) return '—';
     try {
-      return new Date(iso).toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short' });
+      return new Date(iso).toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Riyadh' });
     } catch (e) {
       return iso;
     }
+  }
+
+  var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function visitWhenHtml(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    var ago = Date.now() - d.getTime();
+    var full = formatDate(iso);
+    var shortLabel = ago > WEEK_MS
+      ? '+٧'
+      : d.toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Riyadh' });
+    return '<button type="button" class="visit-when" data-short="' + escapeHtml(shortLabel) +
+      '" data-full="' + escapeHtml(full) + '" title="' + escapeHtml(full) + '">' +
+      escapeHtml(shortLabel) + '</button>';
+  }
+
+  function bindVisitWhen(root) {
+    if (!root) return;
+    root.querySelectorAll('.visit-when').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var open = b.getAttribute('data-open') === '1';
+        b.textContent = open ? b.getAttribute('data-short') : b.getAttribute('data-full');
+        b.setAttribute('data-open', open ? '0' : '1');
+      });
+    });
   }
 
   function adminAvatarHtml(u, sizeClass) {
@@ -343,8 +371,8 @@
         '<td><span class="pct-pill">' + escapeHtml(stopLabel) + '</span></td>' +
         '<td><span class="pct-pill">' + u.progressPercent + '% · ' + u.doneStages + '/7</span></td>' +
         '<td>' + quizLabel + (u.quizWrong != null && u.quizScore ? '<br><span style="font-size:0.72rem;color:var(--text-mid)">صح ' + u.quizCorrect + ' · خطأ ' + u.quizWrong + '</span>' : '') + '</td>' +
-        '<td>' + formatDate(u.lastLogin) + '</td>' +
-        '<td>' + formatDate(u.progressUpdated) + '</td>' +
+        '<td>' + visitWhenHtml(u.lastLogin) + '</td>' +
+        '<td>' + visitWhenHtml(u.progressUpdated) + '</td>' +
         '<td>' + actions + '</td>';
       body.appendChild(tr);
 
@@ -358,13 +386,17 @@
           '<p style="color:var(--text-mid);font-size:0.85rem;margin:6px 0;">توقف عند: ' + escapeHtml(stopLabel) + '</p>' +
           '<p style="color:var(--text-mid);font-size:0.85rem;margin:0 0 6px;">اختبار: ' + quizLabel +
             (u.certificateId ? ' · <span style="color:var(--gold)">لديه شهادة</span>' : '') + '</p>' +
-          '<p style="color:var(--text-mid);font-size:0.8rem;margin:0 0 10px;">آخر دخول: ' + formatDate(u.lastLogin) + ' · تحديث: ' + formatDate(u.progressUpdated) + '</p>' +
+          '<p style="color:var(--text-mid);font-size:0.8rem;margin:0 0 10px;">آخر دخول: ' + visitWhenHtml(u.lastLogin) + ' · تحديث: ' + visitWhenHtml(u.progressUpdated) + '</p>' +
           actions;
         mobile.appendChild(card);
       }
     });
     bindUserActions(body);
-    if (mobile) bindUserActions(mobile);
+    bindVisitWhen(body);
+    if (mobile) {
+      bindUserActions(mobile);
+      bindVisitWhen(mobile);
+    }
   }
 
   async function loadUsers() {

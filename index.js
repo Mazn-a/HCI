@@ -268,6 +268,16 @@ function defaultNotifPrefs(row) {
   };
 }
 
+function touchLastSeen(userId) {
+  const user = db.findUserById(userId);
+  if (!user) return;
+  const now = Date.now();
+  const last = user.last_login ? new Date(user.last_login).getTime() : 0;
+  if (!last || !Number.isFinite(last) || now - last > 2 * 60 * 1000) {
+    db.updateUser(userId, { last_login: new Date().toISOString() });
+  }
+}
+
 function publicUser(row) {
   return {
     id: row.id,
@@ -665,7 +675,8 @@ app.post('/api/auth/google', async (req, res) => {
 app.get('/api/auth/me', authRequired, (req, res) => {
   const user = db.findUserById(req.user.id);
   if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
-  res.json({ user: publicUser(user) });
+  touchLastSeen(user.id);
+  res.json({ user: publicUser(db.findUserById(user.id) || user) });
 });
 
 /* ---------- مشاركة الموقع وتتبع الإحالات ---------- */
@@ -1046,6 +1057,7 @@ app.patch('/api/auth/intro-seen', authRequired, (req, res) => {
 
 /* ---------- التقدم ---------- */
 app.get('/api/progress', authRequired, (req, res) => {
+  touchLastSeen(req.user.id);
   const ctx = progressContext(req.user.id);
   if (!ctx.row) {
     return res.json({

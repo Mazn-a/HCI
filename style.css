@@ -5525,6 +5525,24 @@ body[data-theme="light"] .back-to-top{
   .admin-user-card .admin-actions button{ width: auto; flex: 1 1 40%; }
 }
 
+.visit-when{
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  text-align: inherit;
+}
+.visit-when:hover,
+.visit-when:focus-visible{
+  color: var(--gold);
+  outline: none;
+}
+
 /* آيباد: لمس مريح بدون تكديس كامل مثل الجوال */
 @media (min-width: 641px) and (max-width: 1024px){
   .hero-actions{ flex-direction: row; }

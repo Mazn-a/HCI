@@ -14,6 +14,14 @@ const trust = require('./server-trust');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const CANONICAL_ORIGIN = 'https://hci-1-fk7w.onrender.com';
+
+app.use(function redirectLegacyHost(req, res, next) {
+  const host = String(req.headers.host || '').split(':')[0].toLowerCase();
+  if (host !== 'hci-72ms.onrender.com') return next();
+  res.setHeader('Cache-Control', 'no-store');
+  return res.redirect(301, CANONICAL_ORIGIN + (req.originalUrl || '/'));
+});
 function resolveJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
   if (process.env.NODE_ENV !== 'production') {
@@ -159,6 +167,9 @@ function withAssetVersion(html) {
   });
   if (!/http-equiv="Cache-Control"/i.test(out)) {
     out = out.replace(/<head>/i, '<head>\n<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">');
+  }
+  if (out.indexOf('hci-72ms.onrender.com') === -1) {
+    out = out.replace(/<head>/i, '<head>\n<script>(function(){if(location.hostname==="hci-72ms.onrender.com"){location.replace("https://hci-1-fk7w.onrender.com"+location.pathname+location.search+location.hash);}})();</script>');
   }
   return out;
 }

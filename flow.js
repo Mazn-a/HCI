@@ -125,7 +125,7 @@
     switch (phase) {
       case PHASE.GUEST:
         return {
-          sectionEyebrow: '/// رحلتك في المنصة',
+          sectionEyebrow: 'رحلتك في المنصة',
           sectionTitle: 'سبعة مسارات مرتّبة من البداية حتى الإتقان',
           sectionLead:
             'بعد إنشاء الحساب تُوجَّه إلى مسارك مباشرة.',
@@ -141,7 +141,7 @@
 
       case PHASE.PATH_CHOICE:
         return {
-          sectionEyebrow: '/// خطوتك الآن',
+          sectionEyebrow: 'خطوتك الآن',
           sectionTitle: name ? name + '، اختر مسارك' : 'اختر مسارك',
           sectionLead: 'حدّد إن كنت تبدأ من الصفر أو تتجاوز المقدمة.',
           kicker: 'مطلوب الآن',
@@ -154,7 +154,7 @@
 
       case PHASE.INTRO:
         return {
-          sectionEyebrow: '/// خطوتك الآن',
+          sectionEyebrow: 'خطوتك الآن',
           sectionTitle: name ? name + '، اقرأ المقدمة' : 'اقرأ المقدمة',
           sectionLead: 'قبل المسارات: فهم سريع لماهية التخصص ولماذا يهم.',
           kicker: 'المقدمة',
@@ -167,7 +167,7 @@
 
       case PHASE.FOUNDATION:
         return {
-          sectionEyebrow: '/// خطوتك الآن',
+          sectionEyebrow: 'خطوتك الآن',
           sectionTitle: name
             ? name + '، أكمل البداية قبل المسارات'
             : 'أكمل البداية قبل المسارات',
@@ -183,7 +183,7 @@
 
       case PHASE.COMPLETE:
         return {
-          sectionEyebrow: '/// أحسنت',
+          sectionEyebrow: 'أحسنت',
           sectionTitle: 'أكملت المسارات السبعة',
           sectionLead: 'يمكنك مراجعة أي مسار، أو فتح الشهادة من ملفك الشخصي.',
           kicker: 'مكتمل',
@@ -199,7 +199,7 @@
       case PHASE.SPECIALIST:
       case PHASE.ADMIN:
         return {
-          sectionEyebrow: phase === PHASE.ADMIN ? '/// لوحة الإدارة' : '/// مسار المتخصص',
+          sectionEyebrow: phase === PHASE.ADMIN ? 'لوحة الإدارة' : 'مسار المتخصص',
           sectionTitle: 'وصول كامل — ابدأ من حيث تحتاج',
           sectionLead:
             'تجاوزت البداية والاستكشاف. لا تسلسل إجباري: راجع درساً، أو انتقل للترميز والدورات والأدوات.',
@@ -213,7 +213,7 @@
 
       case PHASE.PATHS_START:
         return {
-          sectionEyebrow: '/// مساراتك',
+          sectionEyebrow: 'مساراتك',
           sectionTitle: 'جاهز للمسار الأول',
           sectionLead:
             'أتممت البداية. ابدأ بالمسار الذهبي أدناه — كل مسار يُفتح بعد إكمال الذي قبله.',
@@ -228,7 +228,7 @@
       case PHASE.PATHS_CONTINUE:
       default:
         return {
-          sectionEyebrow: '/// مساراتك',
+          sectionEyebrow: 'مساراتك',
           sectionTitle: 'سبعة مسارات — مرحلتك الحالية موضّحة أدناه',
           sectionLead:
             'كل مسار يُفتح بعد إكمال الذي قبله. البطاقة الذهبية تشير إلى موضعك الحالي.',

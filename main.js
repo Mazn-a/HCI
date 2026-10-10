@@ -617,7 +617,7 @@ function showLockAlert(message, href, ctaLabel){
 
   backdrop.innerHTML =
     '<div class="lock-dialog">' +
-      '<p class="lock-dialog-eyebrow">/// خطوة مطلوبة قبل المتابعة</p>' +
+      '<p class="lock-dialog-eyebrow">خطوة مطلوبة قبل المتابعة</p>' +
       '<h3 id="lockDialogTitle">كيف تفتح هالمرحلة؟</h3>' +
       '<p class="lock-dialog-reason" id="lockDialogReason">' + message + '</p>' +
       '<div class="lock-dialog-actions">' +
@@ -681,7 +681,7 @@ function showCertReadyDialog(){
 
   backdrop.innerHTML =
     '<div class="lock-dialog">' +
-      '<p class="lock-dialog-eyebrow">/// أحسنت</p>' +
+      '<p class="lock-dialog-eyebrow">أحسنت</p>' +
       '<h3 id="lockDialogTitle">حصلت على شهادتك</h3>' +
       '<p class="lock-dialog-reason">أكملت المسار كاملاً. شهادتك جاهزة باسمك — افتحها الآن للعرض أو الطباعة.</p>' +
       '<div class="lock-dialog-actions">' +
@@ -977,7 +977,7 @@ if (greetingEl){
   }
 
   // حدّث النص فقط إذا تغيّر — يقلل القفز البصري
-  var nextGreet = '/// ' + greetingText;
+  var nextGreet = greetingText;
   if (greetingEl.textContent.trim() !== nextGreet) {
     greetingEl.textContent = nextGreet;
   }
@@ -995,7 +995,7 @@ if (greetingEl){
   if (window.HCIFlow && HCIApi.currentUser){
     name = HCIFlow.firstName(HCIApi.currentUser()) || name;
   }
-  if (eyebrow) eyebrow.textContent = '/// خطوتك الآن';
+  if (eyebrow) eyebrow.textContent = 'خطوتك الآن';
   if (title && name) title.textContent = name + '، ابدأ من هنا';
   if (lead){
     lead.textContent = 'اقرأ المقال التعريفي، ثم انتقل للمسار الأول.';
@@ -1356,7 +1356,7 @@ if (stationsRoot && !isLoggedInForProgress){
     HCIFlow.renderFlowRail(guestPhase);
   } else {
     setPathsSectionCopy({
-      eyebrow: '/// رحلتك في المنصة',
+      eyebrow: 'رحلتك في المنصة',
       title: 'سبعة مسارات مرتّبة من البداية حتى الإتقان',
       lead: 'بعد إنشاء الحساب تُوجَّه إلى مسارك مباشرة.'
     });
@@ -1554,7 +1554,7 @@ if (stationsRoot && !isLoggedInForProgress){
     if (guideTitle && guideCta){
       if (!isFoundationDone() && !(window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist()))){
         setPathsSectionCopy({
-          eyebrow: '/// خطوتك الآن',
+          eyebrow: 'خطوتك الآن',
           title: 'أكمل البداية قبل المسارات',
           lead: 'أنت مسجّل الدخول. المتبقي: صفحة البداية ومقال تعريفي موجز، ثم يُفتح المسار الأول.'
         });
@@ -1566,7 +1566,7 @@ if (stationsRoot && !isLoggedInForProgress){
         if (guideProfile) guideProfile.hidden = true;
       } else if (doneCount >= JOURNEY_ORDER.length){
         setPathsSectionCopy({
-          eyebrow: '/// أحسنت',
+          eyebrow: 'أحسنت',
           title: 'أكملت المسارات السبعة',
           lead: 'يمكنك مراجعة أي مسار، أو فتح الشهادة من ملفك الشخصي.'
         });
@@ -1584,7 +1584,7 @@ if (stationsRoot && !isLoggedInForProgress){
         var titleFb = stageTitle(sid);
         var numFb = STAGE_ORDER_LABEL[sid] || '';
         setPathsSectionCopy({
-          eyebrow: '/// مساراتك',
+          eyebrow: 'مساراتك',
           title: 'سبعة مسارات — مرحلتك الحالية موضّحة أدناه',
           lead: 'كل مسار يُفتح بعد إكمال الذي قبله. البطاقة الذهبية تشير إلى موضعك الحالي.'
         });

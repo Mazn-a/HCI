@@ -3510,6 +3510,12 @@ body.nav-open{ overflow: hidden; }
   font: inherit;
   white-space: inherit;
 }
+.lesson-code .code-line,
+.try-code .code-line{
+  display: block;
+  unicode-bidi: isolate;
+  -webkit-unicode-bidi: isolate;
+}
 .lesson-preview-label{ font-size: 0.78rem !important; color: var(--text-mid); margin-bottom: 6px !important; }
 .lesson-preview-frame{
   display: block;
@@ -3556,6 +3562,10 @@ body.nav-open{ overflow: hidden; }
   padding: 12px 14px;
   resize: vertical;
   min-height: 90px;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  outline: none;
   direction: ltr !important;
   text-align: left;
   unicode-bidi: plaintext;

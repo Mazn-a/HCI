@@ -1785,8 +1785,9 @@ document.querySelectorAll('a[data-next-stage], .lesson-nav-footer a.btn-primary,
     }
 
     if (pageStage === 'practice'){
+      var practiceBypass = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
       var practiceDone = parseInt(localStorage.getItem('hci_practice_count') || '0', 10);
-      if (practiceDone < 3){
+      if (!practiceBypass && practiceDone < 3){
         e.preventDefault();
         showLockAlert('أكمل 3 تمارين على الأقل قبل إنهاء هذه المرحلة.', null, null);
         return;
@@ -3915,7 +3916,12 @@ function escapeCodeHtml(s){
 }
 
 function formatLessonCodeDisplay(src){
-  return escapeCodeHtml(breakArabicOutOfTags(src));
+  return breakArabicOutOfTags(src).split(/\n/).map(function (line) {
+    var safe = escapeCodeHtml(line);
+    if (!safe) safe = ' ';
+    var arabicOnly = /[\u0600-\u06FF]/.test(line) && !/[A-Za-z<>/=\"'#]/.test(line);
+    return '<span class="code-line" dir="' + (arabicOnly ? 'rtl' : 'ltr') + '">' + safe + '</span>';
+  }).join('');
 }
 
 function wrapCodingPreview(raw){
@@ -3943,27 +3949,42 @@ document.querySelectorAll('.try-lab').forEach(function(lab){
   var frame = lab.querySelector('.try-frame');
   var resetBtn = lab.querySelector('.try-reset');
   if (!codeBox || !frame) return;
-  codeBox.setAttribute('dir', 'ltr');
-  codeBox.value = breakArabicOutOfTags(codeBox.value);
-  var originalCode = codeBox.value;
+  var originalCode = breakArabicOutOfTags(codeBox.value || codeBox.textContent || '');
+  var editor = document.createElement('pre');
+  editor.className = codeBox.className;
+  editor.setAttribute('contenteditable', 'true');
+  editor.setAttribute('spellcheck', 'false');
+  editor.setAttribute('role', 'textbox');
+  editor.setAttribute('aria-multiline', 'true');
+  editor.setAttribute('aria-label', 'محرر الكود');
+  editor.innerHTML = formatLessonCodeDisplay(originalCode);
+  codeBox.replaceWith(editor);
   var renderTimer = null;
 
+  function editorText(){
+    return stripBidiMarks(editor.innerText || editor.textContent || '');
+  }
+
   function renderTry(){
-    var src = stripBidiMarks(codeBox.value);
+    var src = editorText();
     if (!/<html[\s>]|<body[\s>]/i.test(src)){
       src = wrapCodingPreview(src);
     }
     frame.srcdoc = src;
   }
 
-  codeBox.addEventListener('input', function(){
+  editor.addEventListener('input', function(){
     clearTimeout(renderTimer);
     renderTimer = setTimeout(renderTry, 250);
+  });
+  editor.addEventListener('blur', function(){
+    var current = editorText();
+    editor.innerHTML = formatLessonCodeDisplay(current);
   });
 
   if (resetBtn){
     resetBtn.addEventListener('click', function(){
-      codeBox.value = originalCode;
+      editor.innerHTML = formatLessonCodeDisplay(originalCode);
       renderTry();
     });
   }

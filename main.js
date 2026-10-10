@@ -430,7 +430,7 @@ function markComplete(stageId, silent){
   if (next){
     if (!j.unlocked[next] && !j.done[next]){
       j.unlocked[next] = true;
-      toastMsg = 'فتحت مرحلة جديدة: ' + STAGE_META[next].title + ' ✨';
+      toastMsg = 'فتحت مرحلة جديدة: ' + STAGE_META[next].title;
     } else {
       j.unlocked[next] = true;
     }
@@ -686,7 +686,7 @@ function showCertReadyDialog(){
       '<p class="lock-dialog-reason">أكملت المسار كاملاً. شهادتك جاهزة باسمك — افتحها الآن للعرض أو الطباعة.</p>' +
       '<div class="lock-dialog-actions">' +
         '<button type="button" class="btn-ghost" id="lockDialogClose">لاحقاً</button>' +
-        '<a href="certificate.html" class="btn-primary" id="lockDialogGo">إلى صفحة الشهادة ←</a>' +
+        '<a href="certificate.html" class="btn-primary" id="lockDialogGo">إلى صفحة الشهادة</a>' +
       '</div>' +
     '</div>';
 
@@ -1268,21 +1268,21 @@ if (navCtaSlot && loggedInName){
   if (!heroCta) return;
   var logged = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
   if (!logged){
-    heroCta.textContent = 'إنشاء حساب والبدء ←';
+    heroCta.textContent = 'إنشاء حساب والبدء';
     heroCta.setAttribute('href', 'auth.html?tab=signup');
     setHeroSecondary('guest', 'لدي حساب — تسجيل الدخول', 'auth.html');
     return;
   }
   if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
-    heroCta.textContent = 'إلى الدورات والأدوات ←';
+    heroCta.textContent = 'إلى الدورات والأدوات';
     heroCta.setAttribute('href', 'courses.html');
     setHeroSecondary('alt', 'كل المسارات', '#paths');
   } else if (!isFoundationDone()){
-    heroCta.textContent = 'متابعة البداية ←';
+    heroCta.textContent = 'متابعة البداية';
     heroCta.setAttribute('href', 'foundation.html');
     setHeroSecondary('hide');
   } else {
-    heroCta.textContent = 'متابعة مسارك ←';
+    heroCta.textContent = 'متابعة مسارك';
     heroCta.setAttribute('href', '#paths');
     setHeroSecondary('hide');
   }
@@ -1478,7 +1478,7 @@ if (stationsRoot && !isLoggedInForProgress){
         link.classList.remove('disabled');
         link.classList.remove('show-lock-reason');
         link.removeAttribute('aria-disabled');
-        link.textContent = doneCountEarly === 0 ? 'ابدأ من هنا ←' : 'تابع من هنا ←';
+        link.textContent = doneCountEarly === 0 ? 'ابدأ من هنا' : 'تابع من هنا';
       }
     } else {
       var bypassOrder = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
@@ -1540,7 +1540,7 @@ if (stationsRoot && !isLoggedInForProgress){
     });
     if (phase === HCIFlow.PHASE.PATHS_START || phase === HCIFlow.PHASE.PATHS_CONTINUE){
       if (sid === 'fundamentals'){
-        guideCopy.cta = doneCount === 0 ? 'بدء الأساسيات ←' : 'متابعة الأساسيات ←';
+        guideCopy.cta = doneCount === 0 ? 'بدء الأساسيات' : 'متابعة الأساسيات';
       }
     }
     HCIFlow.applyPathGuide(guideCopy);
@@ -1561,7 +1561,7 @@ if (stationsRoot && !isLoggedInForProgress){
         if (guideKicker) guideKicker.textContent = 'مطلوب قبل المسارات';
         guideTitle.textContent = 'صفحة البداية والمقال التعريفي';
         if (guideHint) guideHint.textContent = 'شرح موجز للمنصة والتخصص، ثم مقال واحد عن HCI وUX/UI. بعدها تُفتح المسارات بالترتيب.';
-        guideCta.textContent = 'متابعة البداية ←';
+        guideCta.textContent = 'متابعة البداية';
         guideCta.setAttribute('href', 'foundation.html');
         if (guideProfile) guideProfile.hidden = true;
       } else if (doneCount >= JOURNEY_ORDER.length){
@@ -1573,7 +1573,7 @@ if (stationsRoot && !isLoggedInForProgress){
         if (guideKicker) guideKicker.textContent = 'مكتمل';
         guideTitle.textContent = 'الرحلة مكتملة';
         if (guideHint) guideHint.textContent = 'راجع أي محطة للمراجعة، أو اطبع شهادتك من الملف الشخصي.';
-        guideCta.textContent = 'عرض الشهادة ←';
+        guideCta.textContent = 'عرض الشهادة';
         guideCta.setAttribute('href', 'certificate.html');
         if (guideProfile){
           guideProfile.hidden = false;
@@ -1595,7 +1595,7 @@ if (stationsRoot && !isLoggedInForProgress){
             ? 'ابدأ بالمسار الذهبي أدناه. بعد إكماله يُفتح التالي تلقائياً.'
             : ('أنجزت ' + doneCount + ' من 7. تابع المسار الذهبي — هذه مرحلتك الحالية.');
         }
-        guideCta.textContent = doneCount === 0 ? 'بدء المسار ←' : 'متابعة المسار ←';
+        guideCta.textContent = doneCount === 0 ? 'بدء المسار' : 'متابعة المسار';
         guideCta.setAttribute('href', STAGE_HREFS[sid] || 'discover.html');
         if (guideProfile) guideProfile.hidden = true;
       }
@@ -1606,30 +1606,30 @@ if (stationsRoot && !isLoggedInForProgress){
     var hs = currentStageId || getCurrentStageId() || 'discover';
     var loggedNow = !!(loggedInName || (window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn()));
     if (!loggedNow){
-      heroCta.textContent = 'إنشاء حساب والبدء ←';
+      heroCta.textContent = 'إنشاء حساب والبدء';
       heroCta.setAttribute('href', 'auth.html?tab=signup');
       setHeroSecondary('guest', 'لدي حساب — تسجيل الدخول', 'auth.html');
     } else if (window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist())){
-      heroCta.textContent = 'إلى الدورات والأدوات ←';
+      heroCta.textContent = 'إلى الدورات والأدوات';
       heroCta.setAttribute('href', 'courses.html');
       setHeroSecondary('alt', 'كل المسارات', '#paths');
     } else if (!isFoundationDone()){
-      heroCta.textContent = 'متابعة البداية ←';
+      heroCta.textContent = 'متابعة البداية';
       heroCta.setAttribute('href', 'foundation.html');
       setHeroSecondary('hide');
     } else if (doneCount >= JOURNEY_ORDER.length){
-      heroCta.textContent = 'عرض شهادتك ←';
+      heroCta.textContent = 'عرض شهادتك';
       heroCta.setAttribute('href', 'certificate.html');
       setHeroSecondary('alt', 'الملف الشخصي', 'profile.html');
     } else {
       if (doneCount === 0){
-        heroCta.textContent = hs === 'fundamentals' ? 'ابدأ من الأساسيات ←' : 'ابدأ مسارك ←';
+        heroCta.textContent = hs === 'fundamentals' ? 'ابدأ من الأساسيات' : 'ابدأ مسارك';
       } else if (hs === 'fundamentals'){
-        heroCta.textContent = 'متابعة الأساسيات ←';
+        heroCta.textContent = 'متابعة الأساسيات';
       } else if (hs === 'coding'){
-        heroCta.textContent = 'متابعة الترميز ←';
+        heroCta.textContent = 'متابعة الترميز';
       } else {
-        heroCta.textContent = 'متابعة مسارك ←';
+        heroCta.textContent = 'متابعة مسارك';
       }
       heroCta.setAttribute('href', STAGE_HREFS[hs] || 'discover.html');
       setHeroSecondary('hide');
@@ -1703,7 +1703,7 @@ annotateChecklists();
 var markCompleteBtn = document.getElementById('markCompleteBtn');
 if (markCompleteBtn && pageStage){
   if (pageStage === 'contribute'){
-    markCompleteBtn.textContent = 'إلى صفحة الشهادة ←';
+    markCompleteBtn.textContent = 'إلى صفحة الشهادة';
     markCompleteBtn.setAttribute('href', 'certificate.html');
   } else if (isDone(pageStage) && markCompleteBtn.tagName === 'BUTTON'){
     markCompleteBtn.textContent = 'أكملت هالمرحلة ✓';
@@ -3669,7 +3669,7 @@ if (lessonList && codingProgressFill && codingProgressNote){
         if (!j.unlocked.courses){
           j.unlocked.courses = true;
           saveJourney(j);
-          showUnlockToast('فتحت مرحلة الدورات المتخصصة ✨');
+          showUnlockToast('فتحت مرحلة الدورات المتخصصة');
         }
       }
     }
@@ -3791,7 +3791,7 @@ function showStatusBanner(id, message, kind){
   function enableNext(justFinished){
     if (btn){
       btn.disabled = false;
-      btn.textContent = 'التالي: المسار الأول ←';
+      btn.textContent = 'التالي: المسار الأول';
     }
     if (hint) hint.textContent = 'يمكنك المتابعة أو الرجوع للمقال لاحقاً.';
     showStatusBanner('articleReadStatus',
@@ -3822,7 +3822,7 @@ function showStatusBanner(id, message, kind){
   if (!logged){
     if (btn){
       btn.disabled = false;
-      btn.textContent = 'أنشئ حساباً لحفظ خطوتك ←';
+      btn.textContent = 'أنشئ حساباً لحفظ خطوتك';
     }
     showStatusBanner('articleReadStatus', 'أنت تقرأ كزائر. القراءة لا تُحفظ حتى تسجّل.', 'wait');
     return;
@@ -3836,7 +3836,7 @@ function showStatusBanner(id, message, kind){
 
   if (btn){
     btn.disabled = true;
-    btn.textContent = 'التالي ←';
+    btn.textContent = 'التالي';
   }
 
   var sentinelWasAway = false;
@@ -3854,7 +3854,7 @@ function showStatusBanner(id, message, kind){
     if (!sentinelWasAway){
       if (btn){
         btn.disabled = false;
-        btn.textContent = 'التالي: المسار الأول ←';
+        btn.textContent = 'التالي: المسار الأول';
       }
       return;
     }
@@ -3996,7 +3996,7 @@ var projectDoneBtn = document.getElementById('projectDoneBtn');
 if (projectDoneBtn){
   projectDoneBtn.addEventListener('click', function(){
     projectDoneBtn.textContent = 'أنجزتها ✓';
-    showUnlockToast('مبروك! بنيت أول صفحة ويب بنفسك 🎉');
+    showUnlockToast('أحسنت. بنيت أول صفحة ويب بنفسك.');
   });
 }
 
@@ -4527,7 +4527,7 @@ if (quizCheckBtn && quizResult){
         quizResult.textContent += ' — ممتاز! فُتح مسار الترميز. يمكنك الضغط على «التالي» الآن.';
         updateCodingNextButton();
         HCIApi.syncProgress().catch(function(){});
-        showUnlockToast('فتحت مرحلة جديدة: ترميز HTML و CSS ✨');
+        showUnlockToast('فتحت مرحلة جديدة: ترميز HTML و CSS');
       } else {
         quizResult.textContent += ' — تحتاج 3 إجابات صحيحة على الأقل لفتح الترميز.';
         updateCodingNextButton();
@@ -4724,7 +4724,7 @@ function bindEvidenceControls(selector, kind, doneLabel, completeWhen){
           j.unlocked.books = true;
           saveJourney(j);
           markComplete('courses', true);
-          showUnlockToast('فتحت مكتبة الكتب والمراجع ✨');
+          showUnlockToast('فتحت مكتبة الكتب والمراجع');
         }
         if (kind === 'book' && resp && resp.bookNotes >= 2){
           markComplete('books');

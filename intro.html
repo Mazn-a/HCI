@@ -57,7 +57,7 @@
       </section>
 
       <section class="intro-block reveal">
-        <h2>من أين… إلى أين؟ (رحلتك في المنصة)</h2>
+        <h2>من أين إلى أين: رحلتك في المنصة</h2>
         <div class="timeline" style="margin-top:20px;">
           <div class="tl-item">
             <h3>قبل المسارات — البداية</h3>
@@ -170,7 +170,7 @@
   var startBtn = document.getElementById('startJourneyBtn');
   if (!window.HCIApi || !HCIApi.isLoggedIn()) {
     if (startBtn) {
-      startBtn.textContent = 'أنشئ حساباً للبدء ←';
+      startBtn.textContent = 'أنشئ حساباً للبدء';
       startBtn.addEventListener('click', function () {
         location.href = 'auth.html?tab=signup&next=intro.html';
       });

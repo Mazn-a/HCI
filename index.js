@@ -44,7 +44,7 @@ function resolveJwtSecret() {
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 /* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
-const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261010f').replace(/[^\w]/g, '').slice(0, 12) || '20261010f';
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261010g').replace(/[^\w]/g, '').slice(0, 12) || '20261010g';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -310,7 +310,7 @@ function sendWelcomeNotification(user) {
   db.createNotification({
     userId: user.id,
     type: 'welcome',
-    title: 'أهلاً فيك في HCI ✨',
+    title: 'أهلاً بك في HCI',
     body: name + '، مبسوطين بانضمامك. ابدأ بفهم التخصص، وبعدها المسارات تفتح لك خطوة خطوة. إحنا معك للنهاية.',
     link: 'foundation.html'
   });

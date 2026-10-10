@@ -1537,7 +1537,7 @@
     var certHtml = u.certificateId
       ? '<strong>الشهادة:</strong> <span dir="ltr" style="color:var(--gold)">' + escapeHtml(u.certificateId) + '</span>' +
         ' · صدرت ' + formatDate(u.certificateIssuedAt) +
-        '<br><button type="button" class="btn-primary" id="detailOpenCert" style="margin-top:10px;min-height:40px;">استعرض الشهادة ←</button>'
+        '<br><button type="button" class="btn-primary" id="detailOpenCert" style="margin-top:10px;min-height:40px;">استعرض الشهادة</button>'
       : '<strong>الشهادة:</strong> ما صدرت بعد';
 
     document.getElementById('detailInfo').innerHTML =

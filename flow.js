@@ -132,7 +132,7 @@
           kicker: 'للزائر',
           title: 'ابدأ بإنشاء حساب',
           hint: 'الحساب يحفظ تقدّمك. بعد التسجيل نوجّهك إلى مكانك مباشرة.',
-          cta: 'إنشاء حساب والبدء ←',
+          cta: 'إنشاء حساب والبدء',
           ctaHref: 'auth.html?tab=signup',
           secondary: 'استعرض المسارات السبعة',
           secondaryHref: '#paths',
@@ -147,7 +147,7 @@
           kicker: 'مطلوب الآن',
           title: 'اختيار المسار',
           hint: 'مهتم بالتخصص أو متخصص — بعدها نكمّل من مكانك الصحيح.',
-          cta: 'اختيار المسار ←',
+          cta: 'اختيار المسار',
           ctaHref: 'path-choice.html',
           hideSecondary: true
         };
@@ -160,7 +160,7 @@
           kicker: 'المقدمة',
           title: 'مقدمة HCI',
           hint: 'اقرأ بهدوء، ثم ابدأ صفحة البداية والمقال التعريفي.',
-          cta: 'متابعة المقدمة ←',
+          cta: 'متابعة المقدمة',
           ctaHref: 'intro.html',
           hideSecondary: true
         };
@@ -176,7 +176,7 @@
           kicker: 'مطلوب قبل المسارات',
           title: 'المقال التعريفي',
           hint: 'مقال قصير عن تخصص HCI. بعده تنتقل للمسارات.',
-          cta: 'متابعة البداية ←',
+          cta: 'متابعة البداية',
           ctaHref: 'foundation.html',
           hideSecondary: true
         };
@@ -189,7 +189,7 @@
           kicker: 'مكتمل',
           title: 'الرحلة مكتملة',
           hint: 'راجع أي محطة للمراجعة، أو اطبع شهادتك من الملف الشخصي.',
-          cta: 'عرض الشهادة ←',
+          cta: 'عرض الشهادة',
           ctaHref: 'certificate.html',
           secondary: 'الملف الشخصي',
           secondaryHref: 'profile.html',
@@ -206,7 +206,7 @@
           kicker: phase === PHASE.ADMIN ? 'مدير المنصة' : 'متخصص في المجال',
           title: 'المسارات والأدوات مفتوحة',
           hint: 'اختر البطاقة التي تخدم عملك الآن. لست ملزماً بالبدء من «اكتشف التخصص».',
-          cta: 'إلى الدورات والأدوات ←',
+          cta: 'إلى الدورات والأدوات',
           ctaHref: 'courses.html',
           hideSecondary: true
         };
@@ -220,7 +220,7 @@
           kicker: 'خطوتك التالية · المسار ' + num + ' من 7',
           title: title,
           hint: 'ابدأ بالمسار المميّز أدناه. بعد إكماله يُفتح التالي تلقائياً.',
-          cta: 'بدء المسار ←',
+          cta: 'بدء المسار',
           ctaHref: ctx.stageHref || 'discover.html',
           hideSecondary: true
         };
@@ -235,7 +235,7 @@
           kicker: 'خطوتك التالية · المسار ' + num + ' من 7',
           title: title,
           hint: 'أنجزت ' + done + ' من 7. تابع المسار الذهبي — هذه مرحلتك الحالية.',
-          cta: 'متابعة المسار ←',
+          cta: 'متابعة المسار',
           ctaHref: ctx.stageHref || 'discover.html',
           hideSecondary: true
         };

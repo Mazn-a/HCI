@@ -3302,11 +3302,6 @@ body.nav-open{ overflow: hidden; }
   text-decoration: none;
   cursor: pointer;
 }
-.page-back::before{
-  content: "→";
-  font-size: 1.05em;
-  line-height: 1;
-}
 .page-back:hover{
   color: var(--text-hi);
   background: rgba(var(--gold-rgb),0.18);

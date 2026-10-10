@@ -188,9 +188,12 @@
   var gate = document.getElementById('articlesOnboardingGate');
   var body = document.getElementById('articlesLibraryBody');
   var staff = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
+  /* الزائر بلا حساب (ومنه قوقل والدكاترة) يقرأ المكتبة مباشرة — المقالات عامة أصلاً.
+     بوابة «كمّل ابدأ هنا» تبقى للطالب المسجّل الجديد فقط. */
+  var guest = !(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn());
   var ready = false;
   try { ready = typeof isFoundationDone === 'function' && isFoundationDone(); } catch (e) { ready = false; }
-  if (!staff && !ready) {
+  if (!staff && !guest && !ready) {
     if (gate) gate.hidden = false;
     if (body) body.hidden = true;
     return;

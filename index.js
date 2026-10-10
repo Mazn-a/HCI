@@ -43,7 +43,7 @@ function resolveJwtSecret() {
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 /* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
-const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261009g').replace(/[^\w]/g, '').slice(0, 12) || '20261009g';
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261010a').replace(/[^\w]/g, '').slice(0, 12) || '20261010a';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -2479,11 +2479,46 @@ app.delete('/api/admin/messages/:id', adminRequired, (req, res) => {
   res.json({ ok: true });
 });
 
+/* ===== إبقاء الخدمة مستيقظة على Render المجاني =====
+   Render يوقف الخدمة بعد 15 دقيقة بلا زيارات، فأول زائر (أو قوقل) ينتظر 20-30 ثانية
+   أو يفشل. نرسل طلباً خفيفاً لرابطنا العام كل 10 دقائق حتى تبقى الخدمة جاهزة.
+   يعمل تلقائياً على Render (RENDER_EXTERNAL_URL)، أو بأي رابط في KEEP_AWAKE_URL.
+   للإيقاف: KEEP_AWAKE=0 */
+function startKeepAwake() {
+  if (String(process.env.KEEP_AWAKE || '1') === '0') return;
+  const base = String(process.env.KEEP_AWAKE_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(base)) return;
+  const target = base + '/api/health?keepawake=1';
+  const client = /^https:/i.test(target) ? require('https') : require('http');
+  const everyMs = Math.max(3, Number(process.env.KEEP_AWAKE_MINUTES) || 10) * 60 * 1000;
+  function ping() {
+    try {
+      const req = client.get(target, { headers: { 'User-Agent': 'hci-keepawake/1.0' }, timeout: 25000 }, (res) => {
+        res.resume();
+      });
+      req.on('timeout', () => req.destroy());
+      req.on('error', () => {});
+    } catch (e) { /* تجاهل */ }
+  }
+  const timer = setInterval(ping, everyMs);
+  if (timer.unref) timer.unref();
+  setTimeout(ping, 60 * 1000).unref();
+  console.log('  إبقاء الخدمة مستيقظة: كل ' + (everyMs / 60000) + ' دقائق → ' + target);
+}
+
+process.on('unhandledRejection', (err) => {
+  console.error('وعد مرفوض بلا معالجة:', err && err.stack ? err.stack : err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('خطأ غير ملتقط:', err && err.stack ? err.stack : err);
+});
+
 ready.then(() => {
   const adminInfo = ensureAdmin();
   const previewInfo = ensurePreviewOwner();
 
   app.listen(PORT, () => {
+    startKeepAwake();
     console.log('');
     console.log('═══════════════════════════════════════');
     console.log('  HCI Platform يعمل على:');

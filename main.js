@@ -1650,13 +1650,17 @@ function refreshPageLockGate(){
   var mainContent = document.getElementById('main');
   var stage = document.body.getAttribute('data-page-stage');
   var bypassOrder = window.HCIApi && (HCIApi.isAdmin() || HCIApi.isSpecialist());
+  /* الزائر بلا حساب يقرأ «اكتشف التخصص» كصفحة تعريفية عامة (مدرجة في خريطة الموقع لقوقل)؛
+     أي خطوة تالية تمرّ عبر بوابة الدخول. */
+  var loggedInNow = !!(window.HCIApi && HCIApi.isLoggedIn && HCIApi.isLoggedIn());
+  var guestReadable = !loggedInNow && stage === 'discover';
 
-  if (stage && !bypassOrder && !isFoundationDone()){
+  if (stage && !bypassOrder && !guestReadable && !isFoundationDone()){
     location.replace('foundation.html');
     return;
   }
 
-  if (stage && !bypassOrder && !isUnlocked(stage) && !isDone(stage)){
+  if (stage && !bypassOrder && !guestReadable && !isUnlocked(stage) && !isDone(stage)){
     // أرجع للمسارات مع إشعاع على الخطوة الحالية
     location.replace('index.html?needOrder=1#paths');
     return;

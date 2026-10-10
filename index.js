@@ -14,6 +14,14 @@ const trust = require('./server-trust');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const CANONICAL_ORIGIN = 'https://hci-1-fk7w.onrender.com';
+
+app.use(function redirectLegacyHost(req, res, next) {
+  const host = String(req.headers.host || '').split(':')[0].toLowerCase();
+  if (host !== 'hci-72ms.onrender.com') return next();
+  res.setHeader('Cache-Control', 'no-store');
+  return res.redirect(302, CANONICAL_ORIGIN + (req.originalUrl || '/'));
+});
 
 function resolveJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
@@ -36,7 +44,7 @@ function resolveJwtSecret() {
 const JWT_SECRET = resolveJwtSecret();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();
 /* نسخة الأصول: سفاري على الجوال/الآيباد يخزّن style.css و main.js بالاسم فقط */
-const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261010b').replace(/[^\w]/g, '').slice(0, 12) || '20261010b';
+const ASSET_V = String(process.env.RENDER_GIT_COMMIT || '20261010c').replace(/[^\w]/g, '').slice(0, 12) || '20261010c';
 
 const uploadsDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });

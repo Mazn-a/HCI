@@ -1,10 +1,6 @@
 /* بوابة الدخول — صيانة عامة، ثم الصفحات بعد تسجيل الدخول */
 (function () {
   try {
-    if (location.hostname === 'hci-72ms.onrender.com') {
-      location.replace('https://hci-1-fk7w.onrender.com' + location.pathname + location.search + location.hash);
-      return;
-    }
     /* ===== وضع الصيانة =====
        true  = الزوار يرون صفحة الصيانة فقط
        false = الموقع يعمل طبيعياً

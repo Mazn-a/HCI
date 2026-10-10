@@ -3868,10 +3868,9 @@ body[data-theme="light"] .settings-side-link.is-active{
   background: var(--ink-2);
   border: 1px solid var(--ink-3);
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   z-index: 1;
-  isolation: isolate;
   box-shadow: none;
 }
 html[data-theme="light"] .settings-shell,
@@ -4019,9 +4018,22 @@ body[data-theme="light"] .settings-side-link{
   }
   .settings-actions{ padding: 16px 14px 18px; }
   .settings-save-full{ min-height: 48px; font-size: 0.98rem; }
-  .swatch-row{ gap: 14px; }
+  .swatch-row{ gap: 14px; flex-wrap: wrap; }
   .swatch-btn,
   .swatch-custom{ width: 42px; height: 42px; }
+  .swatch-custom-wrap{
+    flex: 1 0 100%;
+    position: static;
+  }
+  .accent-palette,
+  .accent-palette.is-open{
+    position: static;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-top: 10px;
+    box-shadow: none;
+  }
 }
 
 /* ملف شخصي — نفس الصندوق المتصل */
@@ -4190,6 +4202,7 @@ body[data-theme="light"] .settings-side-link{
 .swatch-custom-wrap{
   position: relative;
   flex-shrink: 0;
+  z-index: 5;
 }
 .swatch-custom{
   display: block;
@@ -4213,37 +4226,45 @@ body[data-theme="light"] .settings-side-link{
 .accent-palette{
   position: absolute;
   top: calc(100% + 10px);
-  right: 0;
-  z-index: 40;
+  inset-inline-end: 0;
+  inset-inline-start: auto;
+  z-index: 80;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  min-width: 220px;
+  width: min(260px, calc(100vw - 32px));
+  min-width: 0;
+  max-width: calc(100vw - 32px);
   border-radius: 14px;
   border: 1px solid var(--ink-3);
   background: #161616;
+  box-sizing: border-box;
   box-shadow: 0 12px 32px rgba(0,0,0,0.55);
 }
 .accent-palette[hidden]{ display: none !important; }
 .accent-palette.is-open{ display: flex; }
 .accent-palette-row{
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 6px;
 }
 .accent-palette-swatch{
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
   padding: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.12);
   cursor: pointer;
   transition: transform 0.15s, border-color 0.15s;
 }
-.accent-palette-swatch:hover{ transform: scale(1.12); }
+.accent-palette-swatch:hover{ transform: none; }
+@media (hover: hover){
+  .accent-palette-swatch:hover{ transform: scale(1.06); }
+}
 .accent-palette-swatch.active{
   border-color: #fff;
   box-shadow: 0 0 0 1px #fff;

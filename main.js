@@ -3893,11 +3893,17 @@ function stripBidiMarks(s){
 }
 
 function breakArabicOutOfTags(src){
-  return stripBidiMarks(src).replace(/>([^<\n]*[\u0600-\u06FF][^<]*)</g, function (_full, inner) {
-    var trimmed = String(inner).replace(/^\s+|\s+$/g, '');
-    if (!trimmed) return '>' + inner + '<';
-    return '>\n' + trimmed + '\n<';
-  });
+  return stripBidiMarks(src)
+    .replace(/>([^<\n]*[\u0600-\u06FF][^<]*)</g, function (_full, inner) {
+      var trimmed = String(inner).replace(/^\s+|\s+$/g, '');
+      if (!trimmed) return '>' + inner + '<';
+      return '>\n' + trimmed + '\n<';
+    })
+    .replace(/(=["'])([^"']*[\u0600-\u06FF][^"']*)(["'])/g, function (_full, open, inner, close) {
+      var trimmed = String(inner).replace(/^\s+|\s+$/g, '');
+      if (!trimmed) return open + inner + close;
+      return open + '\n' + trimmed + '\n' + close;
+    });
 }
 
 function escapeCodeHtml(s){
@@ -3917,7 +3923,7 @@ function wrapCodingPreview(raw){
 }
 
 document.querySelectorAll('.lesson-code').forEach(function(pre){
-  pre.removeAttribute('dir');
+  pre.setAttribute('dir', 'ltr');
   var el = pre.querySelector('code') || pre;
   el.innerHTML = formatLessonCodeDisplay(el.textContent);
 });
@@ -3933,7 +3939,7 @@ document.querySelectorAll('.try-lab').forEach(function(lab){
   var frame = lab.querySelector('.try-frame');
   var resetBtn = lab.querySelector('.try-reset');
   if (!codeBox || !frame) return;
-  codeBox.removeAttribute('dir');
+  codeBox.setAttribute('dir', 'ltr');
   codeBox.value = breakArabicOutOfTags(codeBox.value);
   var originalCode = codeBox.value;
   var renderTimer = null;
@@ -4756,7 +4762,7 @@ bindEvidenceControls('[data-book-read]', 'book', 'قرأت الملخص ✓');
       '<form class="report-form" id="reportForm">' +
         '<div class="report-fields">' +
           '<input type="text" id="reportName" class="settings-input" placeholder="اسمك (اختياري)" autocomplete="name">' +
-          '<input type="text" id="reportContact" class="settings-input" dir="ltr" placeholder="بريد أو جوال (اختياري)">' +
+          '<input type="text" id="reportContact" class="settings-input" placeholder="بريد أو جوال (اختياري)">' +
         '</div>' +
         '<textarea id="reportMessage" class="report-textarea" required placeholder="صف المشكلة أو الخطأ…" rows="3"></textarea>' +
         '<div class="report-media">' +
@@ -4977,7 +4983,7 @@ bindEvidenceControls('[data-book-read]', 'book', 'قرأت الملخص ✓');
         '<label class="site-modal-label" for="contactName">الاسم</label>' +
         '<input type="text" id="contactName" class="settings-input" placeholder="اسمك" autocomplete="name">' +
         '<label class="site-modal-label" for="contactReach">وسيلة تواصل</label>' +
-        '<input type="text" id="contactReach" class="settings-input" dir="ltr" placeholder="بريد أو جوال">' +
+        '<input type="text" id="contactReach" class="settings-input" placeholder="بريد أو جوال">' +
         '<label class="site-modal-label" for="contactMessage">الرسالة</label>' +
         '<textarea id="contactMessage" class="report-textarea" required placeholder="اكتب رسالتك…" rows="4"></textarea>' +
         '<div class="report-submit-row">' +

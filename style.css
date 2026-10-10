@@ -3487,6 +3487,8 @@ body.nav-open{ overflow: hidden; }
   display: inline-block;
 }
 .lesson-code{
+  direction: ltr !important;
+  text-align: left;
   unicode-bidi: plaintext;
   -webkit-unicode-bidi: plaintext;
   background: #10131a;
@@ -3502,6 +3504,7 @@ body.nav-open{ overflow: hidden; }
   white-space: pre;
 }
 .lesson-code code{
+  direction: inherit;
   unicode-bidi: plaintext;
   -webkit-unicode-bidi: plaintext;
   font: inherit;
@@ -3553,6 +3556,8 @@ body.nav-open{ overflow: hidden; }
   padding: 12px 14px;
   resize: vertical;
   min-height: 90px;
+  direction: ltr !important;
+  text-align: left;
   unicode-bidi: plaintext;
   -webkit-unicode-bidi: plaintext;
 }

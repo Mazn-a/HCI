@@ -46,13 +46,13 @@
     <form id="formLogin" class="active" novalidate>
       <div>
         <label for="loginIdentifier">البريد الإلكتروني أو رقم الجوال</label>
-        <input type="text" id="loginIdentifier" dir="ltr" placeholder="name@example.com أو 05xxxxxxxx" required autocomplete="username">
+        <input type="text" id="loginIdentifier" dir="ltr" placeholder="name@example.com" required autocomplete="username">
         <p class="field-error" id="loginIdentifierError">أدخل بريداً بصيغة صحيحة أو جوالاً بصيغة 05xxxxxxxx</p>
       </div>
       <div>
         <label for="loginPass">كلمة المرور</label>
         <div class="password-field">
-          <input type="password" id="loginPass" dir="ltr" placeholder="كلمة المرور" required autocomplete="current-password">
+          <input type="password" id="loginPass" dir="ltr" placeholder="" required autocomplete="current-password">
           <button type="button" class="password-toggle" data-toggle-password="loginPass" aria-label="إظهار كلمة المرور" aria-pressed="false">
             <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
@@ -77,18 +77,18 @@
       </p>
       <div>
         <label for="resetIdentifier">البريد أو رقم الجوال</label>
-        <input type="text" id="resetIdentifier" dir="ltr" placeholder="you@email.com أو 05xxxxxxxx" autocomplete="username">
+        <input type="text" id="resetIdentifier" dir="ltr" placeholder="name@example.com" autocomplete="username">
         <button type="button" class="auth-otp-send" id="resetSendCode">أرسل الرمز</button>
       </div>
       <div>
         <label for="resetCode">رمز التحقق — اكتبه هنا</label>
-        <input type="text" id="resetCode" dir="ltr" inputmode="numeric" placeholder="اكتب 6 أرقام هنا" autocomplete="one-time-code">
+        <input type="text" id="resetCode" dir="ltr" inputmode="numeric" placeholder="123456" autocomplete="one-time-code">
         <p class="otp-demo" id="resetDemoCode" hidden></p>
       </div>
       <div>
         <label for="resetNewPass">كلمة المرور الجديدة</label>
         <div class="password-field">
-          <input type="password" id="resetNewPass" dir="ltr" placeholder="8 أحرف على الأقل" autocomplete="new-password">
+          <input type="password" id="resetNewPass" dir="ltr" placeholder="" autocomplete="new-password">
           <button type="button" class="password-toggle" data-toggle-password="resetNewPass" aria-label="إظهار كلمة المرور" aria-pressed="false">
             <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
@@ -105,12 +105,12 @@
       </p>
       <div>
         <label for="verifyIdentifier">البريد أو رقم الهاتف</label>
-        <input type="text" id="verifyIdentifier" dir="ltr" placeholder="نفس البيانات المستخدمة عند التسجيل">
+        <input type="text" id="verifyIdentifier" dir="ltr" placeholder="name@example.com">
         <button type="button" class="auth-otp-send" id="verifySendCode">أرسل الرمز</button>
       </div>
       <div>
         <label for="verifyCode">رمز التحقق — اكتبه هنا</label>
-        <input type="text" id="verifyCode" dir="ltr" inputmode="numeric" maxlength="6" placeholder="اكتب 6 أرقام هنا" autocomplete="one-time-code">
+        <input type="text" id="verifyCode" dir="ltr" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code">
         <p class="otp-demo" id="verifyDemoCode" hidden></p>
       </div>
       <button type="submit" class="submit-btn" id="verifySubmit">تأكيد الملكيّة</button>
@@ -153,7 +153,7 @@
       <div>
         <label for="signupPass">كلمة المرور</label>
         <div class="password-field">
-          <input type="password" id="signupPass" dir="ltr" placeholder="8 أحرف على الأقل" required minlength="8" autocomplete="new-password">
+          <input type="password" id="signupPass" dir="ltr" placeholder="" required minlength="8" autocomplete="new-password">
           <button type="button" class="password-toggle" data-toggle-password="signupPass" aria-label="إظهار كلمة المرور" aria-pressed="false">
             <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>
@@ -164,7 +164,7 @@
       <div>
         <label for="signupPassConfirm">تأكيد كلمة المرور</label>
         <div class="password-field">
-          <input type="password" id="signupPassConfirm" dir="ltr" placeholder="أعد كتابة كلمة المرور" required minlength="8" autocomplete="new-password">
+          <input type="password" id="signupPassConfirm" dir="ltr" placeholder="" required minlength="8" autocomplete="new-password">
           <button type="button" class="password-toggle" data-toggle-password="signupPassConfirm" aria-label="إظهار كلمة المرور" aria-pressed="false">
             <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 004.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0112 5c6.5 0 10 7 10 7a17.9 17.9 0 01-4.2 4.8"/><path d="M6.1 6.1C3.7 7.8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.5"/></svg>

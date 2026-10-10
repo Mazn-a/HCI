@@ -92,11 +92,16 @@
   .stat-box .stat-move button:hover{ color:var(--gold); background:rgba(var(--gold-rgb),0.1); }
   .admin-layout-edit-bar{
     position:sticky; top:calc(var(--admin-topbar-h, 56px) + 8px); z-index:40;
-    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
     margin:0 0 16px; padding:12px 14px;
     border:1px solid rgba(var(--gold-rgb),0.4); border-radius:12px;
     background:rgba(20,18,14,0.96);
   }
+  body.admin-layout-editing .admin-layout-edit-bar,
+  .admin-layout-edit-bar:not([hidden]){
+    display:flex;
+  }
+  .admin-layout-edit-bar[hidden]{ display:none !important; }
   .admin-layout-edit-bar p{ margin:0; color:var(--text-hi); font-size:0.88rem; line-height:1.5; }
   .admin-layout-edit-bar .btn-primary{ min-height:40px; padding:8px 18px; }
   .admin-settings-card{
@@ -814,7 +819,7 @@
         </p>
         <label for="detailNewPass">كلمة مرور جديدة</label>
         <div class="admin-pass-row">
-          <input type="text" id="detailNewPass" dir="ltr" placeholder="8 أحرف فأكثر" autocomplete="off">
+          <input type="text" id="detailNewPass" dir="ltr" placeholder="" autocomplete="off">
           <button type="button" class="btn-ghost" id="detailGenPass">توليد</button>
           <button type="button" class="btn-ghost" id="detailCopyPass">نسخ</button>
         </div>

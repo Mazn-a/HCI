@@ -456,7 +456,7 @@ app.post('/api/reports', (req, res) => {
       const message = String(req.body.message || '').trim();
       if (message.length < 5) {
         if (req.file) fs.unlink(req.file.path, function () {});
-        return res.status(400).json({ error: 'اكتب وصف المشكلة بوضوح (٥ أحرف على الأقل)' });
+        return res.status(400).json({ error: 'اكتب وصف المشكلة بوضوح (5 أحرف على الأقل)' });
       }
 
       let userId = null;

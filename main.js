@@ -2863,8 +2863,8 @@ function formatNotifTime(iso){
   if (!iso) return '';
   try {
     var d = new Date(iso);
-    return d.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }) +
-      ' · ' + d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('ar-SA-u-nu-latn', { month: 'short', day: 'numeric', timeZone: 'Asia/Riyadh' }) +
+      ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' });
   } catch (e) { return ''; }
 }
 function renderInboxCard(item){
@@ -4793,7 +4793,7 @@ bindEvidenceControls('[data-book-read]', 'book', 'قرأت الملخص ✓');
         '<div class="report-media">' +
           '<label class="report-media-btn" for="reportMedia">إرفاق صورة أو فيديو</label>' +
           '<input type="file" id="reportMedia" accept="image/*,video/mp4,video/webm,video/quicktime" hidden>' +
-          '<span class="report-media-name" id="reportMediaName">اختياري · الفيديو ≤ ١٠ ثوانٍ</span>' +
+          '<span class="report-media-name" id="reportMediaName">اختياري · الفيديو ≤ 10 ثوانٍ</span>' +
           '<button type="button" class="report-media-clear" id="reportMediaClear" hidden>إزالة</button>' +
         '</div>' +
         '<div class="report-media-preview" id="reportMediaPreview" hidden></div>' +
@@ -4838,7 +4838,7 @@ bindEvidenceControls('[data-book-read]', 'book', 'قرأت الملخص ✓');
   function clearMedia(){
     selectedMedia = null;
     mediaInput.value = '';
-    mediaName.textContent = 'اختياري · الفيديو ≤ ١٠ ثوانٍ';
+    mediaName.textContent = 'اختياري · الفيديو ≤ 10 ثوانٍ';
     mediaClear.hidden = true;
     mediaPreview.hidden = true;
     mediaPreview.innerHTML = '';
@@ -4857,7 +4857,7 @@ bindEvidenceControls('[data-book-read]', 'book', 'قرأت الملخص ✓');
       video.onloadedmetadata = function(){
         URL.revokeObjectURL(url);
         if (!isFinite(video.duration) || video.duration > 10.05){
-          reject(new Error('الفيديو لازم يكون ١٠ ثوانٍ أو أقل (مدته الآن: ' + Math.ceil(video.duration) + ' ث)'));
+          reject(new Error('الفيديو لازم يكون 10 ثوانٍ أو أقل (مدته الآن: ' + Math.ceil(video.duration) + ' ث)'));
           return;
         }
         resolve(file);

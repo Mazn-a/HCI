@@ -84,7 +84,7 @@
       document.title = a.title + ' — HCI';
       var d = a.publishedAt ? new Date(a.publishedAt) : null;
       metaEl.innerHTML = 'متعلم · ' + String(a.authorName || 'متعلم HCI').replace(/</g, '&lt;') +
-        (d ? (' · ' + d.toLocaleDateString('ar-SA')) : '') +
+        (d ? (' · ' + d.toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Riyadh' })) : '') +
         '<span class="article-byline">نُشر بعد مراجعة المشرف</span>';
       bodyEl.innerHTML = String(a.body || '')
         .split(/\n{2,}/)

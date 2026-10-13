@@ -83,6 +83,7 @@
       'maintenance.html': true,
       'legal.html': true,
       'theme-lab.html': true,
+      'brand.html': true,
       /* معاينة التصميم أو عرض شهادة برقمها العام */
       'certificate.html': /(?:\?|&)preview=1(?:&|$)/.test(search) || /(?:\?|&)id=[^&]+/.test(search),
       'verify.html': true

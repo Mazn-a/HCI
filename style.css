@@ -480,6 +480,7 @@ html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   font-size: 18px;
+  font-variant-numeric: lining-nums tabular-nums;
   scroll-padding-top: var(--header-offset);
 }
 
@@ -5589,6 +5590,8 @@ body[data-theme="light"] .back-to-top{
   padding: 0;
   margin: 0;
   font: inherit;
+  font-variant-numeric: lining-nums tabular-nums;
+  unicode-bidi: plaintext;
   color: inherit;
   cursor: pointer;
   text-decoration: underline dotted;

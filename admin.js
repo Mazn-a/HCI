@@ -233,7 +233,10 @@
   function formatDate(iso) {
     if (!iso) return '—';
     try {
-      return new Date(iso).toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Riyadh' });
+      var when = new Date(iso);
+      var date = when.toLocaleDateString('ar-SA-u-nu-latn', { dateStyle: 'medium', timeZone: 'Asia/Riyadh' });
+      var time = when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' });
+      return date + ' · ' + time;
     } catch (e) {
       return iso;
     }
@@ -258,12 +261,12 @@
     if (days <= 0) return 'اليوم';
     if (days === 1) return 'أمس';
     if (days === 2) return 'قبل يومين';
-    if (days === 3) return 'قبل ٣ أيام';
-    if (days === 4) return 'قبل ٤ أيام';
-    if (days === 5) return 'قبل ٥ أيام';
-    if (days === 6) return 'قبل ٦ أيام';
-    if (days === 7) return 'قبل ٧ أيام';
-    return '+٧';
+    if (days === 3) return 'قبل 3 أيام';
+    if (days === 4) return 'قبل 4 أيام';
+    if (days === 5) return 'قبل 5 أيام';
+    if (days === 6) return 'قبل 6 أيام';
+    if (days === 7) return 'قبل 7 أيام';
+    return '+7';
   }
 
   function visitWhenHtml(iso) {
@@ -274,9 +277,10 @@
     var full = formatDate(iso);
     var shortLabel = visitDayLabel(days);
     if (days >= 0 && days <= 7) {
-      shortLabel += ' · ' + d.toLocaleTimeString('ar-SA', {
-        hour: 'numeric',
+      shortLabel += ' · ' + d.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
         minute: '2-digit',
+        hour12: false,
         timeZone: 'Asia/Riyadh'
       });
     }
@@ -940,10 +944,10 @@
   function formatShareTime(iso) {
     if (!iso) return '—';
     try {
-      return new Date(iso).toLocaleString('ar-SA', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
+      var when = new Date(iso);
+      var date = when.toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Riyadh' });
+      var time = when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' });
+      return date + ' · ' + time;
     } catch (e) { return iso; }
   }
 

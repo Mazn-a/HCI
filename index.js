@@ -1235,7 +1235,7 @@ app.post('/api/me/feedback', authRequired, (req, res) => {
   try {
     const rating = Number(req.body && req.body.rating);
     if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'قيّم من ١ إلى ٥' });
+      return res.status(400).json({ error: 'قيّم من 1 إلى 5' });
     }
     const comment = String((req.body && req.body.comment) || '').trim().slice(0, 800);
     const row = db.createSiteFeedback({
@@ -1592,7 +1592,7 @@ app.post('/api/articles', authRequired, (req, res) => {
       }
       const drafts = db.getCommunityArticles({ userId: req.user.id, status: 'draft' });
       if (drafts.length >= 3) {
-        return res.status(400).json({ error: 'عندك ٣ مسودات — عدّل واحدة منها أو أرسلها للمراجعة' });
+        return res.status(400).json({ error: 'عندك 3 مسودات — عدّل واحدة منها أو أرسلها للمراجعة' });
       }
       const authorName = articleAuthorName(req.user);
       const row = db.createCommunityArticle({
@@ -1611,14 +1611,14 @@ app.post('/api/articles', authRequired, (req, res) => {
       });
     }
     if (title.length < 8) {
-      return res.status(400).json({ error: 'عنوان المقال قصير جداً (٨ أحرف على الأقل)' });
+      return res.status(400).json({ error: 'عنوان المقال قصير جداً (8 أحرف على الأقل)' });
     }
     if (body.length < 120) {
-      return res.status(400).json({ error: 'نص المقال قصير جداً — اكتب شرحاً أوضح (١٢٠ حرفاً على الأقل)' });
+      return res.status(400).json({ error: 'نص المقال قصير جداً — اكتب شرحاً أوضح (120 حرفاً على الأقل)' });
     }
     const pending = db.getCommunityArticles({ userId: req.user.id, status: 'pending' });
     if (pending.length >= 3) {
-      return res.status(400).json({ error: 'عندك ٣ مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
+      return res.status(400).json({ error: 'عندك 3 مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
     }
     const authorName = articleAuthorName(req.user);
     const row = db.createCommunityArticle({
@@ -1672,14 +1672,14 @@ app.post('/api/articles/:id/submit', authRequired, (req, res) => {
     const title = sanitizeArticleText(req.body.title != null ? req.body.title : existing.title, 120);
     const body = sanitizeArticleText(req.body.body != null ? req.body.body : existing.body, 8000);
     if (title.length < 8) {
-      return res.status(400).json({ error: 'عنوان المقال قصير جداً (٨ أحرف على الأقل)' });
+      return res.status(400).json({ error: 'عنوان المقال قصير جداً (8 أحرف على الأقل)' });
     }
     if (body.length < 120) {
-      return res.status(400).json({ error: 'نص المقال قصير جداً — اكتب شرحاً أوضح (١٢٠ حرفاً على الأقل)' });
+      return res.status(400).json({ error: 'نص المقال قصير جداً — اكتب شرحاً أوضح (120 حرفاً على الأقل)' });
     }
     const pending = db.getCommunityArticles({ userId: req.user.id, status: 'pending' });
     if (pending.length >= 3) {
-      return res.status(400).json({ error: 'عندك ٣ مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
+      return res.status(400).json({ error: 'عندك 3 مقالات بانتظار المراجعة — انتظر الرد قبل إرسال المزيد' });
     }
     db.updateCommunityArticle(req.params.id, {
       userId: req.user.id,
@@ -1770,7 +1770,7 @@ app.post('/api/contact', (req, res) => {
   try {
     const message = String(req.body.message || '').trim();
     if (message.length < 5) {
-      return res.status(400).json({ error: 'اكتب رسالتك بوضوح (٥ أحرف على الأقل)' });
+      return res.status(400).json({ error: 'اكتب رسالتك بوضوح (5 أحرف على الأقل)' });
     }
 
     let userId = null;
@@ -1879,7 +1879,7 @@ app.post('/api/reports', (req, res) => {
       const message = String(req.body.message || '').trim();
       if (message.length < 5) {
         if (req.file) fs.unlink(req.file.path, function () {});
-        return res.status(400).json({ error: 'اكتب وصف المشكلة بوضوح (٥ أحرف على الأقل)' });
+        return res.status(400).json({ error: 'اكتب وصف المشكلة بوضوح (5 أحرف على الأقل)' });
       }
 
       let userId = null;

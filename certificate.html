@@ -91,7 +91,7 @@
 
   <section class="cert-trust no-print" id="certTrustNote">
     <p><strong>ماذا تعني هذه الشهادة؟</strong> إثبات أنك أتممت مسار منصة HCI، ورقمها يُتحقق منه من سجلات المنصة. ليست اعتماداً من هدف أو جامعة أو NCAAA.</p>
-    <p><strong>كيف تصل لاعتراف خارجي؟</strong> ١) اجعل تقييمك هنا حقيقياً (تم). ٢) أرفق أثراً (تقرير واجهة) في ملفك. ٣) اطلب من قسمك خطاب نشاط لا صفّي إن رغبوا. ٤) للشهادة المهنية المدرجة: مسار قوقل في صفحة الدورات أو أي شهادة في قائمة هدف.</p>
+    <p><strong>كيف تصل لاعتراف خارجي؟</strong> 1) اجعل تقييمك هنا حقيقياً (تم). 2) أرفق أثراً (تقرير واجهة) في ملفك. 3) اطلب من قسمك خطاب نشاط لا صفّي إن رغبوا. 4) للشهادة المهنية المدرجة: مسار قوقل في صفحة الدورات أو أي شهادة في قائمة هدف.</p>
     <p><a href="legal.html#privacy">تفاصيل الخطاب القانوني</a></p>
   </section>
 
@@ -99,12 +99,12 @@
     <p class="cert-feedback-kicker">خطوة أخيرة</p>
     <h2>كيف كانت تجربتك معنا؟</h2>
     <p class="cert-feedback-lead">تقييمك يساعدنا نحسّن المنصة — وبعده تفتح شهادتك مباشرة.</p>
-    <div class="cert-stars" id="certStars" role="group" aria-label="التقييم من ١ إلى ٥">
-      <button type="button" class="cert-star" data-rating="1" aria-label="١">★</button>
-      <button type="button" class="cert-star" data-rating="2" aria-label="٢">★</button>
-      <button type="button" class="cert-star" data-rating="3" aria-label="٣">★</button>
-      <button type="button" class="cert-star" data-rating="4" aria-label="٤">★</button>
-      <button type="button" class="cert-star" data-rating="5" aria-label="٥">★</button>
+    <div class="cert-stars" id="certStars" role="group" aria-label="التقييم من 1 إلى 5">
+      <button type="button" class="cert-star" data-rating="1" aria-label="1">★</button>
+      <button type="button" class="cert-star" data-rating="2" aria-label="2">★</button>
+      <button type="button" class="cert-star" data-rating="3" aria-label="3">★</button>
+      <button type="button" class="cert-star" data-rating="4" aria-label="4">★</button>
+      <button type="button" class="cert-star" data-rating="5" aria-label="5">★</button>
     </div>
     <label class="cert-feedback-label" for="certFeedbackComment">ملاحظة اختيارية</label>
     <textarea id="certFeedbackComment" class="cert-feedback-comment" rows="3" maxlength="800" placeholder="وش أعجبك؟ وش نقدر نطوّر؟"></textarea>
@@ -147,7 +147,7 @@
   }
 
   function formatArDate(d) {
-    return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+    return d.toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Riyadh' });
   }
 
   function formatEnDate(d) {

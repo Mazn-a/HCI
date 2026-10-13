@@ -46,7 +46,7 @@
   }
 
   function formatArDate(iso) {
-    try { return new Date(iso).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }); }
+    try { return new Date(iso).toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Riyadh' }); }
     catch (e) { return ''; }
   }
 

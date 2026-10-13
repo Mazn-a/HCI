@@ -121,7 +121,7 @@ function saveNote(store, allowed, id, note) {
   const text = String(note || '').trim().slice(0, 800);
   if (!allowed.has(key)) return { ok: false, error: 'عنصر غير معروف' };
   if (text.length < NOTE_MIN) {
-    return { ok: false, error: 'اكتب جملة أوضح (٤٠ حرفاً على الأقل) عما فهمت أو طبّقت.' };
+    return { ok: false, error: 'اكتب جملة أوضح (40 حرفاً على الأقل) عما فهمت أو طبّقت.' };
   }
   const next = Object.assign({}, store || {});
   next[key] = { note: text, at: new Date().toISOString() };

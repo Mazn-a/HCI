@@ -153,13 +153,29 @@
   }
   .admin-table th{ color:var(--gold); font-size:0.78rem; font-weight:600; }
   .admin-table tr:hover td{ background:rgba(255,255,255,0.02); }
-  .admin-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-  .admin-actions button, .admin-actions a{
-    font-size:0.75rem; padding:6px 12px; border-radius:16px; border:1px solid var(--ink-3);
-    background:none; color:var(--text-hi); cursor:pointer; font-family:var(--font-body);
+  .admin-actions{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:8px;
+    width:100%;
+    max-width:340px;
+    align-items:stretch;
   }
+  .admin-actions button, .admin-actions a{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:100%; min-height:42px; margin:0; padding:8px 10px;
+    border-radius:10px; border:1px solid var(--ink-3);
+    background:transparent; color:var(--text-hi); cursor:pointer;
+    font-family:var(--font-body); font-size:0.84rem; font-weight:600;
+    line-height:1.2; white-space:nowrap; text-align:center; text-decoration:none;
+  }
+  .admin-actions > :last-child:nth-child(odd){ grid-column:1 / -1; }
   .admin-actions .msg-btn{ border-color:var(--line-cyan); color:var(--line-cyan); }
   .admin-actions .del-btn{ border-color:var(--error); color:var(--error); }
+  .del-btn{
+    border:1px solid var(--error); color:var(--error); background:transparent;
+    font-family:var(--font-body); font-weight:600; cursor:pointer; border-radius:10px;
+  }
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100;
     display:none; align-items:center; justify-content:center; padding:20px;
@@ -179,7 +195,15 @@
   }
   .modal textarea{ min-height:120px; resize:vertical; }
   .modal input:focus, .modal textarea:focus{ border-color:var(--gold); }
-  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+  .modal-actions{
+    display:grid; grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:8px; margin-top:8px; align-items:stretch;
+  }
+  .modal-actions > *{
+    width:100%; min-height:44px; margin:0 !important;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  .modal-actions > :last-child:nth-child(odd){ grid-column:1 / -1; }
   .pct-pills{ display:inline-flex; align-items:center; gap:6px; flex-wrap:nowrap; vertical-align:middle; }
   .pct-pill{
     display:inline-flex; align-items:center; justify-content:center;
@@ -214,15 +238,25 @@
   }
   .admin-contact-reply-input:focus{ border-color:var(--gold); }
   .admin-contact-reply-actions{
-    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:8px;
+    align-items:stretch;
+    max-width:420px;
   }
+  .admin-contact-reply-actions > *{
+    width:100%; min-height:44px; margin:0;
+    display:inline-flex; align-items:center; justify-content:center;
+    text-align:center;
+  }
+  .admin-contact-reply-actions > :last-child:nth-child(odd){ grid-column:1 / -1; }
   .admin-contact-reply-actions .btn-primary{
     min-height:44px; padding:10px 18px; font-size:0.9rem;
   }
   .admin-contact-reply-actions .done-contact-btn{
-    font-size:0.8rem; padding:10px 14px; min-height:44px; border-radius:10px;
-    border:1px solid var(--ink-3); background:none; color:var(--text-mid);
-    cursor:pointer; font-family:var(--font-body);
+    font-size:0.84rem; padding:10px 14px; min-height:44px; border-radius:10px;
+    border:1px solid var(--ink-3); background:none; color:var(--text-hi);
+    font-weight:600; cursor:pointer; font-family:var(--font-body);
   }
   .admin-contact-hint{
     margin:10px 0 0; font-size:0.78rem; color:var(--text-mid); line-height:1.5;
@@ -248,7 +282,7 @@
     margin:0 0 12px; font-size:0.8rem; color:var(--text-mid); line-height:1.55;
   }
   .admin-pass-row{
-    display:flex; gap:8px; flex-wrap:wrap; align-items:stretch; margin-bottom:10px;
+    display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:stretch; margin-bottom:10px;
   }
   .admin-pass-row input{
     flex:1 1 140px; margin-bottom:0 !important;
@@ -352,10 +386,11 @@
     }
     .admin-user-card strong{ display:block; margin-bottom:6px; }
     .admin-user-card .meta{ color:var(--text-mid); font-size:0.82rem; line-height:1.65; margin-bottom:10px; }
-    .admin-user-card .admin-actions{ display:flex; gap:8px; }
-    .admin-user-card .admin-actions button{ min-height:40px; flex:1; }
-    .admin-contact-reply-actions .btn-primary{ flex:1; width:100%; }
-    .admin-contact-reply-actions .done-contact-btn{ flex:1; }
+    .admin-pass-row{ grid-template-columns:1fr 1fr; }
+    .admin-pass-row input{ grid-column:1 / -1; }
+    .admin-user-card .admin-actions{ max-width:none; }
+    .admin-user-card .admin-actions button{ min-height:44px; width:100%; }
+    .admin-contact-reply-actions{ max-width:none; }
     .admin-toolbar{ flex-direction:column; align-items:stretch; }
     .admin-search, .admin-filter{ width:100%; font-size:16px; }
     .admin-funnel .label{ font-size:0.72rem; }
@@ -832,9 +867,9 @@
       <p style="font-size:0.8rem; color:var(--text-mid); margin-bottom:6px;">بيانات التقدم (JSON)</p>
       <div class="detail-block" id="detailProgress"></div>
       <div class="modal-actions">
-        <button type="button" class="del-btn" id="detailDelete" style="margin-inline-end:auto;">حذف الحساب</button>
         <button type="button" class="btn-ghost" id="detailClose">إغلاق</button>
         <button type="button" class="btn-primary" id="detailSaveNotes">حفظ الملاحظات</button>
+        <button type="button" class="del-btn" id="detailDelete">حذف الحساب</button>
       </div>
     </div>
   </div>

@@ -5515,8 +5515,7 @@ body[data-theme="light"] .back-to-top{
 
   .admin-table{ display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .admin-table th, .admin-table td{ white-space: nowrap; padding: 12px 8px; }
-  .admin-actions{ flex-direction: column; }
-  .admin-actions button{ min-height: 40px; width: 100%; }
+  .admin-actions button{ min-height: 44px; }
 
   .lesson{ padding-top: 36px; }
   .lesson-head{ margin-bottom: 36px; }
@@ -5580,8 +5579,8 @@ body[data-theme="light"] .back-to-top{
   .admin-user-card .meta{
     color: var(--text-mid); font-size: 0.82rem; line-height: 1.6; margin-bottom: 10px;
   }
-  .admin-user-card .admin-actions{ flex-direction: row; flex-wrap: wrap; }
-  .admin-user-card .admin-actions button{ width: auto; flex: 1 1 40%; }
+  .admin-user-card .admin-actions{ max-width: none; }
+  .admin-user-card .admin-actions button{ width: 100%; min-height: 44px; }
 }
 
 .visit-when{
